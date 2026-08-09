@@ -34,6 +34,10 @@ parser.add_argument('--cache_file', type=str, default='', help='Override grasp c
 parser.add_argument('--usd', type=str, default='', help='Override hand USD path.')
 parser.add_argument('--num_envs', type=int, default=16384)
 parser.add_argument('--seed', type=int, default=42)
+parser.add_argument(
+    '--max_agent_steps', type=int, default=None,
+    help='Override train.ppo.max_agent_steps (useful when resuming beyond the original training budget).',
+)
 parser.add_argument('--test', action='store_true')
 parser.add_argument(
     '--test_steps', type=int, default=0,
@@ -105,6 +109,10 @@ def _build_full_config(seed: int):
             f"by minibatch_size ({minibatch}). Valid num_envs: {', '.join(str(i) for i in range(min_envs, 20000, min_envs))}..."
         )
     train_cfg.ppo.num_actors = args.num_envs
+    if args.max_agent_steps is not None:
+        if args.max_agent_steps <= 0:
+            raise ValueError('--max_agent_steps must be positive')
+        train_cfg.ppo.max_agent_steps = args.max_agent_steps
     train_cfg.ppo.priv_info = True
     train_cfg.ppo.proprio_adapt = args.algo == 'ProprioAdapt'
 
