@@ -336,7 +336,7 @@ class PPO(object):
         if self.normalize_input:
             self.running_mean_std.load_state_dict(checkpoint['running_mean_std'])
 
-    def test(self, max_steps: int = 0):
+    def test(self, max_steps: int = 0, real_time: bool = False):
         """Evaluate a checkpoint at the gravity configured by train.py.
 
         ``max_steps=0`` retains interactive/infinite play.  A positive value
@@ -350,7 +350,9 @@ class PPO(object):
         height_reset_count = 0.0
         timeout_count = 0.0
         tilt_sum = 0.0
+        step_dt = float(getattr(self.env, 'step_dt', 0.0))
         while max_steps <= 0 or step < max_steps:
+            step_start = time.time()
             input_dict = {
                 'obs': self.running_mean_std(obs_dict['obs']),
                 'priv_info': obs_dict['priv_info'],
@@ -364,6 +366,9 @@ class PPO(object):
             height_reset_count += self._info_scalar(info, 'height_reset_upper') * self.num_actors
             timeout_count += self._info_scalar(info, 'time_out') * self.num_actors
             tilt_sum += self._info_scalar(info, 'cylinder_tilt_deg')
+            sleep_time = step_dt - (time.time() - step_start)
+            if real_time and sleep_time > 0:
+                time.sleep(sleep_time)
 
         if max_steps > 0:
             transitions = max_steps * self.num_actors

@@ -43,3 +43,16 @@ ppo:
   full_gravity_tolerance: 0.02
   full_gravity_max_reset_rate: 0.003
   full_gravity_eval_epochs: 25
+
+# Stage2 / ProprioAdapt supervised distillation.
+stage2:
+  learning_rate: 3e-4
+  latent_loss_coef: 1.0
+  action_loss_coef: 0.25
+  grad_norm: 1.0
+  teacher_warmup_steps: 10000000
+  teacher_mix_steps: 40000000
+  best_after_steps: 50000000
+  best_min_episodes: 4096
+  save_interval_steps: 25000000
+  log_interval: 20

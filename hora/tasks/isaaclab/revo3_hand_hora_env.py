@@ -57,7 +57,7 @@ class Revo3HandHoraEnv(DirectRLEnv):
       - the sampled grasp-cache row is the per-environment posture reference
       - PD gains per-joint-type from cfg.pgain_dict/dgain_dict, not read from URDF/USD
       - torque/work penalty uses self.torques (our explicit PD command), not PhysX applied_torque
-      - Stage2: enable_contact_in_obs=False zeros contacts in actor obs; proprio_hist retains real contacts
+      - tactile Stage2 keeps real five-channel contacts in actor obs and proprio_hist
     """
     cfg: Revo3HandHoraEnvCfg
 
@@ -110,9 +110,18 @@ class Revo3HandHoraEnv(DirectRLEnv):
         self.rb_forces = torch.zeros((self.num_envs, 3), dtype=torch.float, device=self.device)
 
         # buffers for data
-        self.obs_buf_lag_history = torch.zeros((self.num_envs, 80, self.cfg.observation_space//3), device=self.device, dtype=torch.float)
+        # The actor needs 3 frames and ProprioAdapt needs prop_hist_len frames.
+        # A ring buffer avoids cloning/cat-ing a legacy 80-frame tensor every step.
+        self._obs_history_len = max(3, int(self.cfg.prop_hist_len))
+        self._obs_history_index = -1
+        self.obs_buf_lag_history = torch.zeros(
+            (self.num_envs, self._obs_history_len, self.cfg.observation_space // 3),
+            device=self.device,
+            dtype=torch.float,
+        )
+        self._obs_history_offsets = torch.arange(self._obs_history_len, device=self.device)
         self.at_reset_buf = torch.ones(self.num_envs, device=self.device, dtype=torch.long)
-        self.proprio_hist_buf = torch.zeros((self.num_envs, self.cfg.prop_hist_len, self.cfg.observation_space//3), device=self.device, dtype=torch.float)
+        self.proprio_hist_buf = self.obs_buf_lag_history[:, -self.cfg.prop_hist_len:]
         self.priv_info_buf = torch.zeros((self.num_envs, self.cfg.priv_info_dim), device=self.device, dtype=torch.float)
 
         # list of actuated joints
@@ -274,7 +283,9 @@ class Revo3HandHoraEnv(DirectRLEnv):
         return {
             "obs":          obs,
             "priv_info":    self.priv_info_buf.clone(),
-            "proprio_hist": self.proprio_hist_buf.clone(),
+            # compute_observations creates a fresh chronological tensor, so a
+            # second ~90 MB clone is unnecessary at 16k environments.
+            "proprio_hist": self.proprio_hist_buf,
         }
 
     def _get_rewards(self) -> torch.Tensor:
@@ -501,7 +512,6 @@ class Revo3HandHoraEnv(DirectRLEnv):
 
         # reset data buffers
         self.last_contacts[env_ids] = 0
-        self.proprio_hist_buf[env_ids] = 0
         self.at_reset_buf[env_ids] = 1
 
     def _refresh_lab(self):
@@ -569,19 +579,21 @@ class Revo3HandHoraEnv(DirectRLEnv):
 
         if not self.cfg.enable_tactile:
             sensed_contacts[:] = 0.0
+        self.extras['tactile/force_mean_n'] = sensed_contacts.mean()
+        self.extras['tactile/force_max_n'] = sensed_contacts.max()
+        self.extras['tactile/contact_rate'] = (sensed_contacts > self.cfg.contact_threshold).float().mean()
 
-        # deal with normal observation, do sliding window
-        prev_obs_buf = self.obs_buf_lag_history[:, 1:].clone()
+        # Build the current frame and append it to a chronological ring buffer.
         joint_noise_matrix = (torch.rand(self.hand_dof_pos.shape, device=self.device) * 2.0 - 1.0) * self.cfg.joint_noise_scale
         cur_obs_buf = unscale(
             joint_noise_matrix + self.hand_dof_pos, 
             self.hand_dof_lower_limits, 
             self.hand_dof_upper_limits
-        ).clone().unsqueeze(1)
+        ).unsqueeze(1)
         cur_tar_buf = self.cur_targets[:, None]
-        cur_obs_buf = torch.cat([cur_obs_buf, cur_tar_buf], dim=-1)
-        cur_obs_buf = torch.cat([cur_obs_buf, sensed_contacts.clone().unsqueeze(1)], dim=-1)
-        self.obs_buf_lag_history[:] = torch.cat([prev_obs_buf, cur_obs_buf], dim=1)
+        cur_frame = torch.cat([cur_obs_buf, cur_tar_buf, sensed_contacts.unsqueeze(1)], dim=-1).squeeze(1)
+        self._obs_history_index = (self._obs_history_index + 1) % self._obs_history_len
+        self.obs_buf_lag_history[:, self._obs_history_index] = cur_frame
 
         # refill the initialized buffers
         at_reset_env_ids = self.at_reset_buf.nonzero(as_tuple=False).squeeze(-1)
@@ -594,15 +606,18 @@ class Revo3HandHoraEnv(DirectRLEnv):
         self.obs_buf_lag_history[at_reset_env_ids, :, ndof:ndof*2] = self.hand_dof_pos[at_reset_env_ids].unsqueeze(1)
         self.obs_buf_lag_history[at_reset_env_ids, :, ndof*2:ndof*2+5] = sensed_contacts[at_reset_env_ids].unsqueeze(1)
         self.at_reset_buf[at_reset_env_ids] = 0
-        obs_buf = (self.obs_buf_lag_history[:, -3:].reshape(self.num_envs, -1)).clone()
+        history_indices = (self._obs_history_offsets + self._obs_history_index + 1) % self._obs_history_len
+        chronological_history = self.obs_buf_lag_history.index_select(1, history_indices)
+        obs_buf = chronological_history[:, -3:].reshape(self.num_envs, -1)
 
-        # Stage2: zero contacts in actor obs, proprio_hist retains real contact history
+        # Optional ablation/no-tactile mode. Tactile Stage2 keeps this enabled.
         if not self.cfg.enable_contact_in_obs:
+            obs_buf = obs_buf.clone()
             obs_single = ndof * 2 + 5
             for f in range(3):
                 obs_buf[:, f * obs_single + ndof * 2:f * obs_single + ndof * 2 + 5] = 0.0
 
-        self.proprio_hist_buf[:] = self.obs_buf_lag_history[:, -self.cfg.prop_hist_len:].clone()
+        self.proprio_hist_buf = chronological_history[:, -self.cfg.prop_hist_len:]
         self.priv_info_buf[:, 0:3] = self.object_pos - self.object_default_pose[:, :3]
         cylinder_axis_world = rotate_axis_by_quat(self.rot_axis, self.object_rot)
         self.priv_info_buf[:, 8] = self._gravity_magnitude

@@ -1,0 +1,1096 @@
+diff --git a/README.md b/README.md
+index 1746c32..3fa0c48 100644
+--- a/README.md
++++ b/README.md
+@@ -122,12 +122,16 @@ scripts/train_s1.sh run_cylinder_v2 --task cylinder --num_envs 4096 --headless
+ scripts/train_s2.sh outputs/revo3_right/run_ball/stage1_nn/best.pth --task ball --num_envs 16384 --headless
+ scripts/train_s2.sh outputs/revo3_right/run_cylinder/stage1_nn/best.pth --task cylinder --num_envs 16384 --headless
+ 
++# 当前 cylinder 续训结果进入 Stage 2；输出写入同一 run 的 stage2_nn/ 和 stage2_tb/
++scripts/train_s2.sh outputs/revo3_right/run_cylinder_v2_continue/stage1_nn/last.pth \
++  --task cylinder --num_envs 16384 --headless
++
+ # 追加 --force_overwrite 覆盖已有输出
+ ```
+ 
+ 旧 Stage1 checkpoint 的 critic/env_mlp 输入是 8 维，不能续训或评测当前 18 维网络；需要从头训练。若在旧输出目录启动全新训练，原 `best.pth` 会先备份为 `best.pre_retrain_<时间>.pth`，避免被误当作新的满重力模型。
+ 
+-Stage 2 默认冻结 Stage 1 actor/env_mlp，只训练 `adapt_tconv`。训练损失是 latent 蒸馏：用 `proprio_hist` 预测 `env_mlp(priv_info)` 的 8 维隐变量；环境交互使用 student 当前输出。Stage2 的 actor `obs` 中触觉置零，`proprio_hist` 在仿真训练中保留真实触觉历史。
++Stage 2 冻结 Stage 1 actor/env_mlp，只训练 `adapt_tconv`。训练同时约束 latent MSE 和 teacher/student action MSE；rollout 先由 teacher 引导，再线性切换到 student。Stage1、Stage2 与实机部署的 actor `obs` 和 `proprio_hist` 均保留同顺序、同单位的 5 路指尖触觉。
+ 
+ ### 断点续训
+ 
+@@ -136,7 +140,7 @@ Stage 2 默认冻结 Stage 1 actor/env_mlp，只训练 `adapt_tconv`。训练损
+ scripts/train_s1.sh --task ball --num_envs 16384 --headless \
+   --checkpoint outputs/revo3_right/run_ball/stage1_nn/last.pth
+ 
+-# ball: Stage 2 续训 → outputs/revo3_right/run2_continue/
++# ball: Stage 2 续训 → 保持在原 run_ball/stage2_nn/
+ scripts/train_s2.sh outputs/revo3_right/run_ball/stage2_nn/model_last.ckpt \
+   --task ball --num_envs 16384 --headless
+ 
+@@ -172,6 +176,15 @@ scripts/train_s2.sh outputs/revo3_right/run_cylinder/stage2_nn/model_last.ckpt \
+   --task cylinder --algo PPO --num_envs 256 --headless --test --test_steps 400 \
+   --checkpoint outputs/revo3_right/run_cylinder_v2/stage1_nn/best.pth
+ 
++# cylinder: 单环境、实时节拍、三分之四近景，自动录制 10 秒 MP4
++~/IsaacLab/isaaclab.sh -p train.py \
++  --task cylinder --algo PPO --num_envs 1 --test --real-time --video \
++  --video_seconds 10 \
++  --camera_eye 0.55 -0.55 1.85 --camera_lookat 0 0 1.50 \
++  --checkpoint outputs/revo3_right/run_cylinder_v2_continue/stage1_nn/last.pth
++
++# MP4 默认写入 outputs/revo3_right/videos/；无界面录制可额外传 --headless。
++
+ # cylinder: Stage 2 policy
+ ~/IsaacLab/isaaclab.sh -p train.py \
+   --task cylinder --algo ProprioAdapt --num_envs 32 --test \
+diff --git a/RL.md b/RL.md
+index 0cf4a2c..8730c2c 100644
+--- a/RL.md
++++ b/RL.md
+@@ -38,15 +38,15 @@
+ 
+ - **目标**: 让 `adapt_tconv` 从 30 帧本体历史 (proprio_hist) 中估计出 `env_mlp(priv_info)` 的 8 维隐变量，部署时不再需要 priv_info
+ - **网络**: ProprioAdaptTConv: channel_transform(47→32→32) → Conv1d(32,32,9,2)→Conv1d(32,32,5,1)→Conv1d(32,32,5,1) → flatten(96) → Linear(96,8) → tanh
+-- **损失**: `MSE(adapt_tconv(proprio_hist).tanh(), env_mlp(priv_info).tanh().detach())`
++- **损失**: latent MSE + teacher/student action MSE；action loss 让 latent 误差按其策略影响参与优化
+ - **可训练**: 仅 adapt_tconv 参数 (lr=3e-4 Adam), 其余全部冻结
+ - **训练方式**: 在线 (每步一次 forward+backward, 无需 experience buffer)
+-- **Rollout**: 训练时直接使用 student 当前输出 `mu` 与环境交互
++- **Rollout**: 前 10M transitions 使用 teacher，随后 40M transitions 线性切换到纯 student
+ - **加载**: 从 Stage1 checkpoint strict=False 暖启动
+ - **训练上限**: 300M agent steps
+-- **Stage2 触觉策略**: `enable_contact_in_obs=False` — actor 观测中接触力置零，但 adapt_tconv 的 proprio_hist 保留真实接触历史以辅助蒸馏
++- **Stage2 触觉策略**: `enable_contact_in_obs=True` — actor 与 adapt_tconv 历史均使用真实 5 路指尖触觉
+ - **部署输入**: Stage2 ONNX 不接收 `priv_info`。`priv_info` 只在训练时通过冻结的 `env_mlp(priv_info)` 生成 teacher latent target；部署时由 `adapt_tconv(proprio_hist)` 替代。
+-- **观测 ABI**: Stage2 仍保留 Stage1 actor 的 `obs(141)` 输入维度，不裁掉触觉维度。无触觉实机部署时，`obs` 和 `proprio_hist` 中的接触力字段按规则填 0。
++- **观测 ABI**: Stage2 保留 Stage1 actor 的 `obs(141)` 输入维度；实机必须提供同顺序、同单位、同采样率的触觉字段。
+ 
+ ### 训练配置 (YAML)
+ 
+@@ -62,6 +62,16 @@ ppo:
+   entropy_coef: 0.0      bounds_loss_coef: 0.0001
+   max_agent_steps: 300M
+   reward_scale: 0.01
++stage2:
++  learning_rate: 3e-4
++  latent_loss_coef: 1.0
++  action_loss_coef: 0.25
++  teacher_warmup_steps: 10M
++  teacher_mix_steps: 40M
++  best_after_steps: 50M
++  best_min_episodes: 4096
++  save_interval_steps: 25M
++  log_interval: 20
+ ```
+ 
+ ### 检查点
+@@ -178,7 +188,7 @@ Stage2 / ProprioAdapt 部署约定:
+ 
+ - `obs` 仍是 141 维，即 3×47，不删除触觉维度
+ - `obs` 帧顺序为 `[t-2, t-1, t]`，按时间顺序展平
+-- `obs` 中三段接触力必须置零: `[42:47]`, `[89:94]`, `[136:141]`
++- `obs` 中三段接触力必须填入实测值: `[42:47]`, `[89:94]`, `[136:141]`
+ - `priv_info` 不拼入 `obs`，也不是 Stage2 ONNX 输入
+ 
+ ### 特权信息 priv_info (18 维)
+@@ -205,7 +215,7 @@ Stage2 / ProprioAdapt 部署约定:
+ - 形状为 `[B,30,47]`
+ - 帧顺序为 oldest → newest，最后一帧对应当前策略时刻 `t`
+ - 每帧布局同单帧观测: `[joint_pos_unscaled(21), cur_targets(21), contact_forces(5)]`
+-- 仿真训练时 `proprio_hist` 保留真实接触历史；实机无触觉传感器时，每帧 `[42:47]` 填 0
++- 仿真和实机的 `proprio_hist` 每帧 `[42:47]` 均填入真实触觉值
+ 
+ ### 接触传感器配置
+ 
+@@ -216,13 +226,13 @@ Stage2 / ProprioAdapt 部署约定:
+ - 合力: 每个策略步从 `force_matrix_w` 读取一次当前“指尖—目标物体”过滤后合力并取模，频率 20Hz、周期 0.05s；不使用 1s 训练窗口
+ - 延迟: 默认 `contact_latency=0`，每个策略步都更新；需要做 sim2real 延迟随机化时可单独调高
+ - `enable_tactile=True`: 接触力写入观测
+-- `enable_contact_in_obs=True` (Stage1) / `False` (Stage2): Stage2 时 actor 观测接触力置零, adapt_tconv 的 proprio_hist 保留真实接触历史
++- `enable_contact_in_obs=True` (Stage1/Stage2): actor 和 adapt_tconv 历史都保留真实触觉
+ - `binary_contact=False`: 使用连续力值 (非二值)
+ - `enable_contact_pos=False`: 接触位置不写入观测 (置零)
+ 
+ 观测中的 5 维接触力 = `[thumb_force, index_force, middle_force, ring_force, pinky_force]`。
+ 
+-**Sim2real**: 仿真通过 PhysX 接触求解获取接触力, 真机无触觉传感器。Stage2 保持 141 维 `obs` ABI 不变，但 actor obs 的接触力字段在训练和部署中均置零；`proprio_hist` 在仿真 Stage2 训练中保留真实接触历史，实机部署时将每帧接触力字段填 0。
++**Sim2real**: 仿真通过 PhysX 接触求解获取接触力，实机通过 5 路指尖触觉提供对应合力。部署前需要统一指尖顺序、牛顿单位、量程、偏置、采样周期和延迟，并用实机标定数据验证触觉分布。
+ 
+ ---
+ 
+@@ -366,17 +376,17 @@ python tools/export_onnx.py --checkpoint <stage2.ckpt> --output policy.onnx
+ - 无 `priv_info` 输入；`priv_info` 只在 Stage2 训练时用于生成 teacher latent target
+ - 归一化 (`running_mean_std`, `sa_mean_std`) 烘焙进 ONNX 图，部署侧输入原始观测，不要额外归一化
+ - 动态 batch 维度
+-- 同时输出 `.deploy_meta.yaml`，包含 IO 形状、关节顺序、动作语义、`obs` / `proprio_hist` 构造规则、无触觉填零 slice
++- 同时输出 `.deploy_meta.yaml`，包含 IO 形状、关节顺序、动作语义及触觉 `obs` / `proprio_hist` 构造规则
+ 
+ 单帧观测布局:
+ 
+-| 偏移 | 维度 | 内容 | 实机无触觉 |
++| 偏移 | 维度 | 内容 | 实机输入 |
+ |---|---:|---|---|
+ | 0-20 | 21 | `joint_pos_unscaled` | 使用关节限位公式构造 |
+ | 21-41 | 21 | `cur_targets` | delta 叠加并 clamp 后的位置目标 |
+-| 42-46 | 5 | DIP 接触力 | 填 0 |
++| 42-46 | 5 | DIP 接触力 | 5 路标定后的实测合力 |
+ 
+-`obs` 是 3 帧展平，Stage2 部署时置零 slice: `[42:47]`, `[89:94]`, `[136:141]`。`proprio_hist` 是 30 帧原始历史，实机无触觉时每帧 `[42:47]` 填 0。
++`obs` 是 3 帧展平，触觉 slice 为 `[42:47]`, `[89:94]`, `[136:141]`。`proprio_hist` 是 30 帧原始历史，每帧 `[42:47]` 使用相同的 5 路触觉。
+ 
+ ### 动作序列导出 (tools/dump_runtime_actions.py)
+ 
+diff --git a/configs/train/Revo3HandHora.yaml b/configs/train/Revo3HandHora.yaml
+index 3fa2093..928e2a5 100644
+--- a/configs/train/Revo3HandHora.yaml
++++ b/configs/train/Revo3HandHora.yaml
+@@ -43,3 +43,16 @@ ppo:
+   full_gravity_tolerance: 0.02
+   full_gravity_max_reset_rate: 0.003
+   full_gravity_eval_epochs: 25
++
++# Stage2 / ProprioAdapt supervised distillation.
++stage2:
++  learning_rate: 3e-4
++  latent_loss_coef: 1.0
++  action_loss_coef: 0.25
++  grad_norm: 1.0
++  teacher_warmup_steps: 10000000
++  teacher_mix_steps: 40000000
++  best_after_steps: 50000000
++  best_min_episodes: 4096
++  save_interval_steps: 25000000
++  log_interval: 20
+diff --git a/hora/algo/padapt/padapt.py b/hora/algo/padapt/padapt.py
+index 83f0d43..619a358 100644
+--- a/hora/algo/padapt/padapt.py
++++ b/hora/algo/padapt/padapt.py
+@@ -1,8 +1,8 @@
+ """ProprioAdapt Stage2 student distillation.
+ 
+-Freezes all Stage1 weights except adapt_tconv. Online training: one forward+backward
+-  per env step. MSE loss between adapt_tconv(proprio_hist).tanh() and frozen
+-  env_mlp(priv_info).tanh().detach().
++Freezes all Stage1 weights except adapt_tconv. Online training combines latent
++  MSE with teacher/student action MSE. Rollout starts under the privileged
++  teacher and linearly hands control to the tactile-history student.
+ 
+ Checkpoint: .ckpt extension. Warm-start from Stage1 .pth via strict=False.
+   Full resume supports optimizer/agent_steps/best_rewards/rms/sa_ms.
+@@ -14,6 +14,7 @@ import os
+ import time
+ import math
+ import torch
++import torch.nn.functional as F
+ from termcolor import cprint
+ 
+ from hora.utils.misc import AverageScalarMeter, tprint
+@@ -27,6 +28,8 @@ class ProprioAdapt(object):
+         self.device = full_config['rl_device']
+         self.network_config = full_config.train.network
+         self.ppo_config = full_config.train.ppo
++        self.stage2_config = full_config.train.get('stage2', {})
++        self.source_checkpoint = str(full_config.train.load_path)
+         # ---- build environment ----
+         self.env = env
+         self.num_actors = self.ppo_config['num_actors']
+@@ -40,6 +43,10 @@ class ProprioAdapt(object):
+         self.proprio_adapt = self.ppo_config['proprio_adapt']
+         self.proprio_hist_dim = self.env.prop_hist_len
+         self.obs_per_step = self.obs_shape[0] // 3
++        if not bool(getattr(self.env.cfg, 'enable_tactile', False)):
++            raise RuntimeError('Tactile Stage2 requires env.enable_tactile=True')
++        if not bool(getattr(self.env.cfg, 'enable_contact_in_obs', False)):
++            raise RuntimeError('Tactile Stage2 requires contact forces in actor observations')
+         # ---- Model ----
+         net_config = {
+             'actor_units': self.network_config.mlp.units,
+@@ -71,22 +78,42 @@ class ProprioAdapt(object):
+         self.batch_size = self.num_actors
+         self.mean_eps_reward = AverageScalarMeter(window_size=20000)
+         self.best_rewards = -10000
++        self.best_latent_loss = float('inf')
++        self.completed_episodes = 0
+         self.agent_steps = 0
+         self.max_agent_steps = self.ppo_config['max_agent_steps']
+-        self.save_interval_steps = 50_000_000
++        self.save_interval_steps = int(self.stage2_config.get('save_interval_steps', 25_000_000))
+         self.next_save_step = self.save_interval_steps
++        self.log_interval = max(1, int(self.stage2_config.get('log_interval', 20)))
++        self.best_after_steps = int(self.stage2_config.get('best_after_steps', 50_000_000))
++        self.best_min_episodes = int(self.stage2_config.get('best_min_episodes', 4096))
++        self.teacher_warmup_steps = int(self.stage2_config.get('teacher_warmup_steps', 10_000_000))
++        self.teacher_mix_steps = int(self.stage2_config.get('teacher_mix_steps', 40_000_000))
++        self.latent_loss_coef = float(self.stage2_config.get('latent_loss_coef', 1.0))
++        self.action_loss_coef = float(self.stage2_config.get('action_loss_coef', 0.25))
++        self.grad_norm = float(self.stage2_config.get('grad_norm', 1.0))
++        if self.save_interval_steps <= 0:
++            raise ValueError('stage2.save_interval_steps must be positive')
++        if not 1 <= self.best_min_episodes <= self.mean_eps_reward.window_size:
++            raise ValueError('stage2.best_min_episodes must fit the reward-meter window')
++        if min(self.teacher_warmup_steps, self.teacher_mix_steps, self.best_after_steps) < 0:
++            raise ValueError('Stage2 schedule steps must be non-negative')
++        if min(self.latent_loss_coef, self.action_loss_coef) < 0:
++            raise ValueError('Stage2 loss coefficients must be non-negative')
++        if self.grad_norm <= 0:
++            raise ValueError('stage2.grad_norm must be positive')
+         # ---- Optim ----
+-        adapt_params = []
+-        for name, p in self.model.named_parameters():
+-            if 'adapt_tconv' in name:
+-                adapt_params.append(p)
+-            else:
+-                p.requires_grad = False
+-        self.optim = torch.optim.Adam(adapt_params, lr=3e-4)
++        for p in self.model.parameters():
++            p.requires_grad = False
++        adapt_params = list(self.model.adapt_tconv.parameters())
++        if not adapt_params:
++            raise RuntimeError('Stage2 has no adapt_tconv parameters to optimize')
++        for p in adapt_params:
++            p.requires_grad = True
++        learning_rate = float(self.stage2_config.get('learning_rate', 3e-4))
++        self.optim = torch.optim.Adam(adapt_params, lr=learning_rate)
+         # ---- Training Misc
+         self.internal_counter = 0
+-        self.latent_loss_stat = 0
+-        self.loss_stat_cnt = 0
+         batch_size = self.num_actors
+         self.step_reward = torch.zeros(batch_size, dtype=torch.float32, device=self.device)
+         self.step_length = torch.zeros(batch_size, dtype=torch.float32, device=self.device)
+@@ -96,12 +123,17 @@ class ProprioAdapt(object):
+         self.running_mean_std.eval()
+         self.sa_mean_std.eval()
+ 
+-    def test(self, max_steps: int = 0):
++    def test(self, max_steps: int = 0, real_time: bool = False):
+         self.set_eval()
+         obs_dict = self.env.reset()
+         step = 0
+         reward_sum = 0.0
++        height_reset_count = 0.0
++        timeout_count = 0.0
++        tilt_sum = 0.0
++        step_dt = float(getattr(self.env, 'step_dt', 0.0))
+         while max_steps <= 0 or step < max_steps:
++            step_start = time.time()
+             input_dict = {
+                 'obs': self.running_mean_std(obs_dict['obs']),
+                 'proprio_hist': self.sa_mean_std(obs_dict['proprio_hist'].detach()),
+@@ -110,18 +142,89 @@ class ProprioAdapt(object):
+             mu = torch.clamp(mu, -1.0, 1.0)
+             obs_dict, r, done, info = self.env.step(mu)
+             reward_sum += float(r.mean().item())
++            height_reset_count += self._info_scalar(info, 'height_reset_lower') * self.num_actors
++            height_reset_count += self._info_scalar(info, 'height_reset_upper') * self.num_actors
++            timeout_count += self._info_scalar(info, 'time_out') * self.num_actors
++            tilt_sum += self._info_scalar(info, 'cylinder_tilt_deg')
+             step += 1
++            sleep_time = step_dt - (time.time() - step_start)
++            if real_time and sleep_time > 0:
++                time.sleep(sleep_time)
+         if max_steps > 0:
++            transitions = max_steps * self.num_actors
+             print(
+-                f"[FULL-GRAVITY EVAL] policy_steps={max_steps} "
+-                f"mean_reward={reward_sum / max_steps:.6f}",
++                "[FULL-GRAVITY EVAL]\n"
++                f"  policy steps  : {max_steps}\n"
++                f"  transitions   : {transitions}\n"
++                f"  mean reward   : {reward_sum / max_steps:.6f}\n"
++                f"  mean tilt     : {tilt_sum / max_steps:.3f} deg\n"
++                f"  height resets : {height_reset_count:.0f} "
++                f"({height_reset_count / transitions:.6%}/step)\n"
++                f"  timeouts      : {timeout_count:.0f}",
+                 flush=True,
+             )
+ 
++    @staticmethod
++    def _info_scalar(info: dict, key: str) -> float:
++        value = info.get(key, 0.0)
++        if isinstance(value, torch.Tensor):
++            return float(value.float().mean().item())
++        return float(value)
++
++    def _teacher_ratio(self) -> float:
++        """Linearly hand rollout control from the privileged teacher to the student."""
++        if self.agent_steps < self.teacher_warmup_steps:
++            return 1.0
++        if self.teacher_mix_steps <= 0:
++            return 0.0
++        progress = (self.agent_steps - self.teacher_warmup_steps) / self.teacher_mix_steps
++        return max(0.0, min(1.0, 1.0 - progress))
++
++    def _distillation_step(self, obs_dict):
++        """Optimize the adapter and return detached teacher/student actions and metrics."""
++        obs = self.running_mean_std(obs_dict['obs']).detach()
++        proprio_hist = self.sa_mean_std(obs_dict['proprio_hist'].detach())
++
++        student_latent = torch.tanh(self.model.adapt_tconv(proprio_hist))
++        with torch.no_grad():
++            teacher_latent = torch.tanh(self.model.env_mlp(obs_dict['priv_info']))
++            teacher_features = self.model.actor_mlp(torch.cat([obs, teacher_latent], dim=-1))
++            teacher_mu = self.model.mu(teacher_features)
++
++        # The actor is frozen, but retaining the student-latent input graph lets
++        # action loss weight latent errors by their effect on the policy output.
++        student_features = self.model.actor_mlp(torch.cat([obs, student_latent], dim=-1))
++        student_mu = self.model.mu(student_features)
++        latent_loss = F.mse_loss(student_latent, teacher_latent)
++        action_loss = F.mse_loss(student_mu, teacher_mu)
++        loss = self.latent_loss_coef * latent_loss + self.action_loss_coef * action_loss
++        if not torch.isfinite(loss):
++            raise FloatingPointError(
++                f'Non-finite Stage2 loss: latent={latent_loss.item()}, action={action_loss.item()}'
++            )
++
++        self.optim.zero_grad(set_to_none=True)
++        loss.backward()
++        grad_norm = torch.nn.utils.clip_grad_norm_(self.model.adapt_tconv.parameters(), self.grad_norm)
++        self.optim.step()
++
++        with torch.no_grad():
++            latent_cosine = F.cosine_similarity(student_latent, teacher_latent, dim=-1).mean()
++        metrics = {
++            'stage2/loss_total': loss.detach(),
++            'stage2/loss_latent': latent_loss.detach(),
++            'stage2/loss_action': action_loss.detach(),
++            'stage2/latent_cosine': latent_cosine.detach(),
++            'stage2/grad_norm': torch.as_tensor(grad_norm).detach(),
++        }
++        return student_mu.detach(), teacher_mu.detach(), metrics
++
+     def train(self):
+         _t = time.time()
+         _last_t = time.time()
+-        total_iters = max(1, math.ceil(self.max_agent_steps / self.batch_size))
++        start_agent_steps = self.agent_steps
++        remaining_steps = max(0, self.max_agent_steps - start_agent_steps)
++        total_iters = max(1, math.ceil(remaining_steps / self.batch_size))
+         iter_num = 0
+ 
+         obs_dict = self.env.reset()
+@@ -130,27 +233,14 @@ class ProprioAdapt(object):
+             iter_start_t = time.time()
+ 
+             learn_start_t = time.time()
+-            input_dict = {
+-                'obs': self.running_mean_std(obs_dict['obs']).detach(),
+-                'priv_info': obs_dict['priv_info'],
+-                'proprio_hist': self.sa_mean_std(obs_dict['proprio_hist'].detach()),
+-            }
+-            mu, _, _, e, e_gt = self.model._actor_critic(input_dict)
+-            loss = ((e - e_gt.detach()) ** 2).mean()
+-            self.optim.zero_grad()
+-            loss.backward()
+-            self.optim.step()
++            student_mu, teacher_mu, distill_metrics = self._distillation_step(obs_dict)
+             learn_t = time.time() - learn_start_t
+ 
+-            mu = mu.detach()
++            teacher_ratio = self._teacher_ratio()
++            mu = teacher_ratio * teacher_mu + (1.0 - teacher_ratio) * student_mu
+             mu = torch.clamp(mu, -1.0, 1.0)
+             collect_start_t = time.time()
+             obs_dict, r, done, info = self.env.step(mu)
+-            for k, v in info.items():
+-                if isinstance(v, (int, float)) or (isinstance(v, torch.Tensor) and v.numel() == 1):
+-                    self.direct_info[k] = float(v)
+-            if 'time_outs' in info:
+-                self.direct_info['stage2/timeout_rate'] = float(info['time_outs'].float().mean().detach().cpu().item())
+             collect_t = time.time() - collect_start_t
+             self.agent_steps += self.batch_size
+ 
+@@ -159,12 +249,26 @@ class ProprioAdapt(object):
+             self.step_length += 1
+             done_mask = done.bool().view(-1)
+             self.mean_eps_reward.update(self.step_reward[done_mask])
++            if self.completed_episodes < self.best_min_episodes:
++                self.completed_episodes += int(done_mask.sum().item())
+ 
+             not_dones = (~done_mask).float()
+             self.step_reward = self.step_reward * not_dones
+             self.step_length = self.step_length * not_dones
+ 
+-            self.log_tensorboard()
++            should_log = iter_num % self.log_interval == 0
++            if should_log:
++                for k, v in info.items():
++                    if isinstance(v, (int, float)) or (isinstance(v, torch.Tensor) and v.numel() == 1):
++                        self.direct_info[k] = float(v)
++                if 'time_outs' in info:
++                    self.direct_info['stage2/timeout_rate'] = float(
++                        info['time_outs'].float().mean().detach().cpu().item()
++                    )
++                self.direct_info.update({k: float(v.item()) for k, v in distill_metrics.items()})
++                self.direct_info['stage2/teacher_ratio'] = teacher_ratio
++                self.direct_info['stage2/completed_episodes'] = float(self.completed_episodes)
++                self.log_tensorboard()
+ 
+             if self.agent_steps >= self.next_save_step:
+                 step_m = int(self.agent_steps // 1e6)
+@@ -173,39 +277,70 @@ class ProprioAdapt(object):
+                 self.next_save_step += self.save_interval_steps
+ 
+             mean_rewards = self.mean_eps_reward.get_mean()
+-            if mean_rewards > self.best_rewards:
+-                self.save(os.path.join(self.nn_dir, 'model_best'))
++            best_ready = (
++                self.agent_steps >= self.best_after_steps
++                and self.completed_episodes >= self.best_min_episodes
++                and len(self.mean_eps_reward) >= self.best_min_episodes
++            )
++            if should_log and best_ready and teacher_ratio <= 0.0 and mean_rewards > self.best_rewards:
+                 self.best_rewards = mean_rewards
++                self.save(os.path.join(self.nn_dir, 'model_best'))
++
++            if should_log and best_ready and teacher_ratio <= 0.0:
++                latent_loss_value = float(distill_metrics['stage2/loss_latent'].item())
++                if latent_loss_value < self.best_latent_loss:
++                    self.best_latent_loss = latent_loss_value
++                    self.save(os.path.join(self.nn_dir, 'model_best_latent'))
+ 
+-            all_fps = self.agent_steps / (time.time() - _t)
++            all_fps = (self.agent_steps - start_agent_steps) / (time.time() - _t)
+             last_fps = self.batch_size / (time.time() - _last_t)
+             _last_t = time.time()
+-            info_string = f'Agent Steps: {int(self.agent_steps // 1e6):04}M | FPS: {all_fps:.1f} | ' \
+-                          f'Last FPS: {last_fps:.1f} | ' \
+-                          f'Current Best: {self.best_rewards:.2f}'
+-            tprint(info_string)
+-            print("", flush=True)
+-            self._print_epoch_log(
+-                iter_num=iter_num,
+-                total_iters=total_iters,
+-                collect_t=collect_t,
+-                learn_t=learn_t,
+-                iter_t=time.time() - iter_start_t,
+-                elapsed=time.time() - _t,
+-                mean_rewards=mean_rewards,
+-            )
++            if should_log:
++                info_string = f'Agent Steps: {int(self.agent_steps // 1e6):04}M | FPS: {all_fps:.1f} | ' \
++                              f'Last FPS: {last_fps:.1f} | ' \
++                              f'Current Best: {self.best_rewards:.2f}'
++                tprint(info_string)
++                print("", flush=True)
++                self._print_epoch_log(
++                    iter_num=iter_num,
++                    total_iters=total_iters,
++                    collect_t=collect_t,
++                    learn_t=learn_t,
++                    iter_t=time.time() - iter_start_t,
++                    elapsed=time.time() - _t,
++                    mean_rewards=mean_rewards,
++                )
++
++        self.save(os.path.join(self.nn_dir, 'model_final'))
++        self.save(os.path.join(self.nn_dir, 'model_last'))
++        self.writer.flush()
++        self.writer.close()
++        print(f'[INFO] Stage2 max steps achieved: {self.agent_steps}', flush=True)
+ 
+     def log_tensorboard(self):
+         self.writer.add_scalar('episode_rewards/step', self.mean_eps_reward.get_mean(), self.agent_steps)
+         for k, v in self.direct_info.items():
+             self.writer.add_scalar(f'{k}/frame', v, self.agent_steps)
+ 
++    @staticmethod
++    def _validate_stage2_tactile_abi(checkpoint, fn) -> None:
++        if checkpoint.get('tactile_required') is False:
++            raise RuntimeError(
++                f'Stage2 checkpoint uses the obsolete no-tactile ABI: {fn}'
++            )
++        if 'tactile_required' not in checkpoint:
++            print(
++                f'[WARN] Stage2 checkpoint has no tactile ABI metadata: {fn}',
++                flush=True,
++            )
++
+     def restore_train(self, fn):
+         if not fn:
+             return
+         checkpoint = torch.load(fn, map_location=self.device)
+         is_stage2_ckpt = str(fn).endswith(".ckpt") or ("stage2_nn" in str(fn))
+         if is_stage2_ckpt:
++            self._validate_stage2_tactile_abi(checkpoint, fn)
+             required_keys = ["model", "optimizer", "agent_steps", "best_rewards"]
+             missing = [k for k in required_keys if k not in checkpoint]
+             if missing:
+@@ -217,6 +352,9 @@ class ProprioAdapt(object):
+             self.optim.load_state_dict(checkpoint["optimizer"])
+             self.agent_steps = int(checkpoint["agent_steps"])
+             self.best_rewards = float(checkpoint["best_rewards"])
++            self.best_latent_loss = float(checkpoint.get("best_latent_loss", float('inf')))
++            self.completed_episodes = int(checkpoint.get("completed_episodes", 0))
++            self.source_checkpoint = str(checkpoint.get("source_checkpoint", self.source_checkpoint))
+             self.next_save_step = ((self.agent_steps // self.save_interval_steps) + 1) * self.save_interval_steps
+             if "running_mean_std" in checkpoint:
+                 self.running_mean_std.load_state_dict(checkpoint["running_mean_std"])
+@@ -229,18 +367,37 @@ class ProprioAdapt(object):
+             )
+             return
+ 
+-        cprint('careful, using non-strict matching', 'red', attrs=['bold'])
+-        self.model.load_state_dict(checkpoint['model'], strict=False)
++        cprint('Warm-starting Stage2 adapter from Stage1 checkpoint', 'yellow', attrs=['bold'])
++        incompatible = self.model.load_state_dict(checkpoint['model'], strict=False)
++        expected_missing = {f'adapt_tconv.{name}' for name in self.model.adapt_tconv.state_dict()}
++        actual_missing = set(incompatible.missing_keys)
++        if actual_missing != expected_missing or incompatible.unexpected_keys:
++            raise RuntimeError(
++                'Unexpected Stage1→Stage2 state mismatch: '
++                f'missing={sorted(actual_missing)}, unexpected={incompatible.unexpected_keys}'
++            )
+         if 'running_mean_std' in checkpoint:
+             self.running_mean_std.load_state_dict(checkpoint['running_mean_std'])
+         if 'sa_mean_std' in checkpoint:
+             self.sa_mean_std.load_state_dict(checkpoint['sa_mean_std'])
++        if float(checkpoint.get('gravity_magnitude', 0.0)) < 9.79:
++            print(
++                '[WARN] Stage1 source checkpoint was not saved at full gravity; '
++                'validate it at 9.81 m/s^2 before trusting Stage2.',
++                flush=True,
++            )
++        if float(checkpoint.get('best_rewards', -10000.0)) <= -9999.0:
++            print(
++                '[WARN] Stage1 source checkpoint has no validated full-gravity best reward.',
++                flush=True,
++            )
+         print("[INFO] Warm-start Stage2 from non-resume checkpoint.", flush=True)
+ 
+     def restore_test(self, fn):
+         if not fn:
+             return
+-        checkpoint = torch.load(fn)
++        checkpoint = torch.load(fn, map_location=self.device)
++        self._validate_stage2_tactile_abi(checkpoint, fn)
+         self.running_mean_std.load_state_dict(checkpoint['running_mean_std'])
+         self.model.load_state_dict(checkpoint['model'])
+         self.sa_mean_std.load_state_dict(checkpoint['sa_mean_std'])
+@@ -251,6 +408,13 @@ class ProprioAdapt(object):
+             'optimizer': self.optim.state_dict(),
+             'agent_steps': int(self.agent_steps),
+             'best_rewards': float(self.best_rewards),
++            'best_latent_loss': float(self.best_latent_loss),
++            'completed_episodes': int(self.completed_episodes),
++            'source_checkpoint': self.source_checkpoint,
++            'obs_shape': tuple(self.obs_shape),
++            'proprio_hist_len': int(self.proprio_hist_dim),
++            'priv_info_dim': int(self.priv_info_dim),
++            'tactile_required': bool(getattr(self.env.cfg, 'enable_contact_in_obs', True)),
+         }
+         if self.running_mean_std:
+             weights['running_mean_std'] = self.running_mean_std.state_dict()
+diff --git a/hora/algo/ppo/ppo.py b/hora/algo/ppo/ppo.py
+index 64476e5..40fb603 100644
+--- a/hora/algo/ppo/ppo.py
++++ b/hora/algo/ppo/ppo.py
+@@ -336,7 +336,7 @@ class PPO(object):
+         if self.normalize_input:
+             self.running_mean_std.load_state_dict(checkpoint['running_mean_std'])
+ 
+-    def test(self, max_steps: int = 0):
++    def test(self, max_steps: int = 0, real_time: bool = False):
+         """Evaluate a checkpoint at the gravity configured by train.py.
+ 
+         ``max_steps=0`` retains interactive/infinite play.  A positive value
+@@ -350,7 +350,9 @@ class PPO(object):
+         height_reset_count = 0.0
+         timeout_count = 0.0
+         tilt_sum = 0.0
++        step_dt = float(getattr(self.env, 'step_dt', 0.0))
+         while max_steps <= 0 or step < max_steps:
++            step_start = time.time()
+             input_dict = {
+                 'obs': self.running_mean_std(obs_dict['obs']),
+                 'priv_info': obs_dict['priv_info'],
+@@ -364,6 +366,9 @@ class PPO(object):
+             height_reset_count += self._info_scalar(info, 'height_reset_upper') * self.num_actors
+             timeout_count += self._info_scalar(info, 'time_out') * self.num_actors
+             tilt_sum += self._info_scalar(info, 'cylinder_tilt_deg')
++            sleep_time = step_dt - (time.time() - step_start)
++            if real_time and sleep_time > 0:
++                time.sleep(sleep_time)
+ 
+         if max_steps > 0:
+             transitions = max_steps * self.num_actors
+diff --git a/hora/tasks/isaaclab/hora_compat_wrapper.py b/hora/tasks/isaaclab/hora_compat_wrapper.py
+index 816a4e6..b148eb3 100644
+--- a/hora/tasks/isaaclab/hora_compat_wrapper.py
++++ b/hora/tasks/isaaclab/hora_compat_wrapper.py
+@@ -23,26 +23,31 @@ class HoraCompatWrapper:
+     def __init__(self, env: Revo3HandHoraEnv):
+         self._env = env
+ 
++    @property
++    def _base_env(self) -> Revo3HandHoraEnv:
++        """Return the DirectRLEnv beneath optional Gym rendering wrappers."""
++        return getattr(self._env, "unwrapped", self._env)
++
+     @property
+     def observation_space(self) -> gym.spaces.Box:
+-        obs_dim = self._env.cfg.observation_space
++        obs_dim = self._base_env.cfg.observation_space
+         return gym.spaces.Box(
+             low=-np.inf, high=np.inf, shape=(obs_dim,), dtype=np.float32
+         )
+ 
+     @property
+     def action_space(self) -> gym.spaces.Box:
+-        n = self._env.cfg.action_space
++        n = self._base_env.cfg.action_space
+         return gym.spaces.Box(low=-1.0, high=1.0, shape=(n,), dtype=np.float32)
+ 
+     @property
+     def prop_hist_len(self) -> int:
+         """Return proprio history length used by ProprioAdapt."""
+-        return self._env.cfg.prop_hist_len
++        return self._base_env.cfg.prop_hist_len
+ 
+     @property
+     def num_envs(self) -> int:
+-        return self._env.num_envs
++        return self._base_env.num_envs
+ 
+     def reset(self) -> dict[str, torch.Tensor]:
+         """Reset all envs and return obs_dict only."""
+@@ -55,7 +60,7 @@ class HoraCompatWrapper:
+         """Step env and return old-style (obs_dict, rewards, dones, infos)."""
+         obs_dict, rewards, terminated, truncated, infos = self._env.step(actions)
+         dones = (terminated | truncated).to(torch.uint8)
+-        for k, v in getattr(self._env, "extras", {}).items():
++        for k, v in getattr(self._base_env, "extras", {}).items():
+             if isinstance(v, torch.Tensor):
+                 infos[k] = v.float().mean()
+         infos["time_outs"] = truncated
+@@ -63,4 +68,7 @@ class HoraCompatWrapper:
+ 
+     def __getattr__(self, name: str):
+         """Forward unknown attributes to wrapped env."""
+-        return getattr(self._env, name)
++        try:
++            return getattr(self._env, name)
++        except AttributeError:
++            return getattr(self._base_env, name)
+diff --git a/hora/tasks/isaaclab/revo3_hand_hora_env.py b/hora/tasks/isaaclab/revo3_hand_hora_env.py
+index 8314142..e13453a 100644
+--- a/hora/tasks/isaaclab/revo3_hand_hora_env.py
++++ b/hora/tasks/isaaclab/revo3_hand_hora_env.py
+@@ -57,7 +57,7 @@ class Revo3HandHoraEnv(DirectRLEnv):
+       - the sampled grasp-cache row is the per-environment posture reference
+       - PD gains per-joint-type from cfg.pgain_dict/dgain_dict, not read from URDF/USD
+       - torque/work penalty uses self.torques (our explicit PD command), not PhysX applied_torque
+-      - Stage2: enable_contact_in_obs=False zeros contacts in actor obs; proprio_hist retains real contacts
++      - tactile Stage2 keeps real five-channel contacts in actor obs and proprio_hist
+     """
+     cfg: Revo3HandHoraEnvCfg
+ 
+@@ -110,9 +110,18 @@ class Revo3HandHoraEnv(DirectRLEnv):
+         self.rb_forces = torch.zeros((self.num_envs, 3), dtype=torch.float, device=self.device)
+ 
+         # buffers for data
+-        self.obs_buf_lag_history = torch.zeros((self.num_envs, 80, self.cfg.observation_space//3), device=self.device, dtype=torch.float)
++        # The actor needs 3 frames and ProprioAdapt needs prop_hist_len frames.
++        # A ring buffer avoids cloning/cat-ing a legacy 80-frame tensor every step.
++        self._obs_history_len = max(3, int(self.cfg.prop_hist_len))
++        self._obs_history_index = -1
++        self.obs_buf_lag_history = torch.zeros(
++            (self.num_envs, self._obs_history_len, self.cfg.observation_space // 3),
++            device=self.device,
++            dtype=torch.float,
++        )
++        self._obs_history_offsets = torch.arange(self._obs_history_len, device=self.device)
+         self.at_reset_buf = torch.ones(self.num_envs, device=self.device, dtype=torch.long)
+-        self.proprio_hist_buf = torch.zeros((self.num_envs, self.cfg.prop_hist_len, self.cfg.observation_space//3), device=self.device, dtype=torch.float)
++        self.proprio_hist_buf = self.obs_buf_lag_history[:, -self.cfg.prop_hist_len:]
+         self.priv_info_buf = torch.zeros((self.num_envs, self.cfg.priv_info_dim), device=self.device, dtype=torch.float)
+ 
+         # list of actuated joints
+@@ -274,7 +283,9 @@ class Revo3HandHoraEnv(DirectRLEnv):
+         return {
+             "obs":          obs,
+             "priv_info":    self.priv_info_buf.clone(),
+-            "proprio_hist": self.proprio_hist_buf.clone(),
++            # compute_observations creates a fresh chronological tensor, so a
++            # second ~90 MB clone is unnecessary at 16k environments.
++            "proprio_hist": self.proprio_hist_buf,
+         }
+ 
+     def _get_rewards(self) -> torch.Tensor:
+@@ -501,7 +512,6 @@ class Revo3HandHoraEnv(DirectRLEnv):
+ 
+         # reset data buffers
+         self.last_contacts[env_ids] = 0
+-        self.proprio_hist_buf[env_ids] = 0
+         self.at_reset_buf[env_ids] = 1
+ 
+     def _refresh_lab(self):
+@@ -569,19 +579,21 @@ class Revo3HandHoraEnv(DirectRLEnv):
+ 
+         if not self.cfg.enable_tactile:
+             sensed_contacts[:] = 0.0
++        self.extras['tactile/force_mean_n'] = sensed_contacts.mean()
++        self.extras['tactile/force_max_n'] = sensed_contacts.max()
++        self.extras['tactile/contact_rate'] = (sensed_contacts > self.cfg.contact_threshold).float().mean()
+ 
+-        # deal with normal observation, do sliding window
+-        prev_obs_buf = self.obs_buf_lag_history[:, 1:].clone()
++        # Build the current frame and append it to a chronological ring buffer.
+         joint_noise_matrix = (torch.rand(self.hand_dof_pos.shape, device=self.device) * 2.0 - 1.0) * self.cfg.joint_noise_scale
+         cur_obs_buf = unscale(
+             joint_noise_matrix + self.hand_dof_pos, 
+             self.hand_dof_lower_limits, 
+             self.hand_dof_upper_limits
+-        ).clone().unsqueeze(1)
++        ).unsqueeze(1)
+         cur_tar_buf = self.cur_targets[:, None]
+-        cur_obs_buf = torch.cat([cur_obs_buf, cur_tar_buf], dim=-1)
+-        cur_obs_buf = torch.cat([cur_obs_buf, sensed_contacts.clone().unsqueeze(1)], dim=-1)
+-        self.obs_buf_lag_history[:] = torch.cat([prev_obs_buf, cur_obs_buf], dim=1)
++        cur_frame = torch.cat([cur_obs_buf, cur_tar_buf, sensed_contacts.unsqueeze(1)], dim=-1).squeeze(1)
++        self._obs_history_index = (self._obs_history_index + 1) % self._obs_history_len
++        self.obs_buf_lag_history[:, self._obs_history_index] = cur_frame
+ 
+         # refill the initialized buffers
+         at_reset_env_ids = self.at_reset_buf.nonzero(as_tuple=False).squeeze(-1)
+@@ -594,15 +606,18 @@ class Revo3HandHoraEnv(DirectRLEnv):
+         self.obs_buf_lag_history[at_reset_env_ids, :, ndof:ndof*2] = self.hand_dof_pos[at_reset_env_ids].unsqueeze(1)
+         self.obs_buf_lag_history[at_reset_env_ids, :, ndof*2:ndof*2+5] = sensed_contacts[at_reset_env_ids].unsqueeze(1)
+         self.at_reset_buf[at_reset_env_ids] = 0
+-        obs_buf = (self.obs_buf_lag_history[:, -3:].reshape(self.num_envs, -1)).clone()
++        history_indices = (self._obs_history_offsets + self._obs_history_index + 1) % self._obs_history_len
++        chronological_history = self.obs_buf_lag_history.index_select(1, history_indices)
++        obs_buf = chronological_history[:, -3:].reshape(self.num_envs, -1)
+ 
+-        # Stage2: zero contacts in actor obs, proprio_hist retains real contact history
++        # Optional ablation/no-tactile mode. Tactile Stage2 keeps this enabled.
+         if not self.cfg.enable_contact_in_obs:
++            obs_buf = obs_buf.clone()
+             obs_single = ndof * 2 + 5
+             for f in range(3):
+                 obs_buf[:, f * obs_single + ndof * 2:f * obs_single + ndof * 2 + 5] = 0.0
+ 
+-        self.proprio_hist_buf[:] = self.obs_buf_lag_history[:, -self.cfg.prop_hist_len:].clone()
++        self.proprio_hist_buf = chronological_history[:, -self.cfg.prop_hist_len:]
+         self.priv_info_buf[:, 0:3] = self.object_pos - self.object_default_pose[:, :3]
+         cylinder_axis_world = rotate_axis_by_quat(self.rot_axis, self.object_rot)
+         self.priv_info_buf[:, 8] = self._gravity_magnitude
+diff --git a/hora/tasks/isaaclab/revo3_hand_hora_env_cfg.py b/hora/tasks/isaaclab/revo3_hand_hora_env_cfg.py
+index c1c119b..385a279 100644
+--- a/hora/tasks/isaaclab/revo3_hand_hora_env_cfg.py
++++ b/hora/tasks/isaaclab/revo3_hand_hora_env_cfg.py
+@@ -166,7 +166,7 @@ class Revo3HandHoraEnvCfg(DirectRLEnvCfg):
+ 
+     joint_noise_scale = 0.02
+     enable_tactile = True
+-    enable_contact_in_obs = True   # Stage2 sets False: actor sees zero contact, adapt_tconv retains contact history
++    enable_contact_in_obs = True   # Tactile Stage1/Stage2/deployment share the same contact channels.
+     binary_contact = False
+     enable_contact_pos = False
+     disable_tactile_ids = []
+diff --git a/tools/export_onnx.py b/tools/export_onnx.py
+index 172169e..c906cac 100644
+--- a/tools/export_onnx.py
++++ b/tools/export_onnx.py
+@@ -199,7 +199,7 @@ def _save_deploy_meta(
+         },
+         "deploy_observation_contract": {
+             "important": "Feed raw observations with this layout. Do not apply RunningMeanStd outside the ONNX graph.",
+-            "stage2_summary": "Stage2 keeps the Stage1 actor observation ABI at 141 dims. It removes privileged information by replacing env_mlp(priv_info) with adapt_tconv(proprio_hist), and it handles no-tactile deployment by zero-filling contact force fields.",
++            "stage2_summary": "Stage2 keeps the Stage1 tactile actor observation ABI at 141 dims and replaces env_mlp(priv_info) with adapt_tconv(proprio_hist). Both inputs require the five measured fingertip contact-force channels.",
+             "joint_order": RIGHT_HAND_JOINT_ORDER,
+             "joint_order_source": "Isaac Lab runtime hand.data.joint_names; same order is used by obs, proprio_hist, action, cur_targets, and joint limits.",
+             "dof_count": dof_count,
+@@ -231,7 +231,7 @@ def _save_deploy_meta(
+                     "size": CONTACT_DIM,
+                     "units": "newtons",
+                     "order": ["thumb_DIP", "index_DIP", "middle_DIP", "ring_DIP", "little_DIP"],
+-                    "sim_formula": "norm(contact_force_history[0]) * 0.5 + norm(contact_force_history[1]) * 0.5, with latency simulation",
++                    "sim_formula": "norm(current object-filtered fingertip contact force), sampled once per 20 Hz policy step, with optional latency hold",
+                 },
+             ],
+             "obs": {
+@@ -243,11 +243,11 @@ def _save_deploy_meta(
+                     "For each policy step, build one 47-dim raw frame as joint_pos_unscaled[21] + cur_targets[21] + contact_forces[5].",
+                     "Append the frame to a 3-frame chronological obs window.",
+                     "Flatten the window to 141 dims.",
+-                    "For Stage2 deploy, overwrite every contact_forces slice in the flattened obs with zeros.",
++                    "Preserve all five measured contact-force values in every frame.",
+                 ],
+-                "stage2_contact_rule": "contact_forces slices MUST be zero-filled in obs because Stage2 trained with enable_contact_in_obs=False.",
++                "stage2_contact_rule": "contact_forces are required: Stage1, Stage2, and deployment all use the same tactile channels.",
+                 "privileged_info_rule": "Do not append or provide priv_info to obs. Stage2 ONNX has no priv_info input.",
+-                "zero_contact_slices": [
++                "contact_slices": [
+                     [frame * obs_per_step + contact_start, frame * obs_per_step + contact_end]
+                     for frame in range(int(obs_window))
+                 ],
+@@ -258,14 +258,14 @@ def _save_deploy_meta(
+                 "frame_order": "oldest to newest, ending at current frame t",
+                 "per_frame_layout": "same 47-dim single_frame_layout as above",
+                 "construction_steps": [
+-                    "Maintain a 30-frame chronological history of raw 47-dim frames before obs contact zeroing.",
++                    "Maintain a 30-frame chronological history of raw 47-dim frames.",
+                     "Each history frame uses joint_pos_unscaled[21] + cur_targets[21] + contact_forces[5].",
+-                    "On real hardware without tactile sensing, set contact_forces[42:47] to zeros in every history frame.",
++                    "Populate contact_forces[42:47] from the five real fingertip tactile channels.",
+                 ],
+-                "contact_rule": "Unlike obs, Stage2 training kept real contact history here. Real hardware without tactile sensing should fill these 5 contact values with zeros.",
++                "contact_rule": "Tactile contact values are required and must use the same order, units, calibration, and sampling rate as the actor observation.",
+             },
+             "reset_initialization": {
+-                "history_fill": "On reset, fill all history frames with the current joint_pos_unscaled, current cur_targets, and current contact values before applying Stage2 obs contact zeroing.",
++                "history_fill": "On reset, fill all history frames with the current joint_pos_unscaled, current cur_targets, and current contact values.",
+                 "cur_targets_initial_value": "initial joint position in radians, usually sampled from grasp cache or assets.py init_joint_pos",
+             },
+         },
+@@ -290,6 +290,15 @@ def _shape_list_from_state(state: dict[str, Any], key: str) -> list[int] | None:
+ def _require_stage2_checkpoint(checkpoint: dict[str, Any], ckpt_path: Path) -> None:
+     if not isinstance(checkpoint, dict) or "model" not in checkpoint:
+         raise RuntimeError(f"Expected a Stage2 checkpoint dict with a 'model' key: {ckpt_path}")
++    if checkpoint.get("tactile_required") is False:
++        raise RuntimeError(
++            f"Checkpoint was trained for a no-tactile ABI, but this exporter now targets tactile Stage2: {ckpt_path}"
++        )
++    if "tactile_required" not in checkpoint:
++        print(
++            "[WARN] Checkpoint predates tactile ABI metadata; verify that actor obs and proprio_hist used real contacts.",
++            flush=True,
++        )
+     model_state = checkpoint["model"]
+     if not isinstance(model_state, dict):
+         raise RuntimeError(f"Checkpoint 'model' is not a state_dict: {ckpt_path}")
+diff --git a/train.py b/train.py
+index 54ceaec..f6bac50 100644
+--- a/train.py
++++ b/train.py
+@@ -9,14 +9,15 @@ Cache path: {grasp_cache_path}.npy under cache/. Override with --cache_file.
+ Gotcha — num_envs × horizon_length must be >= minibatch_size and exactly
+   divisible by it.  The current 16-step horizon permits 2048, 4096, ... envs.
+ 
+-Gotcha — Stage2 enable_contact_in_obs=False: actor obs contacts zeroed, but
+-  proprio_hist retains real contact history for adapt_tconv distillation.
++Gotcha — tactile deployment: Stage1, Stage2 actor obs, and Stage2
++  proprio_hist all retain the same five fingertip contact-force channels.
+ """
+ 
+ import argparse
+ import copy
+ import datetime
+ import os
++import subprocess
+ import traceback
+ 
+ os.environ.setdefault("HORA_SKIP_SIM_CLOSE", "1")
+@@ -43,10 +44,34 @@ parser.add_argument(
+     '--test_steps', type=int, default=0,
+     help='Finite full-gravity checkpoint evaluation length in policy steps; 0 keeps interactive play.',
+ )
++parser.add_argument('--video', action='store_true', help='Record one test video from the viewport camera.')
++parser.add_argument(
++    '--video_seconds', type=float, default=10.0,
++    help='Recorded video duration in simulation seconds (default: 10).',
++)
++parser.add_argument(
++    '--video_dir', type=str, default='outputs/revo3_right/videos',
++    help='Directory for recorded MP4 files.',
++)
++parser.add_argument(
++    '--real-time', dest='real_time', action='store_true',
++    help='Pace test playback to the environment control rate when the machine is fast enough.',
++)
++parser.add_argument(
++    '--camera_eye', type=float, nargs=3, metavar=('X', 'Y', 'Z'), default=None,
++    help='Viewport camera position in world coordinates.',
++)
++parser.add_argument(
++    '--camera_lookat', type=float, nargs=3, metavar=('X', 'Y', 'Z'), default=None,
++    help='Viewport camera target in world coordinates.',
++)
+ parser.add_argument('--force_overwrite', action='store_true')
+ AppLauncher.add_app_launcher_args(parser)
+ args = parser.parse_args()
+ 
++if args.video:
++    args.enable_cameras = True
++
+ 
+ def _is_stage2_checkpoint(path: str) -> bool:
+     if not path:
+@@ -57,14 +82,13 @@ def _is_stage2_checkpoint(path: str) -> bool:
+ def _default_output_name() -> str:
+     if args.algo == 'PPO':
+         return 'run1_continue' if args.checkpoint else f'run_{args.task}'
+-    # Stage2: output to Stage1's run dir
+-    if not _is_stage2_checkpoint(args.checkpoint):
+-        return f'run_{args.task}'
+-    # Stage2 resume: output to same directory as checkpoint
+-    return 'run2_continue'
++    # Stage2 warm-start/resume: keep stage1_nn and stage2_nn in one run dir.
++    checkpoint_run_dir = os.path.dirname(os.path.dirname(os.path.abspath(args.checkpoint)))
++    return os.path.basename(checkpoint_run_dir) if checkpoint_run_dir else f'run_{args.task}'
+ 
+ 
+-if not args.test and args.output_name == 'debug':
++_auto_output_name = args.output_name == 'debug'
++if not args.test and _auto_output_name:
+     args.output_name = _default_output_name()
+ 
+ app_launcher = AppLauncher(args)
+@@ -103,7 +127,11 @@ def _build_full_config(seed: int):
+     train_cfg.ppo.output_name = args.output_name
+     minibatch = train_cfg.ppo.minibatch_size
+     min_envs = minibatch // train_cfg.ppo.horizon_length
+-    if not args.test and (args.num_envs < min_envs or (args.num_envs * train_cfg.ppo.horizon_length) % minibatch != 0):
++    if (
++        not args.test
++        and args.algo == 'PPO'
++        and (args.num_envs < min_envs or (args.num_envs * train_cfg.ppo.horizon_length) % minibatch != 0)
++    ):
+         raise ValueError(
+             f"num_envs ({args.num_envs}) must be >= {min_envs} and num_envs*horizon must be divisible "
+             f"by minibatch_size ({minibatch}). Valid num_envs: {', '.join(str(i) for i in range(min_envs, 20000, min_envs))}..."
+@@ -152,9 +180,18 @@ def _build_env_cfg(seed: int):
+ 
+ 
+ def _save_run_metadata(output_dif: str, full_config) -> None:
+-    date = str(datetime.datetime.now().strftime('%m%d%H'))
+-    with open(os.path.join(output_dif, 'gitdiff.patch'), 'w', encoding='utf-8') as f:
+-        f.write('')
++    date = str(datetime.datetime.now().strftime('%m%d_%H%M%S'))
++    with open(os.path.join(output_dif, f'gitdiff_{date}.patch'), 'w', encoding='utf-8') as f:
++        try:
++            result = subprocess.run(
++                ['git', 'diff', '--binary', 'HEAD'],
++                check=True,
++                capture_output=True,
++                text=True,
++            )
++            f.write(result.stdout)
++        except (OSError, subprocess.CalledProcessError) as exc:
++            f.write(f'# Unable to capture git diff: {exc}\n')
+     config_name = f'config_{date}.yaml'
+ 
+     with open(os.path.join(output_dif, config_name), 'w', encoding='utf-8') as f:
+@@ -165,6 +202,11 @@ def _attach_env_runtime_to_config(full_config, env_cfg) -> None:
+     full_config.env_runtime = OmegaConf.create(
+         {
+             'grasp_cache_path': str(env_cfg.grasp_cache_path),
++            'enable_tactile': bool(env_cfg.enable_tactile),
++            'enable_contact_in_obs': bool(env_cfg.enable_contact_in_obs),
++            'contact_order': ['thumb_DIP', 'index_DIP', 'middle_DIP', 'ring_DIP', 'little_DIP'],
++            'policy_dt': float(env_cfg.decimation * env_cfg.sim.dt),
++            'gravity': tuple(float(v) for v in env_cfg.sim.gravity),
+         }
+     )
+ 
+@@ -172,6 +214,10 @@ def _attach_env_runtime_to_config(full_config, env_cfg) -> None:
+ def main():
+     if args.test and not args.checkpoint:
+         raise ValueError('--test requires --checkpoint')
++    if args.video and not args.test:
++        raise ValueError('--video is only supported together with --test')
++    if args.video_seconds <= 0:
++        raise ValueError('--video_seconds must be positive')
+     if args.algo == 'ProprioAdapt' and not args.checkpoint:
+         raise ValueError('ProprioAdapt training requires --checkpoint')
+ 
+@@ -181,22 +227,49 @@ def main():
+ 
+     cprint('Start Building the Environment', 'green', attrs=['bold'])
+     env_cfg = _build_env_cfg(seed)
++    if args.camera_eye is not None:
++        env_cfg.viewer.eye = tuple(args.camera_eye)
++    if args.camera_lookat is not None:
++        env_cfg.viewer.lookat = tuple(args.camera_lookat)
+     if args.algo == 'ProprioAdapt':
+-        env_cfg.enable_contact_in_obs = False  # Stage2: actor sees zero contact, adapt_tconv still sees contact history
++        # Tactile deployment contract: keep the five fingertip-force channels
++        # in both the frozen actor observation and the adaptation history.
++        env_cfg.enable_contact_in_obs = True
+         env_cfg.gravity_curriculum = False     # Stage2: actor frozen from Stage1, must train at full gravity
+         env_cfg.sim.gravity = (0.0, 0.0, -9.81)
+     if args.test:
+         env_cfg.gravity_curriculum = False
+         env_cfg.sim.gravity = (0.0, 0.0, -9.81)  # full gravity for test/play
+-    env = Revo3HandHoraEnv(
++    raw_env = Revo3HandHoraEnv(
+         cfg=env_cfg,
+-        render_mode=None if getattr(args, 'headless', False) else 'human',
++        render_mode='rgb_array' if args.video else (None if getattr(args, 'headless', False) else 'human'),
+     )
+-    env = HoraCompatWrapper(env)
++    video_steps = 0
++    if args.video:
++        import gymnasium as gym
++
++        video_steps = max(1, round(args.video_seconds / raw_env.step_dt))
++        video_dir = os.path.abspath(args.video_dir)
++        os.makedirs(video_dir, exist_ok=True)
++        name_prefix = f'{args.task}_{datetime.datetime.now().strftime("%Y%m%d_%H%M%S")}'
++        raw_env = gym.wrappers.RecordVideo(
++            raw_env,
++            video_folder=video_dir,
++            step_trigger=lambda step: step == 0,
++            video_length=video_steps,
++            name_prefix=name_prefix,
++            disable_logger=True,
++        )
++        print(
++            f'[INFO] Recording {video_steps} policy steps ({args.video_seconds:g} s) to {video_dir}',
++            flush=True,
++        )
++    env = HoraCompatWrapper(raw_env)
+ 
+-    # Output to Stage1's run directory
+-    if args.algo == 'ProprioAdapt' and not _is_stage2_checkpoint(args.checkpoint):
+-        output_dif = os.path.dirname(os.path.dirname(args.checkpoint))
++    # By default Stage2 warm-start and resume stay beside the source checkpoint.
++    # An explicit output name still creates a separate run directory.
++    if args.algo == 'ProprioAdapt' and _auto_output_name:
++        output_dif = os.path.dirname(os.path.dirname(os.path.abspath(args.checkpoint)))
+     else:
+         output_dif = os.path.join('outputs', 'revo3_right', args.output_name)
+     os.makedirs(output_dif, exist_ok=True)
+@@ -206,15 +279,26 @@ def main():
+     agent = _ALGO_MAP[algo_name](env, output_dif, full_config=full_config)
+ 
+     if args.test:
+-        agent.restore_test(full_config.train.load_path)
+-        agent.test(max_steps=args.test_steps)
++        try:
++            agent.restore_test(full_config.train.load_path)
++            agent.test(
++                max_steps=video_steps if args.video else args.test_steps,
++                real_time=args.real_time,
++            )
++        finally:
++            if args.video:
++                env.close()
+     else:
+         best_ckpt_path = os.path.join(
+             output_dif,
+             'stage1_nn' if full_config.train.algo == 'PPO' else 'stage2_nn',
+             'best.pth' if full_config.train.algo == 'PPO' else 'model_best.ckpt',
+         )
+-        if os.path.exists(best_ckpt_path):
++        stage2_resume = (
++            full_config.train.algo == 'ProprioAdapt'
++            and _is_stage2_checkpoint(args.checkpoint)
++        )
++        if os.path.exists(best_ckpt_path) and not stage2_resume:
+             if args.force_overwrite:
+                 print(f"[INFO] --force_overwrite enabled, continue and overwrite in {output_dif}", flush=True)
+             else:
+@@ -232,6 +316,8 @@ def main():
+                 archived_path = best_ckpt_path.replace('.pth', f'.pre_retrain_{timestamp}.pth')
+                 os.replace(best_ckpt_path, archived_path)
+                 print(f"[INFO] Archived stale best checkpoint to: {archived_path}", flush=True)
++        elif stage2_resume:
++            print(f"[INFO] Resuming Stage2 in existing run directory: {output_dif}", flush=True)
+ 
+         _attach_env_runtime_to_config(full_config, env_cfg)
+         _save_run_metadata(output_dif, full_config)

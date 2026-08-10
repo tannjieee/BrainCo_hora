@@ -166,7 +166,7 @@ class Revo3HandHoraEnvCfg(DirectRLEnvCfg):
 
     joint_noise_scale = 0.02
     enable_tactile = True
-    enable_contact_in_obs = True   # Stage2 sets False: actor sees zero contact, adapt_tconv retains contact history
+    enable_contact_in_obs = True   # Tactile Stage1/Stage2/deployment share the same contact channels.
     binary_contact = False
     enable_contact_pos = False
     disable_tactile_ids = []

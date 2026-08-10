@@ -9,14 +9,15 @@ Cache path: {grasp_cache_path}.npy under cache/. Override with --cache_file.
 Gotcha — num_envs × horizon_length must be >= minibatch_size and exactly
   divisible by it.  The current 16-step horizon permits 2048, 4096, ... envs.
 
-Gotcha — Stage2 enable_contact_in_obs=False: actor obs contacts zeroed, but
-  proprio_hist retains real contact history for adapt_tconv distillation.
+Gotcha — tactile deployment: Stage1, Stage2 actor obs, and Stage2
+  proprio_hist all retain the same five fingertip contact-force channels.
 """
 
 import argparse
 import copy
 import datetime
 import os
+import subprocess
 import traceback
 
 os.environ.setdefault("HORA_SKIP_SIM_CLOSE", "1")
@@ -43,9 +44,33 @@ parser.add_argument(
     '--test_steps', type=int, default=0,
     help='Finite full-gravity checkpoint evaluation length in policy steps; 0 keeps interactive play.',
 )
+parser.add_argument('--video', action='store_true', help='Record one test video from the viewport camera.')
+parser.add_argument(
+    '--video_seconds', type=float, default=10.0,
+    help='Recorded video duration in simulation seconds (default: 10).',
+)
+parser.add_argument(
+    '--video_dir', type=str, default='outputs/revo3_right/videos',
+    help='Directory for recorded MP4 files.',
+)
+parser.add_argument(
+    '--real-time', dest='real_time', action='store_true',
+    help='Pace test playback to the environment control rate when the machine is fast enough.',
+)
+parser.add_argument(
+    '--camera_eye', type=float, nargs=3, metavar=('X', 'Y', 'Z'), default=None,
+    help='Viewport camera position in world coordinates.',
+)
+parser.add_argument(
+    '--camera_lookat', type=float, nargs=3, metavar=('X', 'Y', 'Z'), default=None,
+    help='Viewport camera target in world coordinates.',
+)
 parser.add_argument('--force_overwrite', action='store_true')
 AppLauncher.add_app_launcher_args(parser)
 args = parser.parse_args()
+
+if args.video:
+    args.enable_cameras = True
 
 
 def _is_stage2_checkpoint(path: str) -> bool:
@@ -57,14 +82,13 @@ def _is_stage2_checkpoint(path: str) -> bool:
 def _default_output_name() -> str:
     if args.algo == 'PPO':
         return 'run1_continue' if args.checkpoint else f'run_{args.task}'
-    # Stage2: output to Stage1's run dir
-    if not _is_stage2_checkpoint(args.checkpoint):
-        return f'run_{args.task}'
-    # Stage2 resume: output to same directory as checkpoint
-    return 'run2_continue'
+    # Stage2 warm-start/resume: keep stage1_nn and stage2_nn in one run dir.
+    checkpoint_run_dir = os.path.dirname(os.path.dirname(os.path.abspath(args.checkpoint)))
+    return os.path.basename(checkpoint_run_dir) if checkpoint_run_dir else f'run_{args.task}'
 
 
-if not args.test and args.output_name == 'debug':
+_auto_output_name = args.output_name == 'debug'
+if not args.test and _auto_output_name:
     args.output_name = _default_output_name()
 
 app_launcher = AppLauncher(args)
@@ -103,7 +127,11 @@ def _build_full_config(seed: int):
     train_cfg.ppo.output_name = args.output_name
     minibatch = train_cfg.ppo.minibatch_size
     min_envs = minibatch // train_cfg.ppo.horizon_length
-    if not args.test and (args.num_envs < min_envs or (args.num_envs * train_cfg.ppo.horizon_length) % minibatch != 0):
+    if (
+        not args.test
+        and args.algo == 'PPO'
+        and (args.num_envs < min_envs or (args.num_envs * train_cfg.ppo.horizon_length) % minibatch != 0)
+    ):
         raise ValueError(
             f"num_envs ({args.num_envs}) must be >= {min_envs} and num_envs*horizon must be divisible "
             f"by minibatch_size ({minibatch}). Valid num_envs: {', '.join(str(i) for i in range(min_envs, 20000, min_envs))}..."
@@ -152,9 +180,18 @@ def _build_env_cfg(seed: int):
 
 
 def _save_run_metadata(output_dif: str, full_config) -> None:
-    date = str(datetime.datetime.now().strftime('%m%d%H'))
-    with open(os.path.join(output_dif, 'gitdiff.patch'), 'w', encoding='utf-8') as f:
-        f.write('')
+    date = str(datetime.datetime.now().strftime('%m%d_%H%M%S'))
+    with open(os.path.join(output_dif, f'gitdiff_{date}.patch'), 'w', encoding='utf-8') as f:
+        try:
+            result = subprocess.run(
+                ['git', 'diff', '--binary', 'HEAD'],
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            f.write(result.stdout)
+        except (OSError, subprocess.CalledProcessError) as exc:
+            f.write(f'# Unable to capture git diff: {exc}\n')
     config_name = f'config_{date}.yaml'
 
     with open(os.path.join(output_dif, config_name), 'w', encoding='utf-8') as f:
@@ -165,6 +202,11 @@ def _attach_env_runtime_to_config(full_config, env_cfg) -> None:
     full_config.env_runtime = OmegaConf.create(
         {
             'grasp_cache_path': str(env_cfg.grasp_cache_path),
+            'enable_tactile': bool(env_cfg.enable_tactile),
+            'enable_contact_in_obs': bool(env_cfg.enable_contact_in_obs),
+            'contact_order': ['thumb_DIP', 'index_DIP', 'middle_DIP', 'ring_DIP', 'little_DIP'],
+            'policy_dt': float(env_cfg.decimation * env_cfg.sim.dt),
+            'gravity': tuple(float(v) for v in env_cfg.sim.gravity),
         }
     )
 
@@ -172,6 +214,10 @@ def _attach_env_runtime_to_config(full_config, env_cfg) -> None:
 def main():
     if args.test and not args.checkpoint:
         raise ValueError('--test requires --checkpoint')
+    if args.video and not args.test:
+        raise ValueError('--video is only supported together with --test')
+    if args.video_seconds <= 0:
+        raise ValueError('--video_seconds must be positive')
     if args.algo == 'ProprioAdapt' and not args.checkpoint:
         raise ValueError('ProprioAdapt training requires --checkpoint')
 
@@ -181,22 +227,49 @@ def main():
 
     cprint('Start Building the Environment', 'green', attrs=['bold'])
     env_cfg = _build_env_cfg(seed)
+    if args.camera_eye is not None:
+        env_cfg.viewer.eye = tuple(args.camera_eye)
+    if args.camera_lookat is not None:
+        env_cfg.viewer.lookat = tuple(args.camera_lookat)
     if args.algo == 'ProprioAdapt':
-        env_cfg.enable_contact_in_obs = False  # Stage2: actor sees zero contact, adapt_tconv still sees contact history
+        # Tactile deployment contract: keep the five fingertip-force channels
+        # in both the frozen actor observation and the adaptation history.
+        env_cfg.enable_contact_in_obs = True
         env_cfg.gravity_curriculum = False     # Stage2: actor frozen from Stage1, must train at full gravity
         env_cfg.sim.gravity = (0.0, 0.0, -9.81)
     if args.test:
         env_cfg.gravity_curriculum = False
         env_cfg.sim.gravity = (0.0, 0.0, -9.81)  # full gravity for test/play
-    env = Revo3HandHoraEnv(
+    raw_env = Revo3HandHoraEnv(
         cfg=env_cfg,
-        render_mode=None if getattr(args, 'headless', False) else 'human',
+        render_mode='rgb_array' if args.video else (None if getattr(args, 'headless', False) else 'human'),
     )
-    env = HoraCompatWrapper(env)
+    video_steps = 0
+    if args.video:
+        import gymnasium as gym
 
-    # Output to Stage1's run directory
-    if args.algo == 'ProprioAdapt' and not _is_stage2_checkpoint(args.checkpoint):
-        output_dif = os.path.dirname(os.path.dirname(args.checkpoint))
+        video_steps = max(1, round(args.video_seconds / raw_env.step_dt))
+        video_dir = os.path.abspath(args.video_dir)
+        os.makedirs(video_dir, exist_ok=True)
+        name_prefix = f'{args.task}_{datetime.datetime.now().strftime("%Y%m%d_%H%M%S")}'
+        raw_env = gym.wrappers.RecordVideo(
+            raw_env,
+            video_folder=video_dir,
+            step_trigger=lambda step: step == 0,
+            video_length=video_steps,
+            name_prefix=name_prefix,
+            disable_logger=True,
+        )
+        print(
+            f'[INFO] Recording {video_steps} policy steps ({args.video_seconds:g} s) to {video_dir}',
+            flush=True,
+        )
+    env = HoraCompatWrapper(raw_env)
+
+    # By default Stage2 warm-start and resume stay beside the source checkpoint.
+    # An explicit output name still creates a separate run directory.
+    if args.algo == 'ProprioAdapt' and _auto_output_name:
+        output_dif = os.path.dirname(os.path.dirname(os.path.abspath(args.checkpoint)))
     else:
         output_dif = os.path.join('outputs', 'revo3_right', args.output_name)
     os.makedirs(output_dif, exist_ok=True)
@@ -206,15 +279,26 @@ def main():
     agent = _ALGO_MAP[algo_name](env, output_dif, full_config=full_config)
 
     if args.test:
-        agent.restore_test(full_config.train.load_path)
-        agent.test(max_steps=args.test_steps)
+        try:
+            agent.restore_test(full_config.train.load_path)
+            agent.test(
+                max_steps=video_steps if args.video else args.test_steps,
+                real_time=args.real_time,
+            )
+        finally:
+            if args.video:
+                env.close()
     else:
         best_ckpt_path = os.path.join(
             output_dif,
             'stage1_nn' if full_config.train.algo == 'PPO' else 'stage2_nn',
             'best.pth' if full_config.train.algo == 'PPO' else 'model_best.ckpt',
         )
-        if os.path.exists(best_ckpt_path):
+        stage2_resume = (
+            full_config.train.algo == 'ProprioAdapt'
+            and _is_stage2_checkpoint(args.checkpoint)
+        )
+        if os.path.exists(best_ckpt_path) and not stage2_resume:
             if args.force_overwrite:
                 print(f"[INFO] --force_overwrite enabled, continue and overwrite in {output_dif}", flush=True)
             else:
@@ -232,6 +316,8 @@ def main():
                 archived_path = best_ckpt_path.replace('.pth', f'.pre_retrain_{timestamp}.pth')
                 os.replace(best_ckpt_path, archived_path)
                 print(f"[INFO] Archived stale best checkpoint to: {archived_path}", flush=True)
+        elif stage2_resume:
+            print(f"[INFO] Resuming Stage2 in existing run directory: {output_dif}", flush=True)
 
         _attach_env_runtime_to_config(full_config, env_cfg)
         _save_run_metadata(output_dif, full_config)

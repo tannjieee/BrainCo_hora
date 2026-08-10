@@ -1,0 +1,76 @@
+rl_device: cuda:0
+test: false
+seed: 42
+train:
+  algo: ProprioAdapt
+  network:
+    mlp:
+      units:
+      - 512
+      - 256
+      - 128
+    priv_mlp:
+      units:
+      - 256
+      - 128
+      - 8
+  load_path: /home/tan/hora/BrainCo_hora/outputs/revo3_right/run_cylinder_v2_continue/stage1_nn/last.pth
+  ppo:
+    output_name: stage2_smoke2
+    normalize_input: true
+    normalize_value: true
+    value_bootstrap: true
+    num_actors: 16384
+    normalize_advantage: true
+    reward_scale: 0.01
+    gamma: 0.99
+    tau: 0.95
+    learning_rate: 0.0003
+    kl_threshold: 0.01
+    horizon_length: 16
+    minibatch_size: 32768
+    mini_epochs: 3
+    clip_value: true
+    critic_coef: 2
+    entropy_coef: 0.001
+    e_clip: 0.2
+    bounds_loss_coef: 0.001
+    truncate_grads: true
+    grad_norm: 1.0
+    save_best_after: 0
+    save_frequency: 250
+    max_agent_steps: 200000000
+    priv_info: true
+    priv_info_dim: 18
+    priv_info_embed_dim: 8
+    proprio_adapt: true
+    full_gravity_magnitude: 9.81
+    full_gravity_tolerance: 0.02
+    full_gravity_max_reset_rate: 0.003
+    full_gravity_eval_epochs: 25
+  stage2:
+    learning_rate: 0.0003
+    latent_loss_coef: 1.0
+    action_loss_coef: 0.25
+    grad_norm: 1.0
+    teacher_warmup_steps: 10000000
+    teacher_mix_steps: 40000000
+    best_after_steps: 50000000
+    best_min_episodes: 4096
+    save_interval_steps: 25000000
+    log_interval: 20
+env_runtime:
+  grasp_cache_path: cache/revo3_right_grasp_cylinder
+  enable_tactile: true
+  enable_contact_in_obs: true
+  contact_order:
+  - thumb_DIP
+  - index_DIP
+  - middle_DIP
+  - ring_DIP
+  - little_DIP
+  policy_dt: 0.05
+  gravity:
+  - 0.0
+  - 0.0
+  - -9.81

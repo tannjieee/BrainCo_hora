@@ -38,15 +38,15 @@
 
 - **目标**: 让 `adapt_tconv` 从 30 帧本体历史 (proprio_hist) 中估计出 `env_mlp(priv_info)` 的 8 维隐变量，部署时不再需要 priv_info
 - **网络**: ProprioAdaptTConv: channel_transform(47→32→32) → Conv1d(32,32,9,2)→Conv1d(32,32,5,1)→Conv1d(32,32,5,1) → flatten(96) → Linear(96,8) → tanh
-- **损失**: `MSE(adapt_tconv(proprio_hist).tanh(), env_mlp(priv_info).tanh().detach())`
+- **损失**: latent MSE + teacher/student action MSE；action loss 让 latent 误差按其策略影响参与优化
 - **可训练**: 仅 adapt_tconv 参数 (lr=3e-4 Adam), 其余全部冻结
 - **训练方式**: 在线 (每步一次 forward+backward, 无需 experience buffer)
-- **Rollout**: 训练时直接使用 student 当前输出 `mu` 与环境交互
+- **Rollout**: 前 10M transitions 使用 teacher，随后 40M transitions 线性切换到纯 student
 - **加载**: 从 Stage1 checkpoint strict=False 暖启动
 - **训练上限**: 300M agent steps
-- **Stage2 触觉策略**: `enable_contact_in_obs=False` — actor 观测中接触力置零，但 adapt_tconv 的 proprio_hist 保留真实接触历史以辅助蒸馏
+- **Stage2 触觉策略**: `enable_contact_in_obs=True` — actor 与 adapt_tconv 历史均使用真实 5 路指尖触觉
 - **部署输入**: Stage2 ONNX 不接收 `priv_info`。`priv_info` 只在训练时通过冻结的 `env_mlp(priv_info)` 生成 teacher latent target；部署时由 `adapt_tconv(proprio_hist)` 替代。
-- **观测 ABI**: Stage2 仍保留 Stage1 actor 的 `obs(141)` 输入维度，不裁掉触觉维度。无触觉实机部署时，`obs` 和 `proprio_hist` 中的接触力字段按规则填 0。
+- **观测 ABI**: Stage2 保留 Stage1 actor 的 `obs(141)` 输入维度；实机必须提供同顺序、同单位、同采样率的触觉字段。
 
 ### 训练配置 (YAML)
 
@@ -62,6 +62,16 @@ ppo:
   entropy_coef: 0.0      bounds_loss_coef: 0.0001
   max_agent_steps: 300M
   reward_scale: 0.01
+stage2:
+  learning_rate: 3e-4
+  latent_loss_coef: 1.0
+  action_loss_coef: 0.25
+  teacher_warmup_steps: 10M
+  teacher_mix_steps: 40M
+  best_after_steps: 50M
+  best_min_episodes: 4096
+  save_interval_steps: 25M
+  log_interval: 20
 ```
 
 ### 检查点
@@ -178,7 +188,7 @@ Stage2 / ProprioAdapt 部署约定:
 
 - `obs` 仍是 141 维，即 3×47，不删除触觉维度
 - `obs` 帧顺序为 `[t-2, t-1, t]`，按时间顺序展平
-- `obs` 中三段接触力必须置零: `[42:47]`, `[89:94]`, `[136:141]`
+- `obs` 中三段接触力必须填入实测值: `[42:47]`, `[89:94]`, `[136:141]`
 - `priv_info` 不拼入 `obs`，也不是 Stage2 ONNX 输入
 
 ### 特权信息 priv_info (18 维)
@@ -205,7 +215,7 @@ Stage2 / ProprioAdapt 部署约定:
 - 形状为 `[B,30,47]`
 - 帧顺序为 oldest → newest，最后一帧对应当前策略时刻 `t`
 - 每帧布局同单帧观测: `[joint_pos_unscaled(21), cur_targets(21), contact_forces(5)]`
-- 仿真训练时 `proprio_hist` 保留真实接触历史；实机无触觉传感器时，每帧 `[42:47]` 填 0
+- 仿真和实机的 `proprio_hist` 每帧 `[42:47]` 均填入真实触觉值
 
 ### 接触传感器配置
 
@@ -216,13 +226,13 @@ Stage2 / ProprioAdapt 部署约定:
 - 合力: 每个策略步从 `force_matrix_w` 读取一次当前“指尖—目标物体”过滤后合力并取模，频率 20Hz、周期 0.05s；不使用 1s 训练窗口
 - 延迟: 默认 `contact_latency=0`，每个策略步都更新；需要做 sim2real 延迟随机化时可单独调高
 - `enable_tactile=True`: 接触力写入观测
-- `enable_contact_in_obs=True` (Stage1) / `False` (Stage2): Stage2 时 actor 观测接触力置零, adapt_tconv 的 proprio_hist 保留真实接触历史
+- `enable_contact_in_obs=True` (Stage1/Stage2): actor 和 adapt_tconv 历史都保留真实触觉
 - `binary_contact=False`: 使用连续力值 (非二值)
 - `enable_contact_pos=False`: 接触位置不写入观测 (置零)
 
 观测中的 5 维接触力 = `[thumb_force, index_force, middle_force, ring_force, pinky_force]`。
 
-**Sim2real**: 仿真通过 PhysX 接触求解获取接触力, 真机无触觉传感器。Stage2 保持 141 维 `obs` ABI 不变，但 actor obs 的接触力字段在训练和部署中均置零；`proprio_hist` 在仿真 Stage2 训练中保留真实接触历史，实机部署时将每帧接触力字段填 0。
+**Sim2real**: 仿真通过 PhysX 接触求解获取接触力，实机通过 5 路指尖触觉提供对应合力。部署前需要统一指尖顺序、牛顿单位、量程、偏置、采样周期和延迟，并用实机标定数据验证触觉分布。
 
 ---
 
@@ -366,17 +376,17 @@ python tools/export_onnx.py --checkpoint <stage2.ckpt> --output policy.onnx
 - 无 `priv_info` 输入；`priv_info` 只在 Stage2 训练时用于生成 teacher latent target
 - 归一化 (`running_mean_std`, `sa_mean_std`) 烘焙进 ONNX 图，部署侧输入原始观测，不要额外归一化
 - 动态 batch 维度
-- 同时输出 `.deploy_meta.yaml`，包含 IO 形状、关节顺序、动作语义、`obs` / `proprio_hist` 构造规则、无触觉填零 slice
+- 同时输出 `.deploy_meta.yaml`，包含 IO 形状、关节顺序、动作语义及触觉 `obs` / `proprio_hist` 构造规则
 
 单帧观测布局:
 
-| 偏移 | 维度 | 内容 | 实机无触觉 |
+| 偏移 | 维度 | 内容 | 实机输入 |
 |---|---:|---|---|
 | 0-20 | 21 | `joint_pos_unscaled` | 使用关节限位公式构造 |
 | 21-41 | 21 | `cur_targets` | delta 叠加并 clamp 后的位置目标 |
-| 42-46 | 5 | DIP 接触力 | 填 0 |
+| 42-46 | 5 | DIP 接触力 | 5 路标定后的实测合力 |
 
-`obs` 是 3 帧展平，Stage2 部署时置零 slice: `[42:47]`, `[89:94]`, `[136:141]`。`proprio_hist` 是 30 帧原始历史，实机无触觉时每帧 `[42:47]` 填 0。
+`obs` 是 3 帧展平，触觉 slice 为 `[42:47]`, `[89:94]`, `[136:141]`。`proprio_hist` 是 30 帧原始历史，每帧 `[42:47]` 使用相同的 5 路触觉。
 
 ### 动作序列导出 (tools/dump_runtime_actions.py)
 

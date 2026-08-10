@@ -122,12 +122,16 @@ scripts/train_s1.sh run_cylinder_v2 --task cylinder --num_envs 4096 --headless
 scripts/train_s2.sh outputs/revo3_right/run_ball/stage1_nn/best.pth --task ball --num_envs 16384 --headless
 scripts/train_s2.sh outputs/revo3_right/run_cylinder/stage1_nn/best.pth --task cylinder --num_envs 16384 --headless
 
+# 当前 cylinder 续训结果进入 Stage 2；输出写入同一 run 的 stage2_nn/ 和 stage2_tb/
+scripts/train_s2.sh outputs/revo3_right/run_cylinder_v2_continue/stage1_nn/last.pth \
+  --task cylinder --num_envs 16384 --headless
+
 # 追加 --force_overwrite 覆盖已有输出
 ```
 
 旧 Stage1 checkpoint 的 critic/env_mlp 输入是 8 维，不能续训或评测当前 18 维网络；需要从头训练。若在旧输出目录启动全新训练，原 `best.pth` 会先备份为 `best.pre_retrain_<时间>.pth`，避免被误当作新的满重力模型。
 
-Stage 2 默认冻结 Stage 1 actor/env_mlp，只训练 `adapt_tconv`。训练损失是 latent 蒸馏：用 `proprio_hist` 预测 `env_mlp(priv_info)` 的 8 维隐变量；环境交互使用 student 当前输出。Stage2 的 actor `obs` 中触觉置零，`proprio_hist` 在仿真训练中保留真实触觉历史。
+Stage 2 冻结 Stage 1 actor/env_mlp，只训练 `adapt_tconv`。训练同时约束 latent MSE 和 teacher/student action MSE；rollout 先由 teacher 引导，再线性切换到 student。Stage1、Stage2 与实机部署的 actor `obs` 和 `proprio_hist` 均保留同顺序、同单位的 5 路指尖触觉。
 
 ### 断点续训
 
@@ -136,7 +140,7 @@ Stage 2 默认冻结 Stage 1 actor/env_mlp，只训练 `adapt_tconv`。训练损
 scripts/train_s1.sh --task ball --num_envs 16384 --headless \
   --checkpoint outputs/revo3_right/run_ball/stage1_nn/last.pth
 
-# ball: Stage 2 续训 → outputs/revo3_right/run2_continue/
+# ball: Stage 2 续训 → 保持在原 run_ball/stage2_nn/
 scripts/train_s2.sh outputs/revo3_right/run_ball/stage2_nn/model_last.ckpt \
   --task ball --num_envs 16384 --headless
 
@@ -171,6 +175,15 @@ scripts/train_s2.sh outputs/revo3_right/run_cylinder/stage2_nn/model_last.ckpt \
 ~/IsaacLab/isaaclab.sh -p train.py \
   --task cylinder --algo PPO --num_envs 256 --headless --test --test_steps 400 \
   --checkpoint outputs/revo3_right/run_cylinder_v2/stage1_nn/best.pth
+
+# cylinder: 单环境、实时节拍、三分之四近景，自动录制 10 秒 MP4
+~/IsaacLab/isaaclab.sh -p train.py \
+  --task cylinder --algo PPO --num_envs 1 --test --real-time --video \
+  --video_seconds 10 \
+  --camera_eye 0.55 -0.55 1.85 --camera_lookat 0 0 1.50 \
+  --checkpoint outputs/revo3_right/run_cylinder_v2_continue/stage1_nn/last.pth
+
+# MP4 默认写入 outputs/revo3_right/videos/；无界面录制可额外传 --headless。
 
 # cylinder: Stage 2 policy
 ~/IsaacLab/isaaclab.sh -p train.py \

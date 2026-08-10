@@ -199,7 +199,7 @@ def _save_deploy_meta(
         },
         "deploy_observation_contract": {
             "important": "Feed raw observations with this layout. Do not apply RunningMeanStd outside the ONNX graph.",
-            "stage2_summary": "Stage2 keeps the Stage1 actor observation ABI at 141 dims. It removes privileged information by replacing env_mlp(priv_info) with adapt_tconv(proprio_hist), and it handles no-tactile deployment by zero-filling contact force fields.",
+            "stage2_summary": "Stage2 keeps the Stage1 tactile actor observation ABI at 141 dims and replaces env_mlp(priv_info) with adapt_tconv(proprio_hist). Both inputs require the five measured fingertip contact-force channels.",
             "joint_order": RIGHT_HAND_JOINT_ORDER,
             "joint_order_source": "Isaac Lab runtime hand.data.joint_names; same order is used by obs, proprio_hist, action, cur_targets, and joint limits.",
             "dof_count": dof_count,
@@ -231,7 +231,7 @@ def _save_deploy_meta(
                     "size": CONTACT_DIM,
                     "units": "newtons",
                     "order": ["thumb_DIP", "index_DIP", "middle_DIP", "ring_DIP", "little_DIP"],
-                    "sim_formula": "norm(contact_force_history[0]) * 0.5 + norm(contact_force_history[1]) * 0.5, with latency simulation",
+                    "sim_formula": "norm(current object-filtered fingertip contact force), sampled once per 20 Hz policy step, with optional latency hold",
                 },
             ],
             "obs": {
@@ -243,11 +243,11 @@ def _save_deploy_meta(
                     "For each policy step, build one 47-dim raw frame as joint_pos_unscaled[21] + cur_targets[21] + contact_forces[5].",
                     "Append the frame to a 3-frame chronological obs window.",
                     "Flatten the window to 141 dims.",
-                    "For Stage2 deploy, overwrite every contact_forces slice in the flattened obs with zeros.",
+                    "Preserve all five measured contact-force values in every frame.",
                 ],
-                "stage2_contact_rule": "contact_forces slices MUST be zero-filled in obs because Stage2 trained with enable_contact_in_obs=False.",
+                "stage2_contact_rule": "contact_forces are required: Stage1, Stage2, and deployment all use the same tactile channels.",
                 "privileged_info_rule": "Do not append or provide priv_info to obs. Stage2 ONNX has no priv_info input.",
-                "zero_contact_slices": [
+                "contact_slices": [
                     [frame * obs_per_step + contact_start, frame * obs_per_step + contact_end]
                     for frame in range(int(obs_window))
                 ],
@@ -258,14 +258,14 @@ def _save_deploy_meta(
                 "frame_order": "oldest to newest, ending at current frame t",
                 "per_frame_layout": "same 47-dim single_frame_layout as above",
                 "construction_steps": [
-                    "Maintain a 30-frame chronological history of raw 47-dim frames before obs contact zeroing.",
+                    "Maintain a 30-frame chronological history of raw 47-dim frames.",
                     "Each history frame uses joint_pos_unscaled[21] + cur_targets[21] + contact_forces[5].",
-                    "On real hardware without tactile sensing, set contact_forces[42:47] to zeros in every history frame.",
+                    "Populate contact_forces[42:47] from the five real fingertip tactile channels.",
                 ],
-                "contact_rule": "Unlike obs, Stage2 training kept real contact history here. Real hardware without tactile sensing should fill these 5 contact values with zeros.",
+                "contact_rule": "Tactile contact values are required and must use the same order, units, calibration, and sampling rate as the actor observation.",
             },
             "reset_initialization": {
-                "history_fill": "On reset, fill all history frames with the current joint_pos_unscaled, current cur_targets, and current contact values before applying Stage2 obs contact zeroing.",
+                "history_fill": "On reset, fill all history frames with the current joint_pos_unscaled, current cur_targets, and current contact values.",
                 "cur_targets_initial_value": "initial joint position in radians, usually sampled from grasp cache or assets.py init_joint_pos",
             },
         },
@@ -290,6 +290,15 @@ def _shape_list_from_state(state: dict[str, Any], key: str) -> list[int] | None:
 def _require_stage2_checkpoint(checkpoint: dict[str, Any], ckpt_path: Path) -> None:
     if not isinstance(checkpoint, dict) or "model" not in checkpoint:
         raise RuntimeError(f"Expected a Stage2 checkpoint dict with a 'model' key: {ckpt_path}")
+    if checkpoint.get("tactile_required") is False:
+        raise RuntimeError(
+            f"Checkpoint was trained for a no-tactile ABI, but this exporter now targets tactile Stage2: {ckpt_path}"
+        )
+    if "tactile_required" not in checkpoint:
+        print(
+            "[WARN] Checkpoint predates tactile ABI metadata; verify that actor obs and proprio_hist used real contacts.",
+            flush=True,
+        )
     model_state = checkpoint["model"]
     if not isinstance(model_state, dict):
         raise RuntimeError(f"Checkpoint 'model' is not a state_dict: {ckpt_path}")

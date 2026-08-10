@@ -24,25 +24,30 @@ class HoraCompatWrapper:
         self._env = env
 
     @property
+    def _base_env(self) -> Revo3HandHoraEnv:
+        """Return the DirectRLEnv beneath optional Gym rendering wrappers."""
+        return getattr(self._env, "unwrapped", self._env)
+
+    @property
     def observation_space(self) -> gym.spaces.Box:
-        obs_dim = self._env.cfg.observation_space
+        obs_dim = self._base_env.cfg.observation_space
         return gym.spaces.Box(
             low=-np.inf, high=np.inf, shape=(obs_dim,), dtype=np.float32
         )
 
     @property
     def action_space(self) -> gym.spaces.Box:
-        n = self._env.cfg.action_space
+        n = self._base_env.cfg.action_space
         return gym.spaces.Box(low=-1.0, high=1.0, shape=(n,), dtype=np.float32)
 
     @property
     def prop_hist_len(self) -> int:
         """Return proprio history length used by ProprioAdapt."""
-        return self._env.cfg.prop_hist_len
+        return self._base_env.cfg.prop_hist_len
 
     @property
     def num_envs(self) -> int:
-        return self._env.num_envs
+        return self._base_env.num_envs
 
     def reset(self) -> dict[str, torch.Tensor]:
         """Reset all envs and return obs_dict only."""
@@ -55,7 +60,7 @@ class HoraCompatWrapper:
         """Step env and return old-style (obs_dict, rewards, dones, infos)."""
         obs_dict, rewards, terminated, truncated, infos = self._env.step(actions)
         dones = (terminated | truncated).to(torch.uint8)
-        for k, v in getattr(self._env, "extras", {}).items():
+        for k, v in getattr(self._base_env, "extras", {}).items():
             if isinstance(v, torch.Tensor):
                 infos[k] = v.float().mean()
         infos["time_outs"] = truncated
@@ -63,4 +68,7 @@ class HoraCompatWrapper:
 
     def __getattr__(self, name: str):
         """Forward unknown attributes to wrapped env."""
-        return getattr(self._env, name)
+        try:
+            return getattr(self._env, name)
+        except AttributeError:
+            return getattr(self._base_env, name)
