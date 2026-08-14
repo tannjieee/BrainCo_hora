@@ -1,0 +1,392 @@
+{
+  "great_dinos_triceratops": {
+    "display_name": "Great_Dinos_Triceratops_Toy",
+    "usd": "great_dinos_triceratops/training.usda",
+    "source_usd": "great_dinos_triceratops/model.usd",
+    "scale": 1.5,
+    "source_size_m": [
+      0.069471,
+      0.045807,
+      0.079184
+    ],
+    "cache_stem": "cache/revo3_right_grasp_great_dinos_triceratops",
+    "grasp_seed": {
+      "hand_pose_profile": "custom",
+      "hand_joint_pos_rad": {
+        "right_thumb_CMP_joint": 1.55,
+        "right_thumb_CMR_joint": 1.15,
+        "right_thumb_MCP_joint": 0.25,
+        "right_thumb_PIP_joint": 0.28,
+        "right_thumb_DIP_joint": 0.29,
+        "right_index_MPR_joint": 0.26,
+        "right_index_MCP_joint": 0.9,
+        "right_index_PIP_joint": 0.58,
+        "right_index_DIP_joint": 0.6,
+        "right_middle_MPR_joint": 0.1,
+        "right_middle_MCP_joint": 0.85,
+        "right_middle_PIP_joint": 0.29,
+        "right_middle_DIP_joint": 0.27,
+        "right_ring_MPR_joint": -0.1,
+        "right_ring_MCP_joint": 0.84,
+        "right_ring_PIP_joint": 0.25,
+        "right_ring_DIP_joint": 0.25,
+        "right_little_MPR_joint": -0.26,
+        "right_little_MCP_joint": 0.9,
+        "right_little_PIP_joint": 0.52,
+        "right_little_DIP_joint": 0.54
+      },
+      "object_pos_m": [
+        0.0,
+        -0.08,
+        1.655
+      ],
+      "object_quat_wxyz": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    "rotation": {
+      "local_axis": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "target_axis_world": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "axis_bidirectional": false,
+      "enforce_axis_alignment": true,
+      "tilt_tolerance_deg": 10.0
+    },
+    "fingertip_near_threshold_m": 0.12
+  },
+  "perricone_eye_cream": {
+    "display_name": "Perricone_MD_Hypoallergenic_Firming_Eye_Cream_05_oz",
+    "usd": "perricone_eye_cream/training.usda",
+    "source_usd": "perricone_eye_cream/model.usd",
+    "scale": 1.0,
+    "source_size_m": [
+      0.056972,
+      0.057255,
+      0.049046
+    ],
+    "cache_stem": "cache/revo3_right_grasp_perricone_eye_cream",
+    "grasp_seed": {
+      "hand_pose_profile": "custom",
+      "hand_joint_pos_rad": {
+        "right_thumb_CMP_joint": 1.62,
+        "right_thumb_CMR_joint": 1.12,
+        "right_thumb_MCP_joint": 0.36,
+        "right_thumb_PIP_joint": 0.21,
+        "right_thumb_DIP_joint": 0.16,
+        "right_index_MPR_joint": 0.21,
+        "right_index_MCP_joint": 1.19,
+        "right_index_PIP_joint": 0.34,
+        "right_index_DIP_joint": 0.41,
+        "right_middle_MPR_joint": 0.1,
+        "right_middle_MCP_joint": 0.86,
+        "right_middle_PIP_joint": 0.3,
+        "right_middle_DIP_joint": 0.4,
+        "right_ring_MPR_joint": -0.04,
+        "right_ring_MCP_joint": 0.82,
+        "right_ring_PIP_joint": 0.31,
+        "right_ring_DIP_joint": 0.39,
+        "right_little_MPR_joint": -0.12,
+        "right_little_MCP_joint": 0.92,
+        "right_little_PIP_joint": 0.49,
+        "right_little_DIP_joint": 0.62
+      },
+      "object_pos_m": [
+        0.0,
+        -0.08,
+        1.635
+      ],
+      "object_quat_wxyz": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    "rotation": {
+      "local_axis": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "target_axis_world": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "axis_bidirectional": false,
+      "enforce_axis_alignment": true,
+      "tilt_tolerance_deg": 10.0
+    },
+    "fingertip_near_threshold_m": 0.1
+  },
+  "qabsorb_coq10": {
+    "display_name": "QAbsorb_CoQ10_53iUqjWjW3O",
+    "usd": "qabsorb_coq10/training.usda",
+    "source_usd": "qabsorb_coq10/model.usd",
+    "scale": 1.2,
+    "source_size_m": [
+      0.056954,
+      0.057308,
+      0.099318
+    ],
+    "cache_stem": "cache/revo3_right_grasp_qabsorb_coq10",
+    "grasp_seed": {
+      "hand_pose_profile": "custom",
+      "hand_joint_pos_rad": {
+        "right_thumb_CMP_joint": 1.53,
+        "right_thumb_CMR_joint": 0.88,
+        "right_thumb_MCP_joint": 0.21,
+        "right_thumb_PIP_joint": 0.3,
+        "right_thumb_DIP_joint": 0.26,
+        "right_index_MPR_joint": 0.23,
+        "right_index_MCP_joint": 1.05,
+        "right_index_PIP_joint": 0.36,
+        "right_index_DIP_joint": 0.43,
+        "right_middle_MPR_joint": 0.07,
+        "right_middle_MCP_joint": 0.82,
+        "right_middle_PIP_joint": 0.4,
+        "right_middle_DIP_joint": 0.45,
+        "right_ring_MPR_joint": -0.15,
+        "right_ring_MCP_joint": 0.79,
+        "right_ring_PIP_joint": 0.46,
+        "right_ring_DIP_joint": 0.28,
+        "right_little_MPR_joint": -0.19,
+        "right_little_MCP_joint": 0.73,
+        "right_little_PIP_joint": 0.72,
+        "right_little_DIP_joint": 0.81
+      },
+      "object_pos_m": [
+        0.0,
+        -0.075,
+        1.636
+      ],
+      "object_quat_wxyz": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    "rotation": {
+      "local_axis": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "target_axis_world": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "axis_bidirectional": false,
+      "enforce_axis_alignment": true,
+      "tilt_tolerance_deg": 10.0
+    },
+    "fingertip_near_threshold_m": 0.1
+  },
+  "sapota_planter": {
+    "display_name": "Sapota_Threshold_4_Ceramic_Round_Planter_Red",
+    "usd": "sapota_planter/training.usda",
+    "source_usd": "sapota_planter/model.usd",
+    "scale": 0.7,
+    "source_size_m": [
+      0.105991,
+      0.109554,
+      0.097137
+    ],
+    "cache_stem": "cache/revo3_right_grasp_sapota_planter",
+    "grasp_seed": {
+      "hand_pose_profile": "custom",
+      "hand_joint_pos_rad": {
+        "right_thumb_CMP_joint": 1.55,
+        "right_thumb_CMR_joint": 0.93,
+        "right_thumb_MCP_joint": 0.36,
+        "right_thumb_PIP_joint": 0.15,
+        "right_thumb_DIP_joint": 0.16,
+        "right_index_MPR_joint": 0.21,
+        "right_index_MCP_joint": 1.12,
+        "right_index_PIP_joint": 0.27,
+        "right_index_DIP_joint": 0.2,
+        "right_middle_MPR_joint": 0.1,
+        "right_middle_MCP_joint": 0.9,
+        "right_middle_PIP_joint": 0.24,
+        "right_middle_DIP_joint": 0.19,
+        "right_ring_MPR_joint": -0.05,
+        "right_ring_MCP_joint": 0.86,
+        "right_ring_PIP_joint": 0.2,
+        "right_ring_DIP_joint": 0.28,
+        "right_little_MPR_joint": -0.18,
+        "right_little_MCP_joint": 1.09,
+        "right_little_PIP_joint": 0.14,
+        "right_little_DIP_joint": 0.3
+      },
+      "object_pos_m": [
+        0.0,
+        -0.08,
+        1.635
+      ],
+      "object_quat_wxyz": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    "rotation": {
+      "local_axis": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "target_axis_world": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "axis_bidirectional": false,
+      "enforce_axis_alignment": true,
+      "tilt_tolerance_deg": 10.0
+    },
+    "fingertip_near_threshold_m": 0.1
+  },
+  "toys_r_us_foobler": {
+    "display_name": "Toys_R_Us_Treat_Dispenser_Smart_Puzzle_Foobler",
+    "usd": "toys_r_us_foobler/training.usda",
+    "source_usd": "toys_r_us_foobler/model.usd",
+    "scale": 0.5,
+    "source_size_m": [
+      0.154722,
+      0.153904,
+      0.153458
+    ],
+    "cache_stem": "cache/revo3_right_grasp_toys_r_us_foobler",
+    "grasp_seed": {
+      "hand_pose_profile": "custom",
+      "hand_joint_pos_rad": {
+        "right_thumb_CMP_joint": 1.44,
+        "right_thumb_CMR_joint": 0.77,
+        "right_thumb_MCP_joint": 0.36,
+        "right_thumb_PIP_joint": 0.15,
+        "right_thumb_DIP_joint": 0.15,
+        "right_index_MPR_joint": 0.18,
+        "right_index_MCP_joint": 1.01,
+        "right_index_PIP_joint": 0.17,
+        "right_index_DIP_joint": 0.2,
+        "right_middle_MPR_joint": 0.07,
+        "right_middle_MCP_joint": 0.81,
+        "right_middle_PIP_joint": 0.3,
+        "right_middle_DIP_joint": 0.19,
+        "right_ring_MPR_joint": -0.1,
+        "right_ring_MCP_joint": 0.82,
+        "right_ring_PIP_joint": 0.22,
+        "right_ring_DIP_joint": 0.16,
+        "right_little_MPR_joint": -0.22,
+        "right_little_MCP_joint": 0.96,
+        "right_little_PIP_joint": 0.24,
+        "right_little_DIP_joint": 0.16
+      },
+      "object_pos_m": [
+        0.0,
+        -0.08,
+        1.635
+      ],
+      "object_quat_wxyz": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    "rotation": {
+      "local_axis": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "target_axis_world": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "axis_bidirectional": true,
+      "enforce_axis_alignment": false,
+      "tilt_tolerance_deg": 10.0
+    },
+    "fingertip_near_threshold_m": 0.1
+  },
+  "wilton_sprinkles": {
+    "display_name": "Wilton_Pearlized_Sugar_Sprinkles_525_oz_Gold",
+    "usd": "wilton_sprinkles/training.usda",
+    "source_usd": "wilton_sprinkles/model.usd",
+    "scale": 1.3,
+    "source_size_m": [
+      0.045741,
+      0.045603,
+      0.134479
+    ],
+    "cache_stem": "cache/revo3_right_grasp_wilton_sprinkles",
+    "grasp_seed": {
+      "hand_pose_profile": "custom",
+      "hand_joint_pos_rad": {
+        "right_thumb_CMP_joint": 1.49,
+        "right_thumb_CMR_joint": 1.02,
+        "right_thumb_MCP_joint": 0.36,
+        "right_thumb_PIP_joint": 0.26,
+        "right_thumb_DIP_joint": 0.12,
+        "right_index_MPR_joint": 0.19,
+        "right_index_MCP_joint": 0.74,
+        "right_index_PIP_joint": 0.33,
+        "right_index_DIP_joint": 0.24,
+        "right_middle_MPR_joint": 0.0,
+        "right_middle_MCP_joint": 0.87,
+        "right_middle_PIP_joint": 0.3,
+        "right_middle_DIP_joint": 0.31,
+        "right_ring_MPR_joint": -0.18,
+        "right_ring_MCP_joint": 0.88,
+        "right_ring_PIP_joint": 0.28,
+        "right_ring_DIP_joint": 0.08,
+        "right_little_MPR_joint": -0.21,
+        "right_little_MCP_joint": 0.69,
+        "right_little_PIP_joint": 0.32,
+        "right_little_DIP_joint": 0.19
+      },
+      "object_pos_m": [
+        0.0,
+        -0.08,
+        1.635
+      ],
+      "object_quat_wxyz": [
+        0.7071067811865476,
+        0.0,
+        0.7071067811865476,
+        0.0
+      ]
+    },
+    "rotation": {
+      "local_axis": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "target_axis_world": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "axis_bidirectional": false,
+      "enforce_axis_alignment": true,
+      "tilt_tolerance_deg": 10.0
+    },
+    "fingertip_near_threshold_m": 0.12
+  }
+}

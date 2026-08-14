@@ -34,7 +34,7 @@ class Revo3HandHoraEnv(DirectRLEnv):
       [42:47]  object-filtered resultant forces on 5 DIP fingertips, sampled at 20 Hz
 
     Privileged observation (18 dims): object position delta (3), friction (1),
-      mass (1), COM (3), gravity magnitude (1), cylinder world axis (3),
+      mass (1), COM (3), gravity magnitude (1), configured object-axis in world (3),
       object angular velocity (3), and object linear velocity (3).
 
     Action (21 dims) — delta position control:
@@ -42,7 +42,7 @@ class Revo3HandHoraEnv(DirectRLEnv):
       Torque control: torque = p_gain*(target - pos) - d_gain*vel
       p_gain/d_gain from cfg (2.0/0.2), randomized per reset: ×[0.5, 2.0] per-DOF
 
-    Reward (total ×0.01 for PPO): target world-Z rotation; cylinder tilt and
+    Reward (total ×0.01 for PPO): configured world-axis rotation; object-axis tilt and
       off-axis angular-velocity penalties; independent smooth XY/Z drift
       penalties; explicit drop penalty; sampled-cache posture, torque and work
       regularization.
@@ -85,12 +85,12 @@ class Revo3HandHoraEnv(DirectRLEnv):
             try:
                 from isaaclab.markers import VisualizationMarkers
                 from isaaclab.markers.config import FRAME_MARKER_CFG
-                # create frame marker configuration for cylinder
+                # create frame marker configuration for the object's local axes
                 axes_marker_cfg = FRAME_MARKER_CFG.replace(
-                    prim_path="/Visuals/CylinderAxes"
+                    prim_path="/Visuals/ObjectAxes"
                 )
                 # adjust the axes size based on config (default 0.06 m)
-                axes_length = getattr(self.cfg, 'vis_cylinder_axes_length', 0.06)
+                axes_length = getattr(self.cfg, 'vis_object_axes_length', 0.06)
                 axes_marker_cfg.markers["frame"].scale = (axes_length, axes_length, axes_length)
                 # create the visualization marker
                 self._axes_visualizer = VisualizationMarkers(axes_marker_cfg)
@@ -182,7 +182,12 @@ class Revo3HandHoraEnv(DirectRLEnv):
             print(f"[WARN] Grasp cache not found: {cache_path}, falling back to default pose.")
             self.saved_grasping_states = None
 
-        self.rot_axis = torch.tensor(self.cfg.rot_axis, dtype=torch.float32).repeat(self.num_envs, 1).to(self.device)
+        self.object_rotation_axis_local = torch.tensor(
+            self.cfg.object_rotation_axis_local, dtype=torch.float32, device=self.device
+        ).repeat(self.num_envs, 1)
+        self.target_rotation_axis_world = torch.tensor(
+            self.cfg.target_rotation_axis_world, dtype=torch.float32, device=self.device
+        ).repeat(self.num_envs, 1)
 
         # contact buffers
         self._contact_body_ids = torch.tensor([0, 1, 2, 3, 4], dtype=torch.long)
@@ -289,20 +294,40 @@ class Revo3HandHoraEnv(DirectRLEnv):
         }
 
     def _get_rewards(self) -> torch.Tensor:
-        """Reward world-Z rotation while preserving a stable upright grasp."""
+        """Reward the configured rotation while preserving axis alignment."""
         # PhysX reports angular velocity directly in the world frame.  The
-        # target component remains world Z, as required by the task.
+        # task registry supplies the desired world-frame rotation axis.
         object_angvel = self.object_angvel
-        rotate_reward = saturate((object_angvel * self.rot_axis).sum(-1), torch.tensor(self.cfg.angvel_clip_min), torch.tensor(self.cfg.angvel_clip_max))
+        rotate_reward = saturate(
+            (object_angvel * self.target_rotation_axis_world).sum(-1),
+            torch.tensor(self.cfg.angvel_clip_min),
+            torch.tensor(self.cfg.angvel_clip_max),
+        )
 
-        # CylinderCfg's long axis is local Z.  Its sign is irrelevant for an
-        # axis, hence abs(dot) maps the tilt to [0, pi/2].
-        cylinder_axis_world = rotate_axis_by_quat(self.rot_axis, self.object_rot)
-        upright_cos = torch.clamp(torch.abs(cylinder_axis_world[:, 2]), 0.0, 1.0)
-        cylinder_tilt = torch.acos(upright_cos)
-        cylinder_tilt_penalty = (cylinder_tilt / self.cfg.cylinder_tilt_tolerance) ** 2
+        # Rotate the task-specific local object axis into world coordinates and
+        # compare it with the independently configured target world axis.
+        object_axis_world = rotate_axis_by_quat(
+            self.object_rotation_axis_local, self.object_rot
+        )
+        if self.cfg.enforce_object_axis_alignment:
+            axis_cos = (object_axis_world * self.target_rotation_axis_world).sum(-1)
+            if self.cfg.object_axis_bidirectional:
+                axis_cos = torch.abs(axis_cos)
+                axis_cos = torch.clamp(axis_cos, 0.0, 1.0)
+            else:
+                axis_cos = torch.clamp(axis_cos, -1.0, 1.0)
+            object_axis_tilt = torch.acos(axis_cos)
+            object_axis_tilt_penalty = (
+                object_axis_tilt / self.cfg.object_axis_tilt_tolerance
+            ) ** 2
+        else:
+            object_axis_tilt = torch.zeros_like(object_angvel[:, 0])
+            object_axis_tilt_penalty = torch.zeros_like(object_angvel[:, 0])
 
-        target_angvel = (object_angvel * self.rot_axis).sum(-1, keepdim=True) * self.rot_axis
+        target_angvel = (
+            (object_angvel * self.target_rotation_axis_world).sum(-1, keepdim=True)
+            * self.target_rotation_axis_world
+        )
         off_axis_angvel_penalty = ((object_angvel - target_angvel) ** 2).sum(-1)
 
         object_pos_delta = self.object_pos - self.object_default_pose[:, :3]
@@ -324,7 +349,7 @@ class Revo3HandHoraEnv(DirectRLEnv):
 
         total_reward = compute_rewards(
             rotate_reward, self.cfg.rotate_reward_scale,
-            cylinder_tilt_penalty, self.cfg.cylinder_tilt_penalty_scale,
+            object_axis_tilt_penalty, self.cfg.object_axis_tilt_penalty_scale,
             off_axis_angvel_penalty, self.cfg.off_axis_angvel_penalty_scale,
             xy_drift_penalty, self.cfg.xy_drift_penalty_scale,
             z_drift_penalty, self.cfg.z_drift_penalty_scale,
@@ -335,7 +360,9 @@ class Revo3HandHoraEnv(DirectRLEnv):
         )
 
         self.extras["rew/rotate"] = (rotate_reward * self.cfg.rotate_reward_scale).mean()
-        self.extras["rew/cylinder_tilt"] = (cylinder_tilt_penalty * self.cfg.cylinder_tilt_penalty_scale).mean()
+        self.extras["rew/object_axis_tilt"] = (
+            object_axis_tilt_penalty * self.cfg.object_axis_tilt_penalty_scale
+        ).mean()
         self.extras["rew/off_axis_angvel"] = (off_axis_angvel_penalty * self.cfg.off_axis_angvel_penalty_scale).mean()
         self.extras["rew/xy_drift"] = (xy_drift_penalty * self.cfg.xy_drift_penalty_scale).mean()
         self.extras["rew/z_drift"] = (z_drift_penalty * self.cfg.z_drift_penalty_scale).mean()
@@ -343,7 +370,7 @@ class Revo3HandHoraEnv(DirectRLEnv):
         self.extras["rew/posture"] = (pos_diff_penalty * self.cfg.pos_diff_penalty_scale).mean()
         self.extras["rew/torque"] = (torque_penalty * self.cfg.torque_penalty_scale).mean()
         self.extras["rew/work"] = (work_penalty * self.cfg.work_penalty_scale).mean()
-        self.extras['cylinder_tilt_deg'] = torch.rad2deg(cylinder_tilt).mean()
+        self.extras['object_axis_tilt_deg'] = torch.rad2deg(object_axis_tilt).mean()
         self.extras['xy_drift_mm'] = (xy_drift * 1000.0).mean()
         self.extras['z_drift_mm'] = (z_drift * 1000.0).mean()
         self.extras['angvelX'] = object_angvel[:, 0].mean()
@@ -531,13 +558,15 @@ class Revo3HandHoraEnv(DirectRLEnv):
         self.object_linvel = self.object.data.root_lin_vel_w
         self.object_angvel = self.object.data.root_ang_vel_w
 
-        # visualize coordinate axes for cylinder using VisualizationMarkers
+        # visualize object-local coordinate axes using VisualizationMarkers
         if getattr(self.cfg, 'debug_show_axes', True) and self._axes_visualizer is not None and self.num_envs > 0:
             try:
                 # world poses are already with env origins; add back origins for vis API if needed
-                cyl_pos_w = self.object.data.root_pos_w
-                cyl_quat_w = self.object.data.root_quat_w
-                self._axes_visualizer.visualize(translations=cyl_pos_w, orientations=cyl_quat_w)
+                object_pos_w = self.object.data.root_pos_w
+                object_quat_w = self.object.data.root_quat_w
+                self._axes_visualizer.visualize(
+                    translations=object_pos_w, orientations=object_quat_w
+                )
             except Exception:
                 pass
 
@@ -619,9 +648,11 @@ class Revo3HandHoraEnv(DirectRLEnv):
 
         self.proprio_hist_buf = chronological_history[:, -self.cfg.prop_hist_len:]
         self.priv_info_buf[:, 0:3] = self.object_pos - self.object_default_pose[:, :3]
-        cylinder_axis_world = rotate_axis_by_quat(self.rot_axis, self.object_rot)
+        object_axis_world = rotate_axis_by_quat(
+            self.object_rotation_axis_local, self.object_rot
+        )
         self.priv_info_buf[:, 8] = self._gravity_magnitude
-        self.priv_info_buf[:, 9:12] = cylinder_axis_world
+        self.priv_info_buf[:, 9:12] = object_axis_world
         self.priv_info_buf[:, 12:15] = self.object_angvel
         self.priv_info_buf[:, 15:18] = self.object_linvel
 
@@ -652,7 +683,7 @@ def unscale(x, lower, upper):
 @torch.jit.script
 def compute_rewards(
     rotate_reward: torch.Tensor, rotate_reward_scale: float,
-    cylinder_tilt_penalty: torch.Tensor, cylinder_tilt_penalty_scale: float,
+    object_axis_tilt_penalty: torch.Tensor, object_axis_tilt_penalty_scale: float,
     off_axis_angvel_penalty: torch.Tensor, off_axis_angvel_penalty_scale: float,
     xy_drift_penalty: torch.Tensor, xy_drift_penalty_scale: float,
     z_drift_penalty: torch.Tensor, z_drift_penalty_scale: float,
@@ -662,7 +693,7 @@ def compute_rewards(
     work_penalty: torch.Tensor, work_penalty_scale: float,
 ):
     reward = rotate_reward * rotate_reward_scale
-    reward += cylinder_tilt_penalty * cylinder_tilt_penalty_scale
+    reward += object_axis_tilt_penalty * object_axis_tilt_penalty_scale
     reward += off_axis_angvel_penalty * off_axis_angvel_penalty_scale
     reward += xy_drift_penalty * xy_drift_penalty_scale
     reward += z_drift_penalty * z_drift_penalty_scale

@@ -23,7 +23,7 @@ class Revo3HandHoraEnvCfg(DirectRLEnvCfg):
     observation_space = 141  # 3 frames x 47 dims (21 joint_pos + 21 targets + 5 contacts)
     prop_hist_len = 30
     # [object_pos_delta(3), friction(1), mass(1), com(3), gravity_magnitude(1),
-    #  cylinder_axis_world(3), object_angular_velocity(3), object_linear_velocity(3)]
+    #  configured_object_axis_world(3), object_angular_velocity(3), object_linear_velocity(3)]
     priv_info_dim = 18
     state_space = 0
     asymmetric_obs = False
@@ -137,6 +137,18 @@ class Revo3HandHoraEnvCfg(DirectRLEnvCfg):
             pos=(0.000, -0.08, 1.635), rot=(1.0, 0.0, 0.0, 0.0)),
     )
 
+    # Populated from object_registry.py by both gen_grasp.py and train.py.
+    object_task = "cylinder"
+    object_display_name = "30 mm radius x 70 mm cylinder"
+    object_scale = 1.0
+    object_size_m = (0.060, 0.060, 0.070)
+    object_usd_path = ""
+    grasp_fingertip_near_threshold = 0.10
+    object_rotation_axis_local = (0.0, 0.0, 1.0)
+    target_rotation_axis_world = (0.0, 0.0, 1.0)
+    object_axis_bidirectional = True
+    enforce_object_axis_alignment = True
+
     scene: InteractiveSceneCfg = InteractiveSceneCfg(
         num_envs=16384, env_spacing=0.75, replicate_physics=False)
 
@@ -145,12 +157,11 @@ class Revo3HandHoraEnvCfg(DirectRLEnvCfg):
     reset_angle_diff = 45 / 180 * math.pi
     reset_random_quat = False
 
-    rot_axis = (0, 0, 1)
     angvel_clip_min = -0.5
     angvel_clip_max = 0.5
     rotate_reward_scale = 2.5
-    cylinder_tilt_tolerance = 10 / 180 * math.pi
-    cylinder_tilt_penalty_scale = -0.25
+    object_axis_tilt_tolerance = 10 / 180 * math.pi
+    object_axis_tilt_penalty_scale = -0.25
     off_axis_angvel_penalty_scale = -0.2
     xy_drift_tolerance = 0.005
     xy_drift_penalty_scale = -0.15

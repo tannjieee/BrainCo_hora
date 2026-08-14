@@ -403,7 +403,18 @@ def _extract_joint_pos_from_assets(task_key: str) -> dict[str, float] | None:
     return {str(k): float(v) for k, v in joint_pos.items()}
 
 
-def _resolve_init_joint_pos(run_dir: Path) -> dict[str, float] | None:
+def _resolve_init_joint_pos(run_dir: Path, cfg: Any | None = None) -> dict[str, float] | None:
+    hand_pose = _get_cfg_value(cfg, "env_runtime.object.hand_pose", None)
+    overrides = _get_cfg_value(cfg, "env_runtime.object.hand_joint_pos_rad", {})
+    if OmegaConf.is_config(overrides):
+        overrides = OmegaConf.to_container(overrides, resolve=True)
+    if hand_pose == "custom" and isinstance(overrides, dict):
+        return {str(name): float(value) for name, value in overrides.items()}
+    if hand_pose in ("ball", "cylinder"):
+        joint_pos = _extract_joint_pos_from_assets(str(hand_pose))
+        if joint_pos is not None and isinstance(overrides, dict):
+            joint_pos.update({str(name): float(value) for name, value in overrides.items()})
+        return joint_pos
     name = run_dir.name.lower()
     if "cylinder" in name:
         return _extract_joint_pos_from_assets("cylinder")
@@ -600,6 +611,9 @@ def main() -> None:
         if args.meta_output
         else out_path.with_suffix(".deploy_meta.yaml")
     )
+    object_runtime = _get_cfg_value(cfg, "env_runtime.object", {})
+    if OmegaConf.is_config(object_runtime):
+        object_runtime = OmegaConf.to_container(object_runtime, resolve=True)
     _save_deploy_meta(
         meta_path,
         checkpoint=ckpt_path,
@@ -623,7 +637,8 @@ def main() -> None:
             ),
             "joint_order_source": "Isaac Lab runtime hand.data.joint_names",
             "joint_order_right_hand": RIGHT_HAND_JOINT_ORDER,
-            "init_joint_pos": _resolve_init_joint_pos(run_dir),
+            "init_joint_pos": _resolve_init_joint_pos(run_dir, cfg),
+            "object": object_runtime,
         },
     )
 

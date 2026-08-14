@@ -3,7 +3,7 @@
 Grasp detection (reset_buf approach in _get_rewards):
   cond1: all 5 fingertips within 0.1m of object center
   cond2: >=4 fingertips each contact in >=70% of a 20-step rolling window
-  cond3: after settling, >=2 live contacts and cylinder-axis tilt <=10 deg
+  cond3: after settling, >=2 live contacts and optional object-axis tilt <=10 deg
   cond4: after settling, XY drift <=5mm and Z drift <=15mm
 
 Gravity testing defaults to fixed -Z gravity. Six-axis cycling is opt-in after the
@@ -27,10 +27,11 @@ import time
 from collections.abc import Sequence
 
 from isaaclab.app import AppLauncher
+from hora.object_registry import OBJECT_TASK_NAMES
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--task", type=str, default="ball", choices=["ball", "cylinder"], help="Task variant")
+parser.add_argument("--task", type=str, default="ball", choices=OBJECT_TASK_NAMES, help="Object task")
 parser.add_argument("--num_envs", type=int, default=8192)
 parser.add_argument("--target_count", type=int, default=8192)
 parser.add_argument("--cache_file", type=str, default="", help="Override output cache filename under cache/.")
@@ -66,8 +67,8 @@ parser.add_argument(
 parser.add_argument(
     "--max_axis_tilt_deg",
     type=float,
-    default=10.0,
-    help="Maximum cylinder long-axis deviation from world Z after settling.",
+    default=None,
+    help="Override the per-object local-axis/target-axis tolerance after settling.",
 )
 parser.add_argument(
     "--max_horizontal_drift_m",
@@ -116,8 +117,8 @@ if not 0.0 < args.min_contact_ratio <= 1.0:
     parser.error("--min_contact_ratio must be in (0, 1]")
 if not 0 <= args.min_live_contact_fingertips <= 5:
     parser.error("--min_live_contact_fingertips must be between 0 and 5")
-if not 0.0 <= args.max_axis_tilt_deg <= 90.0:
-    parser.error("--max_axis_tilt_deg must be between 0 and 90")
+if args.max_axis_tilt_deg is not None and not 0.0 < args.max_axis_tilt_deg <= 180.0:
+    parser.error("--max_axis_tilt_deg must be in (0, 180]")
 if args.max_horizontal_drift_m <= 0.0:
     parser.error("--max_horizontal_drift_m must be greater than 0")
 if args.max_height_drift_m <= 0.0:
@@ -132,19 +133,15 @@ import carb
 import numpy as np
 import torch
 
-from isaaclab.utils.math import quat_conjugate, quat_mul, saturate
+from isaaclab.utils.math import quat_apply, quat_conjugate, quat_mul, saturate
 
 from hora.tasks.isaaclab import Revo3HandHoraEnv, Revo3HandHoraEnvCfg
-from hora.tasks.isaaclab.assets import (
-    BALL_OBJECT_CFG, CYLINDER_OBJECT_CFG,
-    REVO3_HAND_BALL_CFG, REVO3_HAND_CYLINDER_CFG,
-)
+from hora.tasks.isaaclab.assets import configure_env_for_object_task
 
 
 class GraspGenEnv(Revo3HandHoraEnv):
     """Revo3HandHoraEnv subclass for grasp cache collection — reset_buf approach."""
 
-    FINGERTIP_NEAR_THRESHOLD = 0.10
     def __init__(
         self,
         cfg,
@@ -161,6 +158,7 @@ class GraspGenEnv(Revo3HandHoraEnv):
         max_axis_tilt_deg: float = 10.0,
         max_horizontal_drift_m: float = 0.005,
         max_height_drift_m: float = 0.015,
+        fingertip_near_threshold_m: float = 0.10,
         check_axis_tilt: bool = True,
         gravity_mode: str = "fixed",
         gravity_interval: int = 15,
@@ -187,6 +185,7 @@ class GraspGenEnv(Revo3HandHoraEnv):
         self._max_axis_tilt = float(max_axis_tilt_deg) * torch.pi / 180.0
         self._max_horizontal_drift = float(max_horizontal_drift_m)
         self._max_height_drift = float(max_height_drift_m)
+        self._fingertip_near_threshold = float(fingertip_near_threshold_m)
         self._check_axis_tilt = bool(check_axis_tilt)
         self._gravity_mode = gravity_mode
         self._gravity_interval = int(gravity_interval)
@@ -402,7 +401,7 @@ class GraspGenEnv(Revo3HandHoraEnv):
         self._refresh_lab()
         # cond1: all 5 fingertips within 0.1m of object
         fingertip_distances = torch.norm(self.fingertip_pos - self.object_pos.unsqueeze(1), dim=-1)
-        cond1 = (fingertip_distances < self.FINGERTIP_NEAR_THRESHOLD).all(-1)
+        cond1 = (fingertip_distances < self._fingertip_near_threshold).all(-1)
         # cond2: use object-filtered forces, excluding self and unrelated contacts
         object_contact_forces = torch.stack(
             [sensor.data.force_matrix_w[:, 0, 0, :] for sensor in self._contact_sensor],
@@ -421,11 +420,20 @@ class GraspGenEnv(Revo3HandHoraEnv):
         )
         live_contact = contact_mask.sum(-1) >= self._min_live_contact_fingertips
 
-        # Cylinder local Z in world coordinates.  Only the long-axis alignment
-        # matters; yaw about that axis is intentionally not rejected.
-        _, quat_x, quat_y, _ = self.object_rot.unbind(-1)
-        axis_alignment = torch.abs(1.0 - 2.0 * (quat_x.square() + quat_y.square()))
-        axis_tilt = torch.acos(torch.clamp(axis_alignment, 0.0, 1.0))
+        # Compare this object's configured local rotation axis with its target
+        # world axis. Rotation about the aligned axis is intentionally allowed.
+        object_axis_world = quat_apply(
+            self.object_rot, self.object_rotation_axis_local
+        )
+        axis_alignment = (
+            object_axis_world * self.target_rotation_axis_world
+        ).sum(-1)
+        if self.cfg.object_axis_bidirectional:
+            axis_alignment = torch.abs(axis_alignment)
+            axis_alignment = torch.clamp(axis_alignment, 0.0, 1.0)
+        else:
+            axis_alignment = torch.clamp(axis_alignment, -1.0, 1.0)
+        axis_tilt = torch.acos(axis_alignment)
         if self._check_axis_tilt:
             cond3 = axis_tilt <= self._max_axis_tilt
         else:
@@ -453,7 +461,7 @@ class GraspGenEnv(Revo3HandHoraEnv):
 
         # During settling, do not reject a candidate for missing contact or
         # tilt. Afterwards require multi-frame contact evidence, a modest live
-        # contact floor, and tight cylinder-axis alignment.
+        # contact floor, and (when enabled) tight object-axis alignment.
         settling = self.episode_length_buf <= self._settle_steps
         stable = contact_established & live_contact & cond3 & cond_height & cond_horizontal
         cond = cond1 & (stable | settling)
@@ -556,15 +564,12 @@ class GraspGenEnv(Revo3HandHoraEnv):
 
 env_cfg = Revo3HandHoraEnvCfg()
 
-# Select correct robot_cfg and object_cfg based on task
-_TASK_ROBOT_CFG = {"ball": REVO3_HAND_BALL_CFG, "cylinder": REVO3_HAND_CYLINDER_CFG}
-_TASK_OBJECT_CFG = {"ball": BALL_OBJECT_CFG, "cylinder": CYLINDER_OBJECT_CFG}
-env_cfg.robot_cfg = _TASK_ROBOT_CFG.get(args.task, REVO3_HAND_CYLINDER_CFG)
-env_cfg.object_cfg = _TASK_OBJECT_CFG.get(args.task, CYLINDER_OBJECT_CFG)
-
-# Set output cache filename based on task
-_TASK_CACHE_FILE = {"ball": "cache/revo3_right_grasp_ball", "cylinder": "cache/revo3_right_grasp_cylinder"}
-env_cfg.grasp_cache_path = _TASK_CACHE_FILE.get(args.task, _TASK_CACHE_FILE["cylinder"])
+object_spec = configure_env_for_object_task(env_cfg, args.task)
+max_axis_tilt_deg = (
+    args.max_axis_tilt_deg
+    if args.max_axis_tilt_deg is not None
+    else object_spec.axis_tilt_tolerance_deg
+)
 if args.cache_file:
     env_cfg.grasp_cache_path = f"cache/{args.cache_file.replace('.npy', '')}"
 
@@ -602,10 +607,11 @@ env = GraspGenEnv(
     contact_window_steps=args.contact_window_steps,
     min_contact_ratio=args.min_contact_ratio,
     min_live_contact_fingertips=args.min_live_contact_fingertips,
-    max_axis_tilt_deg=args.max_axis_tilt_deg,
+    max_axis_tilt_deg=max_axis_tilt_deg,
     max_horizontal_drift_m=args.max_horizontal_drift_m,
     max_height_drift_m=args.max_height_drift_m,
-    check_axis_tilt=args.task == "cylinder",
+    fingertip_near_threshold_m=env_cfg.grasp_fingertip_near_threshold,
+    check_axis_tilt=env_cfg.enforce_object_axis_alignment,
     gravity_mode=args.gravity_mode,
     gravity_interval=args.gravity_interval,
 )
@@ -614,6 +620,12 @@ env.start_progress_tracking()
 
 print("\n[INFO] Grasp cache generation started.")
 print(f"  task        : {args.task}")
+print(f"  object      : {object_spec.display_name}")
+print(f"  scale       : {object_spec.scale:g}")
+print(f"  size        : {tuple(round(v * 1000.0, 1) for v in object_spec.scaled_size_m)} mm")
+print(f"  hand seed   : {object_spec.hand_pose} + {len(object_spec.hand_joint_pos_rad)} overrides")
+print(f"  local axis  : {object_spec.rotation_axis_local}")
+print(f"  target axis : {object_spec.target_axis_world}")
 print(f"  num_envs    : {args.num_envs}")
 print(f"  noise_scale : ±{args.noise_scale} rad")
 print(f"  episode_len : {env_cfg.episode_length_s}s  ({env.max_episode_length} steps)")
@@ -627,8 +639,9 @@ print(
 )
 print(f"  force gate  : > {args.contact_force_threshold:g}N per fingertip per frame")
 print(f"  live contact: >= {args.min_live_contact_fingertips} fingertips after settle")
-if args.task == "cylinder":
-    print(f"  axis tilt   : <= {args.max_axis_tilt_deg:g}deg after settle")
+if env_cfg.enforce_object_axis_alignment:
+    direction = "unsigned" if env_cfg.object_axis_bidirectional else "directed"
+    print(f"  axis tilt   : <= {max_axis_tilt_deg:g}deg after settle ({direction})")
 print(f"  XY drift    : <= {1000.0 * args.max_horizontal_drift_m:g}mm after settle")
 print(f"  height drift: <= {1000.0 * args.max_height_drift_m:g}mm after settle")
 print(f"  gravity     : {args.gravity_mode} (9.81m/s²)")

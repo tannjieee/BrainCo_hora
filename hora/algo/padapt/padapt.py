@@ -145,7 +145,7 @@ class ProprioAdapt(object):
             height_reset_count += self._info_scalar(info, 'height_reset_lower') * self.num_actors
             height_reset_count += self._info_scalar(info, 'height_reset_upper') * self.num_actors
             timeout_count += self._info_scalar(info, 'time_out') * self.num_actors
-            tilt_sum += self._info_scalar(info, 'cylinder_tilt_deg')
+            tilt_sum += self._info_scalar(info, 'object_axis_tilt_deg')
             step += 1
             sleep_time = step_dt - (time.time() - step_start)
             if real_time and sleep_time > 0:

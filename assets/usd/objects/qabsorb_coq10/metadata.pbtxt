@@ -1,0 +1,39 @@
+model {
+  file: "model.sdf"
+}
+name: "QAbsorb_CoQ10_53iUqjWjW3O"
+description: "Q-Absorb Co-Q10"
+version: 1
+authors {
+  name: "Google"
+  email: "scanned-objects@google.com"
+}
+legal {
+  copyright: "Copyright 2020 Google LLC."
+  license: "Creative Commons Attribution 4.0 International"
+}
+annotations {
+  key: "brand"
+  value: "Jarrow Formulas"
+}
+annotations {
+  key: "gtin"
+  value: "790011060130"
+}
+annotations {
+  key: "mpn"
+  value: "790011060130"
+}
+annotations {
+  key: "sku"
+  value: "QPS"
+}
+compatibilities {
+  name: "Gazebo"
+  version {
+    major: 11
+  }
+}
+categories {
+  first: "Bottles and Cans and Cups"
+}

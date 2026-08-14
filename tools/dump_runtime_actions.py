@@ -33,10 +33,11 @@ if str(REPO_ROOT) not in sys.path:
 os.environ.setdefault("HORA_SKIP_SIM_CLOSE", "1")
 
 from isaaclab.app import AppLauncher
+from hora.object_registry import OBJECT_TASK_NAMES
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--task", type=str, default="cylinder", choices=["ball", "cylinder"])
+parser.add_argument("--task", type=str, default="cylinder", choices=OBJECT_TASK_NAMES)
 parser.add_argument("--algo", type=str, default="auto", choices=["auto", "PPO", "ProprioAdapt"])
 parser.add_argument("--train_cfg", type=str, default="Revo3HandHora")
 parser.add_argument("--checkpoint", type=str, required=True)
@@ -57,19 +58,8 @@ from omegaconf import OmegaConf
 from hora.algo.padapt.padapt import ProprioAdapt
 from hora.algo.ppo.ppo import PPO
 from hora.tasks.isaaclab import HoraCompatWrapper, Revo3HandHoraEnv, Revo3HandHoraEnvCfg
-from hora.tasks.isaaclab.assets import (
-    BALL_OBJECT_CFG, CYLINDER_OBJECT_CFG,
-    REVO3_HAND_BALL_CFG, REVO3_HAND_CYLINDER_CFG,
-)
+from hora.tasks.isaaclab.assets import configure_env_for_object_task
 from hora.utils.misc import set_np_formatting, set_seed
-
-_TASK_ROBOT_CFG = {"ball": REVO3_HAND_BALL_CFG, "cylinder": REVO3_HAND_CYLINDER_CFG}
-_TASK_OBJECT_CFG = {"ball": BALL_OBJECT_CFG, "cylinder": CYLINDER_OBJECT_CFG}
-_TASK_CACHE = {
-    "ball": "cache/revo3_right_grasp_ball",
-    "cylinder": "cache/revo3_right_grasp_cylinder",
-}
-
 
 def _is_stage2_checkpoint(path: str) -> bool:
     return path.endswith(".ckpt") or ("stage2_nn" in path)
@@ -104,9 +94,7 @@ def _build_full_config(seed: int, algo: str):
 
 def _build_env_cfg(seed: int):
     env_cfg = Revo3HandHoraEnvCfg()
-    env_cfg.robot_cfg = _TASK_ROBOT_CFG.get(args.task, REVO3_HAND_CYLINDER_CFG)
-    env_cfg.object_cfg = _TASK_OBJECT_CFG.get(args.task, CYLINDER_OBJECT_CFG)
-    env_cfg.grasp_cache_path = _TASK_CACHE.get(args.task, 'cache/revo3_right_grasp_cylinder')
+    configure_env_for_object_task(env_cfg, args.task)
     if args.cache_file:
         env_cfg.grasp_cache_path = f"cache/{args.cache_file.replace('.npy', '')}"
     if args.usd:

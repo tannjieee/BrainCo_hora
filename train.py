@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Training entry point for Stage1 (PPO) and Stage2 (ProprioAdapt).
 
-Task selection: --task ball|cylinder selects robot_cfg, object_cfg, and grasp cache.
-  robot_cfg and object_cfg are chosen from assets.py (not env_cfg.py class defaults).
+Task selection: --task selects robot_cfg, object_cfg, reward constraints, and grasp cache
+from the shared object registry.  This includes ball/cylinder and packaged USD objects.
 
 Cache path: {grasp_cache_path}.npy under cache/. Override with --cache_file.
 
@@ -23,10 +23,11 @@ import traceback
 os.environ.setdefault("HORA_SKIP_SIM_CLOSE", "1")
 
 from isaaclab.app import AppLauncher
+from hora.object_registry import OBJECT_TASK_NAMES, get_object_task_spec
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--task', type=str, default='cylinder', choices=['ball', 'cylinder'])
+parser.add_argument('--task', type=str, default='cylinder', choices=OBJECT_TASK_NAMES)
 parser.add_argument('--algo', type=str, default='PPO', choices=['PPO', 'ProprioAdapt'])
 parser.add_argument('--train_cfg', type=str, default='Revo3HandHora')
 parser.add_argument('--output_name', type=str, default='debug')
@@ -101,8 +102,7 @@ from hora.algo.padapt.padapt import ProprioAdapt
 from hora.algo.ppo.ppo import PPO
 from hora.tasks.isaaclab import HoraCompatWrapper, Revo3HandHoraEnv, Revo3HandHoraEnvCfg
 from hora.tasks.isaaclab.assets import (
-    BALL_OBJECT_CFG, CYLINDER_OBJECT_CFG,
-    REVO3_HAND_BALL_CFG, REVO3_HAND_CYLINDER_CFG,
+    configure_env_for_object_task,
 )
 from hora.utils.misc import set_np_formatting, set_seed
 
@@ -110,13 +110,6 @@ from hora.utils.misc import set_np_formatting, set_seed
 _ALGO_MAP = {
     'PPO': PPO,
     'ProprioAdapt': ProprioAdapt,
-}
-
-_TASK_ROBOT_CFG = {'ball': REVO3_HAND_BALL_CFG, 'cylinder': REVO3_HAND_CYLINDER_CFG}
-_TASK_OBJECT_CFG = {'ball': BALL_OBJECT_CFG, 'cylinder': CYLINDER_OBJECT_CFG}
-_TASK_CACHE = {
-    'ball': 'cache/revo3_right_grasp_ball',
-    'cylinder': 'cache/revo3_right_grasp_cylinder',
 }
 
 def _build_full_config(seed: int):
@@ -155,9 +148,7 @@ def _build_full_config(seed: int):
 
 def _build_env_cfg(seed: int):
     env_cfg = Revo3HandHoraEnvCfg()
-    env_cfg.robot_cfg = _TASK_ROBOT_CFG.get(args.task, REVO3_HAND_CYLINDER_CFG)
-    env_cfg.object_cfg = _TASK_OBJECT_CFG.get(args.task, CYLINDER_OBJECT_CFG)
-    env_cfg.grasp_cache_path = _TASK_CACHE.get(args.task, 'cache/revo3_right_grasp_cylinder')
+    configure_env_for_object_task(env_cfg, args.task)
     if args.cache_file:
         env_cfg.grasp_cache_path = f"cache/{args.cache_file.replace('.npy', '')}"
     if args.usd:
@@ -199,8 +190,10 @@ def _save_run_metadata(output_dif: str, full_config) -> None:
 
 
 def _attach_env_runtime_to_config(full_config, env_cfg) -> None:
+    object_spec = get_object_task_spec(env_cfg.object_task)
     full_config.env_runtime = OmegaConf.create(
         {
+            'object': object_spec.metadata(),
             'grasp_cache_path': str(env_cfg.grasp_cache_path),
             'enable_tactile': bool(env_cfg.enable_tactile),
             'enable_contact_in_obs': bool(env_cfg.enable_contact_in_obs),

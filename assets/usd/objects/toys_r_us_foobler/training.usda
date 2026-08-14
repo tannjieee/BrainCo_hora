@@ -1,0 +1,32 @@
+#usda 1.0
+(
+    defaultPrim = "Object"
+    metersPerUnit = 1
+    upAxis = "Z"
+)
+
+def Xform "Object" (
+    prepend apiSchemas = ["PhysicsMassAPI", "PhysicsRigidBodyAPI"]
+    customData = {
+        string sourceAsset = "Toys_R_Us_Treat_Dispenser_Smart_Puzzle_Foobler"
+        string scaleSource = "manifest.json"
+    }
+)
+{
+    float physics:mass = 0.1
+    bool physics:rigidBodyEnabled = 1
+
+    def Xform "Geometry" (
+        prepend references = @./model.usd@
+    )
+    {
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (0.000025, -0.000007, -0.076685)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:scale"]
+
+        over "Mesh"
+        {
+            uniform token physics:approximation = "convexDecomposition"
+        }
+    }
+}

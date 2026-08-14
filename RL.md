@@ -15,7 +15,7 @@
 ```
 
 - **算法**: PPO + GAE-lambda
-- **特权信息**: `env_mlp` 将 18 维 priv_info（位置偏差/摩擦/质量/COM/重力大小/圆柱世界轴/物体角速度/线速度）编码为 8 维隐变量，tanh 后拼入观测 → 149 维入 `actor_mlp`
+- **特权信息**: `env_mlp` 将 18 维 priv_info（位置偏差/摩擦/质量/COM/重力大小/物体配置轴的世界方向/物体角速度/线速度）编码为 8 维隐变量，tanh 后拼入观测 → 149 维入 `actor_mlp`
 - **网络**: `actor_mlp` [512,256,128] ELU, value 头 Linear(128,1), mu 头 Linear(128,21), 可学习 log_std
 - **PPO 超参**: lr=3e-4, gamma=0.99, tau=0.95, kl_threshold=0.01, e_clip=0.2, critic_coef=2, entropy_coef=0.001, bounds_loss_coef=0.001
 - **数据流**: horizon=16；4096 环境时为 65536 transitions/epoch，minibatch=32768，3 mini-epochs
@@ -86,8 +86,8 @@ stage2:
 
 | 参数 | 值 | 时机 |
 |---|---|---|
-| 物体形状 | `ball_brainco` 或 `cylinder_brainco` (按 `--task`) | — |
-| 物体缩放 | 固定 1.0 | — |
+| 物体形状 | 每次运行由 `--task` 选择球、圆柱或注册表中的扫描物体 | — |
+| 物体缩放 | 球/圆柱为 1.0；扫描物体使用 `assets/usd/objects/manifest.json` 中各自的固定比例 | — |
 | 物体质量 | U(0.01, 0.20) kg | init 一次 |
 | 摩擦 | 手 metal_base=0.1, object_base=0.5, scale×U(0.5, 2.0) | init 一次 |
 | COM | U(-0.01, 0.01) m | init 一次 |
@@ -200,7 +200,7 @@ Stage2 / ProprioAdapt 部署约定:
 | 4 | 物体质量 (kg) |
 | 5-7 | 物体质心偏移 (xyz) |
 | 8 | 重力大小 (m/s²) |
-| 9-11 | 圆柱长轴的世界坐标方向 |
+| 9-11 | manifest 中配置的物体局部旋转轴在世界坐标系中的方向 |
 | 12-14 | 物体世界坐标角速度 |
 | 15-17 | 物体世界坐标线速度 |
 
@@ -302,7 +302,7 @@ reward 中的 `torque_penalty` 和 `work_penalty` 使用 `self.torques`——即
 - 分组匹配优先级: `CMP` → `CMR` → `thumb_flexion` → `DIP` → `MPR` → `MCP` → `PIP`
 - 随机化: 每 reset 乘以 `Kp × [0.5, 2.0]`, `Kd × [0.5, 2.0]`，每 DOF 独立
 - 控制频率: 240Hz 物理 ÷ 12 decimation = 20Hz
-- 旋转目标轴: 世界 Z 轴 (0, 0, **+1**)
+- 旋转目标轴: 每个任务由 manifest 的 `rotation.target_axis_world` 独立配置
 
 ---
 
@@ -312,7 +312,7 @@ reward 中的 `torque_penalty` 和 `work_penalty` 使用 `self.torques`——即
 
 | 项 | 公式 | Scale | 作用 |
 |---|---|---|---|
-| **旋转奖励** | `clip((angvel · Z轴), -0.5, 0.5)` | **+2.5** | 鼓励绕世界 Z 轴旋转 |
+| **旋转奖励** | `clip((angvel · target_axis_world), -0.5, 0.5)` | **+2.5** | 鼓励绕该物体配置的世界目标轴旋转 |
 | **线速度惩罚** | `‖obj_pos - prev_pos‖₁ / dt` | **-0.3** | 抑制物体平动 |
 | **物体位置奖励** | `1 / (‖obj_pos - init_pos‖ + 0.001)` | **+0.003** | 物体保持在初始位置附近 |
 | **姿态偏离惩罚** | `Σ (joint_pos - init_joint_pos)²` | **-0.4** | 保持抓取构型, 避免过度伸展 |
@@ -363,6 +363,12 @@ isaaclab.sh -p view_init_pose.py --task ball --num_envs 1 [--physics] [--cache_f
 两种模式:
 - **冻结模式** (默认): 仅渲染, 检查初始姿态
 - **物理模式** (`--physics`): 零动作步进, 每 20 步打印 obj_z / hand_z, 测试被动稳定性
+
+冻结模式可加 `--edit_joints` 打开 21 关节实时编辑面板。每个关节都可通过
+滑块或数值框按弧度调整，并按 USD 关节限位约束；修改会同时应用到所有展示
+环境。面板可以重置、打印 JSON，扫描物体还可将当前值直接保存到
+`assets/usd/objects/manifest.json` 中对应任务的
+`grasp_seed.hand_joint_pos_rad`。`--joint_step` 用于设置微调步长。
 
 ### ONNX 导出 (tools/export_onnx.py)
 
