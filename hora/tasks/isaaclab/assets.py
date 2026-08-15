@@ -6,6 +6,7 @@ import os
 import isaaclab.sim as sim_utils
 from isaaclab.actuators import ImplicitActuatorCfg
 from isaaclab.assets import ArticulationCfg, RigidObjectCfg
+from isaaclab.sim.spawners.wrappers import MultiAssetSpawnerCfg
 
 _REVO3_USD = os.path.join(os.path.dirname(__file__), "../../../assets/usd/revo3_right.usd")
 
@@ -128,7 +129,9 @@ REVO3_HAND_BALL_CFG = ArticulationCfg(
 
 _COMMON_RIGID = sim_utils.RigidBodyPropertiesCfg(
     kinematic_enabled=False,
-    disable_gravity=False,
+    # Scene gravity is zero.  Gravity is applied as a per-environment
+    # equivalent force so every object can use an independent direction.
+    disable_gravity=True,
     enable_gyroscopic_forces=True,
     solver_position_iteration_count=8,
     solver_velocity_iteration_count=0,
@@ -165,3 +168,73 @@ CYLINDER_OBJECT_CFG = RigidObjectCfg(
     ),
     init_state=RigidObjectCfg.InitialStateCfg(pos=CYLINDER_INIT_POS, rot=OBJECT_INIT_ROT),
 )
+
+
+CYLINDER_RADIUS_MM = tuple(range(25, 36))
+"""Supported cylinder-radius bins in millimetres."""
+
+# One 50-environment cycle realizes the requested distribution exactly:
+# nominal 30 mm occupies 20/50 = 40%, every other bin occupies 3/50 = 6%.
+# The shuffled-looking deterministic order avoids placing all nominal objects
+# in one contiguous block while keeping geometry/cache/radius metadata aligned.
+CYLINDER_RADIUS_SLOT_MM = (
+    # First 34 slots: 30 mm x14, every other radius x2.  This makes
+    # num_envs=16384 exact: 6554 nominal and 983 for every other bin.
+    30, 29, 30, 31, 28, 30, 32, 27, 30, 33,
+    26, 30, 34, 25, 30, 35, 30, 30, 29, 31,
+    30, 28, 32, 30, 27, 33, 30, 26, 34, 30,
+    25, 35, 30, 30,
+    # Remaining 16 slots: 30 mm x6, every other radius x1.
+    29, 30, 31, 28, 30, 32, 27, 30, 33, 26,
+    30, 34, 25, 30, 35, 30,
+)
+
+if len(CYLINDER_RADIUS_SLOT_MM) != 50:
+    raise RuntimeError("CYLINDER_RADIUS_SLOT_MM must contain exactly 50 slots")
+if set(CYLINDER_RADIUS_SLOT_MM) != set(CYLINDER_RADIUS_MM):
+    raise RuntimeError("CYLINDER_RADIUS_SLOT_MM must cover every supported radius bin")
+for _radius_mm in CYLINDER_RADIUS_MM:
+    _expected_slots = 20 if _radius_mm == 30 else 3
+    if CYLINDER_RADIUS_SLOT_MM.count(_radius_mm) != _expected_slots:
+        raise RuntimeError(
+            f"Radius {_radius_mm} mm must occupy {_expected_slots}/50 slots"
+        )
+
+
+def make_cylinder_object_cfg(
+    radius_mm: int | None = None,
+    *,
+    use_radius_distribution: bool = True,
+) -> RigidObjectCfg:
+    """Return a cylinder config for one radius or the deterministic 40/6% mixture.
+
+    The returned object owns a new spawn config.  ``configclass.copy()`` is a
+    shallow dataclass replacement, so mutating ``cfg.spawn.radius`` after a
+    plain copy would also mutate :data:`CYLINDER_OBJECT_CFG`.
+    """
+    base_spawn = CYLINDER_OBJECT_CFG.spawn
+    if radius_mm is not None:
+        radius_mm = int(radius_mm)
+        if radius_mm not in CYLINDER_RADIUS_MM:
+            raise ValueError(
+                f"radius_mm must be one of {CYLINDER_RADIUS_MM}, got {radius_mm}"
+            )
+        return CYLINDER_OBJECT_CFG.replace(
+            spawn=base_spawn.replace(radius=radius_mm / 1000.0)
+        )
+
+    if not use_radius_distribution:
+        return CYLINDER_OBJECT_CFG.replace(spawn=base_spawn.replace(radius=0.030))
+
+    cylinder_cfgs = [
+        base_spawn.replace(radius=slot_radius_mm / 1000.0)
+        for slot_radius_mm in CYLINDER_RADIUS_SLOT_MM
+    ]
+    return CYLINDER_OBJECT_CFG.replace(
+        spawn=MultiAssetSpawnerCfg(
+            assets_cfg=cylinder_cfgs,
+            # Slot order, geometry readback, privileged radius and cache
+            # selection must remain deterministic and mutually aligned.
+            random_choice=False,
+        )
+    )

@@ -4,7 +4,7 @@ Gotcha — infos/extras reference: DirectRLEnv.step() returns self.extras as the
   (same object reference). The wrapper must iterate extras BEFORE setting time_outs,
   otherwise time_outs gets overwritten by extras loop's .float().mean().
 
-Gotcha — Bool tensors: extras may contain Bool tensors (e.g. height_reset_upper from
+Gotcha — Bool tensors: extras may contain Bool tensors (e.g. future termination diagnostics from
   _get_dones before .float()). The loop uses v.float().mean() to safely handle these.
 """
 

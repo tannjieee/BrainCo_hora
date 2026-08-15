@@ -128,7 +128,7 @@ class ProprioAdapt(object):
         obs_dict = self.env.reset()
         step = 0
         reward_sum = 0.0
-        height_reset_count = 0.0
+        drop_reset_count = 0.0
         timeout_count = 0.0
         tilt_sum = 0.0
         step_dt = float(getattr(self.env, 'step_dt', 0.0))
@@ -142,8 +142,7 @@ class ProprioAdapt(object):
             mu = torch.clamp(mu, -1.0, 1.0)
             obs_dict, r, done, info = self.env.step(mu)
             reward_sum += float(r.mean().item())
-            height_reset_count += self._info_scalar(info, 'height_reset_lower') * self.num_actors
-            height_reset_count += self._info_scalar(info, 'height_reset_upper') * self.num_actors
+            drop_reset_count += self._info_scalar(info, 'drop_reset') * self.num_actors
             timeout_count += self._info_scalar(info, 'time_out') * self.num_actors
             tilt_sum += self._info_scalar(info, 'cylinder_tilt_deg')
             step += 1
@@ -158,8 +157,8 @@ class ProprioAdapt(object):
                 f"  transitions   : {transitions}\n"
                 f"  mean reward   : {reward_sum / max_steps:.6f}\n"
                 f"  mean tilt     : {tilt_sum / max_steps:.3f} deg\n"
-                f"  height resets : {height_reset_count:.0f} "
-                f"({height_reset_count / transitions:.6%}/step)\n"
+                f"  drop resets   : {drop_reset_count:.0f} "
+                f"({drop_reset_count / transitions:.6%}/step)\n"
                 f"  timeouts      : {timeout_count:.0f}",
                 flush=True,
             )
@@ -322,8 +321,7 @@ class ProprioAdapt(object):
         for k, v in self.direct_info.items():
             self.writer.add_scalar(f'{k}/frame', v, self.agent_steps)
 
-    @staticmethod
-    def _validate_stage2_tactile_abi(checkpoint, fn) -> None:
+    def _validate_stage2_tactile_abi(self, checkpoint, fn) -> None:
         if checkpoint.get('tactile_required') is False:
             raise RuntimeError(
                 f'Stage2 checkpoint uses the obsolete no-tactile ABI: {fn}'
@@ -332,6 +330,31 @@ class ProprioAdapt(object):
             print(
                 f'[WARN] Stage2 checkpoint has no tactile ABI metadata: {fn}',
                 flush=True,
+            )
+        self._validate_checkpoint_obs_shape(checkpoint, fn)
+        self._validate_checkpoint_priv_info_dim(checkpoint, fn)
+
+    def _validate_checkpoint_obs_shape(self, checkpoint, fn) -> None:
+        checkpoint_obs_shape = checkpoint.get('obs_shape')
+        if checkpoint_obs_shape is None:
+            rms_state = checkpoint.get('running_mean_std', {})
+            running_mean = rms_state.get('running_mean') if isinstance(rms_state, dict) else None
+            if running_mean is not None:
+                checkpoint_obs_shape = tuple(running_mean.shape)
+        if checkpoint_obs_shape is not None and tuple(checkpoint_obs_shape) != tuple(self.obs_shape):
+            raise RuntimeError(
+                f"Checkpoint observation ABI mismatch: checkpoint={tuple(checkpoint_obs_shape)}, "
+                f"current={tuple(self.obs_shape)}. The tactile observation ABI requires retraining "
+                f"Stage1 and Stage2. Checkpoint: {fn}"
+            )
+
+    def _validate_checkpoint_priv_info_dim(self, checkpoint, fn) -> None:
+        checkpoint_priv_dim = checkpoint.get('priv_info_dim')
+        if checkpoint_priv_dim is not None and int(checkpoint_priv_dim) != self.priv_info_dim:
+            raise RuntimeError(
+                f"Checkpoint privileged-observation mismatch: checkpoint={checkpoint_priv_dim}, "
+                f"current={self.priv_info_dim}. The 21-D teacher input requires Stage1 and Stage2 "
+                f"retraining. Checkpoint: {fn}"
             )
 
     def restore_train(self, fn):
@@ -368,6 +391,8 @@ class ProprioAdapt(object):
             return
 
         cprint('Warm-starting Stage2 adapter from Stage1 checkpoint', 'yellow', attrs=['bold'])
+        self._validate_checkpoint_obs_shape(checkpoint, fn)
+        self._validate_checkpoint_priv_info_dim(checkpoint, fn)
         incompatible = self.model.load_state_dict(checkpoint['model'], strict=False)
         expected_missing = {f'adapt_tconv.{name}' for name in self.model.adapt_tconv.state_dict()}
         actual_missing = set(incompatible.missing_keys)
@@ -380,10 +405,31 @@ class ProprioAdapt(object):
             self.running_mean_std.load_state_dict(checkpoint['running_mean_std'])
         if 'sa_mean_std' in checkpoint:
             self.sa_mean_std.load_state_dict(checkpoint['sa_mean_std'])
-        if float(checkpoint.get('gravity_magnitude', 0.0)) < 9.79:
+        runtime_gravity_magnitude = float(getattr(self.env.cfg, 'gravity_magnitude', 9.81))
+        checkpoint_gravity = checkpoint.get('gravity_magnitude')
+        if checkpoint_gravity is None:
             print(
-                '[WARN] Stage1 source checkpoint was not saved at full gravity; '
-                'validate it at 9.81 m/s^2 before trusting Stage2.',
+                '[WARN] Stage1 source checkpoint has no gravity-magnitude metadata; '
+                f'runtime still uses {runtime_gravity_magnitude:.3f} m/s^2.',
+                flush=True,
+            )
+        elif abs(float(checkpoint_gravity) - runtime_gravity_magnitude) > 0.02:
+            print(
+                f'[WARN] Stage1 source checkpoint gravity was {float(checkpoint_gravity):.3f} m/s^2; '
+                f'validate it at fixed {runtime_gravity_magnitude:.3f} m/s^2 before trusting Stage2.',
+                flush=True,
+            )
+        checkpoint_gravity_distribution = checkpoint.get('gravity_direction_distribution')
+        if checkpoint_gravity_distribution is None:
+            print(
+                '[WARN] Stage1 source checkpoint has no gravity-direction metadata; '
+                'verify it was trained with per-episode uniform-sphere directions.',
+                flush=True,
+            )
+        elif checkpoint_gravity_distribution not in ('uniform_sphere', 'uniform_sphere_per_episode'):
+            print(
+                f'[WARN] Stage1 source checkpoint gravity distribution is '
+                f'{checkpoint_gravity_distribution!r}, not uniform-sphere per episode.',
                 flush=True,
             )
         if float(checkpoint.get('best_rewards', -10000.0)) <= -9999.0:
@@ -403,6 +449,15 @@ class ProprioAdapt(object):
         self.sa_mean_std.load_state_dict(checkpoint['sa_mean_std'])
 
     def save(self, name):
+        gravity_magnitude = float(
+            getattr(self.env, '_gravity_magnitude', getattr(self.env.cfg, 'gravity_magnitude', 9.81))
+        )
+        drop_reset_rate = float(getattr(self.env, '_gravity_window_reset_rate', 1.0))
+        gravity_direction_distribution = (
+            'uniform_sphere_per_episode'
+            if bool(getattr(self.env.cfg, 'randomize_gravity_direction', False))
+            else 'fixed_negative_z'
+        )
         weights = {
             'model': self.model.state_dict(),
             'optimizer': self.optim.state_dict(),
@@ -414,7 +469,31 @@ class ProprioAdapt(object):
             'obs_shape': tuple(self.obs_shape),
             'proprio_hist_len': int(self.proprio_hist_dim),
             'priv_info_dim': int(self.priv_info_dim),
+            'gravity_magnitude': gravity_magnitude,
+            'gravity_direction_distribution': gravity_direction_distribution,
+            'scene_gravity': tuple(float(value) for value in self.env.cfg.sim.gravity),
+            'equivalent_gravity_enabled': True,
+            'drop_reset_rate_window': drop_reset_rate,
+            'gravity_reset_rate_window': drop_reset_rate,
+            'cylinder_radius_randomization': bool(
+                getattr(self.env.cfg, 'randomize_cylinder_radius', False)
+            ),
+            'cylinder_radius_bins_mm': list(
+                getattr(self.env.cfg, 'cylinder_radius_bins_mm', (30.0,))
+            ),
+            'cylinder_radius_nominal_mm': float(
+                getattr(self.env.cfg, 'cylinder_radius_nominal_mm', 30.0)
+            ),
+            'cylinder_radius_normalization_half_range_mm': float(
+                getattr(self.env.cfg, 'cylinder_radius_normalization_half_range_mm', 5.0)
+            ),
+            'mass_randomization': bool(getattr(self.env.cfg, 'randomize_mass', False)),
+            'mass_range_kg': [
+                float(getattr(self.env.cfg, 'randomize_mass_lower', 0.05)),
+                float(getattr(self.env.cfg, 'randomize_mass_upper', 0.20)),
+            ],
             'tactile_required': bool(getattr(self.env.cfg, 'enable_contact_in_obs', True)),
+            'tactile_force_dim': int(self.obs_per_step - 2 * self.actions_num),
         }
         if self.running_mean_std:
             weights['running_mean_std'] = self.running_mean_std.state_dict()

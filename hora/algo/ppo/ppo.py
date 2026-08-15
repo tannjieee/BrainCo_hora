@@ -98,7 +98,13 @@ class PPO(object):
         self.save_best_after = self.ppo_config['save_best_after']
         self.full_gravity_magnitude = float(self.ppo_config.get('full_gravity_magnitude', 9.81))
         self.full_gravity_tolerance = float(self.ppo_config.get('full_gravity_tolerance', 0.02))
-        self.full_gravity_max_reset_rate = float(self.ppo_config.get('full_gravity_max_reset_rate', 0.003))
+        self.full_gravity_max_drop_rate = float(
+            self.ppo_config.get(
+                'full_gravity_max_drop_rate',
+                # Backward-compatible config alias used by gravity-curriculum runs.
+                self.ppo_config.get('full_gravity_max_reset_rate', 0.003),
+            )
+        )
         self.full_gravity_eval_epochs = int(self.ppo_config.get('full_gravity_eval_epochs', 25))
         # ---- Tensorboard Logger ----
         self.extra_info = {}
@@ -210,16 +216,37 @@ class PPO(object):
             self.writer.add_scalar('episode_rewards/step', mean_rewards, self.agent_steps)
             self.writer.add_scalar('episode_rewards_raw/step', mean_raw_rewards, self.agent_steps)
             self.writer.add_scalar('episode_lengths/step', mean_lengths, self.agent_steps)
-            gravity_magnitude = float(self.extra_info.get('gravity_magnitude', 0.0))
-            gravity_reset_rate = float(self.extra_info.get('gravity_reset_rate_window', 1.0))
+            # Full-gravity training now uses a fixed 9.81 m/s^2 magnitude and a
+            # per-environment, per-episode direction.  The environment keeps a
+            # rolling three-dimensional drop rate; prefer its explicit new key
+            # while accepting the old curriculum-era alias in saved runs.
+            gravity_magnitude = float(
+                self.extra_info.get('gravity_magnitude', self.full_gravity_magnitude)
+            )
+            drop_reset_rate = float(
+                self.extra_info.get(
+                    'drop_reset_rate_window',
+                    self.extra_info.get('gravity_reset_rate_window', 1.0),
+                )
+            )
+            full_direction_randomization = bool(
+                getattr(self.env.cfg, 'randomize_gravity_direction', False)
+            )
             at_full_gravity = (
-                gravity_magnitude >= self.full_gravity_magnitude - self.full_gravity_tolerance
-                and gravity_reset_rate <= self.full_gravity_max_reset_rate
+                abs(gravity_magnitude - self.full_gravity_magnitude) <= self.full_gravity_tolerance
+                and drop_reset_rate <= self.full_gravity_max_drop_rate
+                and full_direction_randomization
             )
             self.full_gravity_epochs = self.full_gravity_epochs + 1 if at_full_gravity else 0
             full_gravity_evaluated = self.full_gravity_epochs >= self.full_gravity_eval_epochs
             self.writer.add_scalar('gravity/full_eval_epochs', self.full_gravity_epochs, self.agent_steps)
             self.writer.add_scalar('gravity/full_eval_ready', float(full_gravity_evaluated), self.agent_steps)
+            self.writer.add_scalar('gravity/drop_reset_rate_window', drop_reset_rate, self.agent_steps)
+            self.writer.add_scalar(
+                'gravity/uniform_sphere_per_episode',
+                float(full_direction_randomization),
+                self.agent_steps,
+            )
 
             checkpoint_name = (
                 f'ep_{self.epoch_num}_step_{int(self.agent_steps // 1e6):04}M_'
@@ -227,7 +254,7 @@ class PPO(object):
             )
             info_string = f'Agent Steps: {int(self.agent_steps // 1e6):04}M | FPS: {all_fps:.1f} | ' \
                           f'Last FPS: {last_fps:.1f} | Full-g Best: {self.best_rewards:.2f} | ' \
-                          f'Curriculum Best: {self.best_curriculum_rewards:.2f}'
+                          f'Ungated Best: {self.best_curriculum_rewards:.2f}'
             tprint(info_string)
             print("", flush=True)
             self._print_epoch_log(
@@ -239,9 +266,10 @@ class PPO(object):
                 mean_rewards=mean_rewards,
                 mean_lengths=mean_lengths,
             )
-            # Keep a diagnostic best across the curriculum, but never expose it
-            # as best.pth for Stage2.  best.pth is reserved for policies that
-            # have survived a fixed full-gravity evaluation period.
+            # Keep an ungated diagnostic best under the legacy filename, but
+            # never expose it as best.pth for Stage2.  best.pth is reserved for
+            # policies that survive the rolling drop-rate gate under full,
+            # uniformly randomized gravity directions.
             if mean_rewards > self.best_curriculum_rewards and self.epoch_num >= self.save_best_after:
                 self.best_curriculum_rewards = mean_rewards
                 self.save(os.path.join(self.nn_dir, 'best_curriculum'))
@@ -249,7 +277,7 @@ class PPO(object):
             if full_gravity_evaluated and mean_rewards > self.best_rewards and self.epoch_num >= self.save_best_after:
                 print(
                     f'save full-gravity best reward: {mean_rewards:.2f} '
-                    f'(g={gravity_magnitude:.2f}, reset_rate={gravity_reset_rate:.5f})',
+                    f'(g={gravity_magnitude:.2f}, drop_rate={drop_reset_rate:.5f})',
                     flush=True,
                 )
                 self.best_rewards = mean_rewards
@@ -263,6 +291,15 @@ class PPO(object):
         print('max steps achieved')
 
     def save(self, name):
+        gravity_magnitude = float(
+            getattr(self.env, '_gravity_magnitude', self.full_gravity_magnitude)
+        )
+        drop_reset_rate = float(getattr(self.env, '_gravity_window_reset_rate', 1.0))
+        gravity_direction_distribution = (
+            'uniform_sphere_per_episode'
+            if bool(getattr(self.env.cfg, 'randomize_gravity_direction', False))
+            else 'fixed_negative_z'
+        )
         weights = {
             'model': self.model.state_dict(),
             'optimizer': self.optimizer.state_dict(),
@@ -271,9 +308,34 @@ class PPO(object):
             'best_rewards': float(self.best_rewards),
             'best_curriculum_rewards': float(self.best_curriculum_rewards),
             'full_gravity_epochs': int(self.full_gravity_epochs),
-            'gravity_magnitude': float(getattr(self.env, '_gravity_magnitude', 0.0)),
-            'gravity_reset_rate_window': float(getattr(self.env, '_gravity_window_reset_rate', 1.0)),
+            'gravity_magnitude': gravity_magnitude,
+            'gravity_direction_distribution': gravity_direction_distribution,
+            'scene_gravity': tuple(float(value) for value in self.env.cfg.sim.gravity),
+            'equivalent_gravity_enabled': True,
+            'drop_reset_rate_window': drop_reset_rate,
+            # Compatibility alias for checkpoints and analysis tools created
+            # before height-only resets were replaced by 3-D drop detection.
+            'gravity_reset_rate_window': drop_reset_rate,
             'priv_info_dim': int(self.priv_info_dim),
+            'cylinder_radius_randomization': bool(
+                getattr(self.env.cfg, 'randomize_cylinder_radius', False)
+            ),
+            'cylinder_radius_bins_mm': list(
+                getattr(self.env.cfg, 'cylinder_radius_bins_mm', (30.0,))
+            ),
+            'cylinder_radius_nominal_mm': float(
+                getattr(self.env.cfg, 'cylinder_radius_nominal_mm', 30.0)
+            ),
+            'cylinder_radius_normalization_half_range_mm': float(
+                getattr(self.env.cfg, 'cylinder_radius_normalization_half_range_mm', 5.0)
+            ),
+            'mass_randomization': bool(getattr(self.env.cfg, 'randomize_mass', False)),
+            'mass_range_kg': [
+                float(getattr(self.env.cfg, 'randomize_mass_lower', 0.05)),
+                float(getattr(self.env.cfg, 'randomize_mass_upper', 0.20)),
+            ],
+            'obs_shape': tuple(self.obs_shape),
+            'tactile_force_dim': int(self.obs_shape[0] // 3 - 2 * self.actions_num),
             'last_lr': float(self.last_lr),
         }
         if self.running_mean_std:
@@ -307,6 +369,7 @@ class PPO(object):
                 f"Stage1 checkpoint privileged-observation mismatch: checkpoint={checkpoint_priv_dim}, "
                 f"current={self.priv_info_dim}. Retrain Stage1 after changing privileged observations."
             )
+        self._validate_checkpoint_obs_shape(checkpoint, fn)
 
         self.model.load_state_dict(checkpoint['model'], strict=True)
         self.running_mean_std.load_state_dict(checkpoint['running_mean_std'])
@@ -318,10 +381,52 @@ class PPO(object):
         self.best_curriculum_rewards = float(checkpoint.get('best_curriculum_rewards', self.best_rewards))
         self.full_gravity_epochs = int(checkpoint.get('full_gravity_epochs', 0))
         self.last_lr = float(checkpoint['last_lr'])
-        if 'gravity_magnitude' in checkpoint and hasattr(self.env, 'set_gravity_magnitude'):
-            self.env.set_gravity_magnitude(float(checkpoint['gravity_magnitude']))
-        if 'gravity_reset_rate_window' in checkpoint and hasattr(self.env, '_gravity_window_reset_rate'):
-            self.env._gravity_window_reset_rate = float(checkpoint['gravity_reset_rate_window'])
+        checkpoint_gravity = checkpoint.get('gravity_magnitude')
+        checkpoint_gravity_matches = checkpoint_gravity is not None and abs(
+            float(checkpoint_gravity) - self.full_gravity_magnitude
+        ) <= self.full_gravity_tolerance
+        if checkpoint_gravity is None:
+            print(
+                "[WARN] Checkpoint has no gravity-magnitude metadata; runtime remains fixed "
+                f"at {self.full_gravity_magnitude:.3f} m/s^2.",
+                flush=True,
+            )
+        elif not checkpoint_gravity_matches:
+            print(
+                f"[WARN] Checkpoint gravity magnitude is {float(checkpoint_gravity):.3f} m/s^2; "
+                f"runtime remains fixed at {self.full_gravity_magnitude:.3f} m/s^2.",
+                flush=True,
+            )
+        checkpoint_gravity_distribution = checkpoint.get('gravity_direction_distribution')
+        checkpoint_direction_matches = checkpoint_gravity_distribution in (
+            'uniform_sphere_per_episode', 'uniform_sphere'
+        )
+        if checkpoint_gravity_distribution is None:
+            print(
+                "[WARN] Checkpoint has no gravity-direction metadata; runtime uses "
+                "uniform-sphere directions per episode.",
+                flush=True,
+            )
+        elif not checkpoint_direction_matches:
+            print(
+                f"[WARN] Checkpoint gravity direction distribution is "
+                f"{checkpoint_gravity_distribution!r}; runtime uses uniform-sphere directions.",
+                flush=True,
+            )
+        checkpoint_drop_rate = checkpoint.get(
+            'drop_reset_rate_window', checkpoint.get('gravity_reset_rate_window')
+        )
+        checkpoint_domain_matches = checkpoint_gravity_matches and checkpoint_direction_matches
+        if not checkpoint_domain_matches:
+            # Do not carry a curriculum/fixed-axis validation streak into the
+            # new full-direction domain.  The model/optimizer still resume.
+            self.full_gravity_epochs = 0
+        if (
+            checkpoint_domain_matches
+            and checkpoint_drop_rate is not None
+            and hasattr(self.env, '_gravity_window_reset_rate')
+        ):
+            self.env._gravity_window_reset_rate = float(checkpoint_drop_rate)
         for param_group in self.optimizer.param_groups:
             param_group['lr'] = self.last_lr
         print(
@@ -332,9 +437,30 @@ class PPO(object):
 
     def restore_test(self, fn):
         checkpoint = torch.load(fn, map_location=self.device)
+        checkpoint_priv_dim = checkpoint.get('priv_info_dim')
+        if checkpoint_priv_dim is not None and int(checkpoint_priv_dim) != self.priv_info_dim:
+            raise RuntimeError(
+                f"Stage1 checkpoint privileged-observation mismatch: checkpoint={checkpoint_priv_dim}, "
+                f"current={self.priv_info_dim}. Retrain Stage1 after changing privileged observations."
+            )
+        self._validate_checkpoint_obs_shape(checkpoint, fn)
         self.model.load_state_dict(checkpoint['model'], strict=True)
         if self.normalize_input:
             self.running_mean_std.load_state_dict(checkpoint['running_mean_std'])
+
+    def _validate_checkpoint_obs_shape(self, checkpoint, fn):
+        checkpoint_obs_shape = checkpoint.get('obs_shape')
+        if checkpoint_obs_shape is None:
+            rms_state = checkpoint.get('running_mean_std', {})
+            running_mean = rms_state.get('running_mean') if isinstance(rms_state, dict) else None
+            if running_mean is not None:
+                checkpoint_obs_shape = tuple(running_mean.shape)
+        if checkpoint_obs_shape is not None and tuple(checkpoint_obs_shape) != tuple(self.obs_shape):
+            raise RuntimeError(
+                f"Stage1 checkpoint observation ABI mismatch: checkpoint={tuple(checkpoint_obs_shape)}, "
+                f"current={tuple(self.obs_shape)}. The tactile observation ABI requires retraining Stage1. "
+                f"Checkpoint: {fn}"
+            )
 
     def test(self, max_steps: int = 0, real_time: bool = False):
         """Evaluate a checkpoint at the gravity configured by train.py.
@@ -347,7 +473,7 @@ class PPO(object):
         obs_dict = self.env.reset()
         step = 0
         reward_sum = 0.0
-        height_reset_count = 0.0
+        drop_reset_count = 0.0
         timeout_count = 0.0
         tilt_sum = 0.0
         step_dt = float(getattr(self.env, 'step_dt', 0.0))
@@ -362,8 +488,7 @@ class PPO(object):
             obs_dict, r, done, info = self.env.step(mu)
             step += 1
             reward_sum += float(r.mean().item())
-            height_reset_count += self._info_scalar(info, 'height_reset_lower') * self.num_actors
-            height_reset_count += self._info_scalar(info, 'height_reset_upper') * self.num_actors
+            drop_reset_count += self._info_scalar(info, 'drop_reset') * self.num_actors
             timeout_count += self._info_scalar(info, 'time_out') * self.num_actors
             tilt_sum += self._info_scalar(info, 'cylinder_tilt_deg')
             sleep_time = step_dt - (time.time() - step_start)
@@ -379,7 +504,7 @@ class PPO(object):
                 f"  transitions   : {transitions}\n"
                 f"  mean reward   : {reward_sum / max_steps:.6f}\n"
                 f"  mean tilt     : {tilt_sum / max_steps:.3f} deg\n"
-                f"  height resets : {height_reset_count:.0f} ({height_reset_count / transitions:.6%}/step)\n"
+                f"  drop resets   : {drop_reset_count:.0f} ({drop_reset_count / transitions:.6%}/step)\n"
                 f"  timeouts      : {timeout_count:.0f}",
                 flush=True,
             )

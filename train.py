@@ -10,7 +10,7 @@ Gotcha — num_envs × horizon_length must be >= minibatch_size and exactly
   divisible by it.  The current 16-step horizon permits 2048, 4096, ... envs.
 
 Gotcha — tactile deployment: Stage1, Stage2 actor obs, and Stage2
-  proprio_hist all retain the same five fingertip contact-force channels.
+  proprio_hist all retain the same five fingertip force-magnitude channels.
 """
 
 import argparse
@@ -31,7 +31,10 @@ parser.add_argument('--algo', type=str, default='PPO', choices=['PPO', 'ProprioA
 parser.add_argument('--train_cfg', type=str, default='Revo3HandHora')
 parser.add_argument('--output_name', type=str, default='debug')
 parser.add_argument('--checkpoint', type=str, default='')
-parser.add_argument('--cache_file', type=str, default='', help='Override grasp cache filename under cache/.')
+parser.add_argument(
+    '--cache_file', type=str, default='',
+    help='Override grasp-cache name under cache/ (for cylinders this is the prefix before _rXXmm.npy).',
+)
 parser.add_argument('--usd', type=str, default='', help='Override hand USD path.')
 parser.add_argument('--num_envs', type=int, default=16384)
 parser.add_argument('--seed', type=int, default=42)
@@ -101,8 +104,10 @@ from hora.algo.padapt.padapt import ProprioAdapt
 from hora.algo.ppo.ppo import PPO
 from hora.tasks.isaaclab import HoraCompatWrapper, Revo3HandHoraEnv, Revo3HandHoraEnvCfg
 from hora.tasks.isaaclab.assets import (
-    BALL_OBJECT_CFG, CYLINDER_OBJECT_CFG,
+    BALL_OBJECT_CFG,
+    CYLINDER_RADIUS_MM, CYLINDER_RADIUS_SLOT_MM,
     REVO3_HAND_BALL_CFG, REVO3_HAND_CYLINDER_CFG,
+    make_cylinder_object_cfg,
 )
 from hora.utils.misc import set_np_formatting, set_seed
 
@@ -113,7 +118,6 @@ _ALGO_MAP = {
 }
 
 _TASK_ROBOT_CFG = {'ball': REVO3_HAND_BALL_CFG, 'cylinder': REVO3_HAND_CYLINDER_CFG}
-_TASK_OBJECT_CFG = {'ball': BALL_OBJECT_CFG, 'cylinder': CYLINDER_OBJECT_CFG}
 _TASK_CACHE = {
     'ball': 'cache/revo3_right_grasp_ball',
     'cylinder': 'cache/revo3_right_grasp_cylinder',
@@ -155,23 +159,31 @@ def _build_full_config(seed: int):
 
 def _build_env_cfg(seed: int):
     env_cfg = Revo3HandHoraEnvCfg()
-    env_cfg.robot_cfg = _TASK_ROBOT_CFG.get(args.task, REVO3_HAND_CYLINDER_CFG)
-    env_cfg.object_cfg = _TASK_OBJECT_CFG.get(args.task, CYLINDER_OBJECT_CFG)
+    env_cfg.robot_cfg = copy.deepcopy(
+        _TASK_ROBOT_CFG.get(args.task, REVO3_HAND_CYLINDER_CFG)
+    )
+    if args.task == 'cylinder':
+        env_cfg.object_cfg = make_cylinder_object_cfg(use_radius_distribution=True)
+        env_cfg.randomize_cylinder_radius = True
+        env_cfg.cylinder_radius_bins_mm = CYLINDER_RADIUS_MM
+    else:
+        # Ball keeps its single SphereCfg.  Radius-binned geometry and caches
+        # are a cylinder-only contract.
+        env_cfg.object_cfg = copy.deepcopy(BALL_OBJECT_CFG)
+        env_cfg.randomize_cylinder_radius = False
+        env_cfg.cylinder_radius_bins_mm = (30,)
     env_cfg.grasp_cache_path = _TASK_CACHE.get(args.task, 'cache/revo3_right_grasp_cylinder')
     if args.cache_file:
-        env_cfg.grasp_cache_path = f"cache/{args.cache_file.replace('.npy', '')}"
+        env_cfg.grasp_cache_path = f"cache/{args.cache_file.removesuffix('.npy')}"
     if args.usd:
         usd_path = os.path.abspath(args.usd)
         if not os.path.exists(usd_path):
             raise FileNotFoundError(f"--usd path not found: {usd_path}")
-        env_cfg.robot_cfg = copy.deepcopy(env_cfg.robot_cfg)
         if env_cfg.robot_cfg.spawn is None or not hasattr(env_cfg.robot_cfg.spawn, "usd_path"):
             raise RuntimeError("env_cfg.robot_cfg.spawn has no usd_path to override.")
         env_cfg.robot_cfg.spawn.usd_path = usd_path
 
     env_cfg.scene.num_envs = args.num_envs
-
-
     if hasattr(env_cfg, 'seed'):
         env_cfg.seed = seed
     if hasattr(env_cfg.sim, 'device') and getattr(args, 'device', None):
@@ -199,14 +211,63 @@ def _save_run_metadata(output_dif: str, full_config) -> None:
 
 
 def _attach_env_runtime_to_config(full_config, env_cfg) -> None:
+    radius_randomization = bool(env_cfg.randomize_cylinder_radius)
+    if radius_randomization:
+        num_envs = int(env_cfg.scene.num_envs)
+        complete_cycles, remainder = divmod(num_envs, len(CYLINDER_RADIUS_SLOT_MM))
+        radius_distribution = {
+            str(radius_mm): CYLINDER_RADIUS_SLOT_MM.count(radius_mm) / len(CYLINDER_RADIUS_SLOT_MM)
+            for radius_mm in CYLINDER_RADIUS_MM
+        }
+        radius_env_counts = {
+            str(radius_mm): (
+                complete_cycles * CYLINDER_RADIUS_SLOT_MM.count(radius_mm)
+                + CYLINDER_RADIUS_SLOT_MM[:remainder].count(radius_mm)
+            )
+            for radius_mm in CYLINDER_RADIUS_MM
+        }
+        radius_bins_mm = list(CYLINDER_RADIUS_MM)
+        radius_slot_cycle_mm = list(CYLINDER_RADIUS_SLOT_MM)
+    else:
+        radius_distribution = {}
+        radius_env_counts = {}
+        radius_bins_mm = []
+        radius_slot_cycle_mm = []
+
+    scene_gravity = tuple(float(v) for v in env_cfg.sim.gravity)
     full_config.env_runtime = OmegaConf.create(
         {
+            'priv_info_dim': int(env_cfg.priv_info_dim),
             'grasp_cache_path': str(env_cfg.grasp_cache_path),
             'enable_tactile': bool(env_cfg.enable_tactile),
             'enable_contact_in_obs': bool(env_cfg.enable_contact_in_obs),
             'contact_order': ['thumb_DIP', 'index_DIP', 'middle_DIP', 'ring_DIP', 'little_DIP'],
+            'contact_force_scale': float(env_cfg.contact_force_scale),
+            'randomize_contact_force': bool(env_cfg.randomize_contact_force),
+            'contact_force_noise_std_normalized': float(env_cfg.contact_force_noise_std),
+            'randomize_joint_zero': bool(env_cfg.randomize_joint_zero),
+            'joint_zero_offset_range_rad': [
+                float(env_cfg.joint_zero_offset_lower), float(env_cfg.joint_zero_offset_upper)
+            ],
             'policy_dt': float(env_cfg.decimation * env_cfg.sim.dt),
-            'gravity': tuple(float(v) for v in env_cfg.sim.gravity),
+            # Keep the legacy key, but make clear that it is scene gravity and
+            # intentionally zero when equivalent gravity is enabled.
+            'gravity': scene_gravity,
+            'scene_gravity': scene_gravity,
+            'equivalent_gravity_enabled': True,
+            'equivalent_gravity_magnitude': float(env_cfg.gravity_magnitude),
+            'equivalent_gravity_direction_distribution': (
+                'uniform_sphere' if env_cfg.randomize_gravity_direction else 'fixed_negative_z'
+            ),
+            'cylinder_radius_randomization': radius_randomization,
+            'cylinder_radius_bins_mm': radius_bins_mm,
+            'cylinder_radius_distribution': radius_distribution,
+            'cylinder_radius_env_counts': radius_env_counts,
+            'cylinder_radius_slot_cycle_mm': radius_slot_cycle_mm,
+            'mass_randomization': bool(env_cfg.randomize_mass),
+            'mass_range_kg': [
+                float(env_cfg.randomize_mass_lower), float(env_cfg.randomize_mass_upper)
+            ],
         }
     )
 
@@ -227,6 +288,10 @@ def main():
 
     cprint('Start Building the Environment', 'green', attrs=['bold'])
     env_cfg = _build_env_cfg(seed)
+    # The privileged layout is owned by the environment.  Keeping the YAML
+    # value synchronized here prevents silently constructing an 18-input
+    # teacher network for the current 21-dimensional privileged observation.
+    full_config.train.ppo.priv_info_dim = int(env_cfg.priv_info_dim)
     if args.camera_eye is not None:
         env_cfg.viewer.eye = tuple(args.camera_eye)
     if args.camera_lookat is not None:
@@ -235,11 +300,6 @@ def main():
         # Tactile deployment contract: keep the five fingertip-force channels
         # in both the frozen actor observation and the adaptation history.
         env_cfg.enable_contact_in_obs = True
-        env_cfg.gravity_curriculum = False     # Stage2: actor frozen from Stage1, must train at full gravity
-        env_cfg.sim.gravity = (0.0, 0.0, -9.81)
-    if args.test:
-        env_cfg.gravity_curriculum = False
-        env_cfg.sim.gravity = (0.0, 0.0, -9.81)  # full gravity for test/play
     raw_env = Revo3HandHoraEnv(
         cfg=env_cfg,
         render_mode='rgb_array' if args.video else (None if getattr(args, 'headless', False) else 'human'),

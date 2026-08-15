@@ -36,12 +36,12 @@ ppo:
   save_frequency: 250
   max_agent_steps: 300000000
   priv_info: True
-  priv_info_dim: 18
+  priv_info_dim: 21
   priv_info_embed_dim: 8
   proprio_adapt: False
   full_gravity_magnitude: 9.81
   full_gravity_tolerance: 0.02
-  full_gravity_max_reset_rate: 0.003
+  full_gravity_max_drop_rate: 0.003
   full_gravity_eval_epochs: 25
 
 # Stage2 / ProprioAdapt supervised distillation.

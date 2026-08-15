@@ -40,7 +40,12 @@ parser.add_argument("--task", type=str, default="cylinder", choices=["ball", "cy
 parser.add_argument("--algo", type=str, default="auto", choices=["auto", "PPO", "ProprioAdapt"])
 parser.add_argument("--train_cfg", type=str, default="Revo3HandHora")
 parser.add_argument("--checkpoint", type=str, required=True)
-parser.add_argument("--cache_file", type=str, default="", help="Override grasp cache filename under cache/.")
+parser.add_argument(
+    "--cache_file",
+    type=str,
+    default="",
+    help="Override cache name under cache/ (cylinder: prefix before _rXXmm.npy).",
+)
 parser.add_argument("--usd", type=str, default="", help="Override hand USD path.")
 parser.add_argument("--num_envs", type=int, default=1)
 parser.add_argument("--episodes", type=int, default=5, help="Number of full episodes to dump.")
@@ -58,13 +63,13 @@ from hora.algo.padapt.padapt import ProprioAdapt
 from hora.algo.ppo.ppo import PPO
 from hora.tasks.isaaclab import HoraCompatWrapper, Revo3HandHoraEnv, Revo3HandHoraEnvCfg
 from hora.tasks.isaaclab.assets import (
-    BALL_OBJECT_CFG, CYLINDER_OBJECT_CFG,
+    BALL_OBJECT_CFG, CYLINDER_RADIUS_MM,
     REVO3_HAND_BALL_CFG, REVO3_HAND_CYLINDER_CFG,
+    make_cylinder_object_cfg,
 )
 from hora.utils.misc import set_np_formatting, set_seed
 
 _TASK_ROBOT_CFG = {"ball": REVO3_HAND_BALL_CFG, "cylinder": REVO3_HAND_CYLINDER_CFG}
-_TASK_OBJECT_CFG = {"ball": BALL_OBJECT_CFG, "cylinder": CYLINDER_OBJECT_CFG}
 _TASK_CACHE = {
     "ball": "cache/revo3_right_grasp_ball",
     "cylinder": "cache/revo3_right_grasp_cylinder",
@@ -104,22 +109,30 @@ def _build_full_config(seed: int, algo: str):
 
 def _build_env_cfg(seed: int):
     env_cfg = Revo3HandHoraEnvCfg()
-    env_cfg.robot_cfg = _TASK_ROBOT_CFG.get(args.task, REVO3_HAND_CYLINDER_CFG)
-    env_cfg.object_cfg = _TASK_OBJECT_CFG.get(args.task, CYLINDER_OBJECT_CFG)
+    env_cfg.robot_cfg = copy.deepcopy(
+        _TASK_ROBOT_CFG.get(args.task, REVO3_HAND_CYLINDER_CFG)
+    )
+    if args.task == "cylinder":
+        # With one environment the deterministic radius schedule selects the
+        # nominal 30 mm object while retaining the training asset contract.
+        env_cfg.object_cfg = make_cylinder_object_cfg(use_radius_distribution=True)
+        env_cfg.randomize_cylinder_radius = True
+        env_cfg.cylinder_radius_bins_mm = CYLINDER_RADIUS_MM
+    else:
+        env_cfg.object_cfg = copy.deepcopy(BALL_OBJECT_CFG)
+        env_cfg.randomize_cylinder_radius = False
+        env_cfg.cylinder_radius_bins_mm = (30,)
     env_cfg.grasp_cache_path = _TASK_CACHE.get(args.task, 'cache/revo3_right_grasp_cylinder')
     if args.cache_file:
-        env_cfg.grasp_cache_path = f"cache/{args.cache_file.replace('.npy', '')}"
+        env_cfg.grasp_cache_path = f"cache/{args.cache_file.removesuffix('.npy')}"
     if args.usd:
         usd_path = os.path.abspath(args.usd)
         if not os.path.exists(usd_path):
             raise FileNotFoundError(f"--usd path not found: {usd_path}")
-        env_cfg.robot_cfg = copy.deepcopy(env_cfg.robot_cfg)
         if env_cfg.robot_cfg.spawn is None or not hasattr(env_cfg.robot_cfg.spawn, "usd_path"):
             raise RuntimeError("env_cfg.robot_cfg.spawn has no usd_path to override.")
         env_cfg.robot_cfg.spawn.usd_path = usd_path
 
-    env_cfg.gravity_curriculum = False
-    env_cfg.sim.gravity = (0.0, 0.0, -9.81)  # full gravity for test/play
     env_cfg.scene.num_envs = args.num_envs
     if hasattr(env_cfg, "seed"):
         env_cfg.seed = seed

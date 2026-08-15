@@ -67,19 +67,25 @@ import torch
 
 from hora.tasks.isaaclab import Revo3HandHoraEnv, Revo3HandHoraEnvCfg
 from hora.tasks.isaaclab.assets import (
-    BALL_OBJECT_CFG, CYLINDER_OBJECT_CFG,
+    BALL_OBJECT_CFG,
     REVO3_HAND_BALL_CFG, REVO3_HAND_CYLINDER_CFG,
+    make_cylinder_object_cfg,
 )
 
 env_cfg = Revo3HandHoraEnvCfg()
 
 # Select correct robot_cfg and object_cfg based on task
 _TASK_ROBOT_CFG = {"ball": REVO3_HAND_BALL_CFG, "cylinder": REVO3_HAND_CYLINDER_CFG}
-_TASK_OBJECT_CFG = {"ball": BALL_OBJECT_CFG, "cylinder": CYLINDER_OBJECT_CFG}
 env_cfg.robot_cfg = _TASK_ROBOT_CFG.get(args.task, REVO3_HAND_CYLINDER_CFG)
-env_cfg.object_cfg = _TASK_OBJECT_CFG.get(args.task, CYLINDER_OBJECT_CFG)
+env_cfg.object_cfg = (
+    BALL_OBJECT_CFG if args.task == "ball" else make_cylinder_object_cfg(radius_mm=30)
+)
+env_cfg.randomize_cylinder_radius = False
 
-_TASK_CACHE = {"ball": "cache/revo3_right_grasp_ball", "cylinder": "cache/revo3_right_grasp_cylinder"}
+_TASK_CACHE = {
+    "ball": "cache/revo3_right_grasp_ball",
+    "cylinder": "cache/revo3_right_grasp_cylinder_r30mm",
+}
 use_cache = args.cache or bool(args.cache_file)
 if args.sequential_cache and not use_cache:
     parser.error("--sequential_cache requires --cache or --cache_file")
@@ -92,6 +98,7 @@ if use_cache:
 else:
     cache_path = "none"
     env_cfg.grasp_cache_path = "__nonexistent__"  # force fallback to init_joint_pos
+env_cfg.strict_grasp_caches = use_cache
 
 if args.usd:
     usd_path = os.path.abspath(args.usd)
@@ -111,15 +118,16 @@ env_cfg.randomize_mass = False
 env_cfg.randomize_com = False
 env_cfg.randomize_friction = False
 env_cfg.randomize_pd_gains = False
-env_cfg.gravity_curriculum = False
+env_cfg.randomize_joint_zero = False
+env_cfg.randomize_gravity_direction = False
 env_cfg.force_scale = 0.0
 env_cfg.random_force_prob_scalar = 0.0
 if args.gravity is not None:
-    env_cfg.sim.gravity = (0.0, 0.0, -args.gravity)
+    env_cfg.gravity_magnitude = args.gravity
 
 print(f"[VIEW] Task: {args.task}")
 print(f"[VIEW] Cache: {cache_path if use_cache else 'none (assets.py init pose)'}")
-print(f"[VIEW] Gravity: {abs(env_cfg.sim.gravity[2]):g} m/s² downward")
+print(f"[VIEW] Equivalent gravity: {env_cfg.gravity_magnitude:g} m/s² downward")
 if args.usd:
     print(f"[VIEW] Hand USD override: {os.path.abspath(args.usd)}")
 

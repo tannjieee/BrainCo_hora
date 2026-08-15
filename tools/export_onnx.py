@@ -36,7 +36,7 @@ from hora.algo.models.running_mean_std import RunningMeanStd
 
 DEFAULT_ACTOR_UNITS = [512, 256, 128]
 DEFAULT_PRIV_UNITS = [256, 128, 8]
-DEFAULT_PRIV_DIM = 8
+DEFAULT_PRIV_DIM = 21
 DEFAULT_OBS_DIM = 141
 DEFAULT_ACTION_DIM = 21
 DEFAULT_PROP_HIST_LEN = 30
@@ -106,6 +106,39 @@ def _get_cfg_value(cfg: Any | None, key_path: str, default: Any) -> Any:
     return node
 
 
+_MISSING = object()
+
+
+def _plain_value(value: Any) -> Any:
+    """Convert OmegaConf containers and tuples to deploy-metadata-safe values."""
+    if OmegaConf.is_config(value):
+        return OmegaConf.to_container(value, resolve=True)
+    if isinstance(value, tuple):
+        return [_plain_value(item) for item in value]
+    if isinstance(value, list):
+        return [_plain_value(item) for item in value]
+    if isinstance(value, dict):
+        return {str(key): _plain_value(item) for key, item in value.items()}
+    return value
+
+
+def _runtime_or_checkpoint_value(
+    cfg: Any | None,
+    checkpoint: dict[str, Any],
+    runtime_key: str,
+    checkpoint_keys: tuple[str, ...],
+    default: Any,
+) -> Any:
+    """Resolve new run metadata first, then checkpoint aliases, without requiring either."""
+    value = _get_cfg_value(cfg, f"env_runtime.{runtime_key}", _MISSING)
+    if value is not _MISSING:
+        return _plain_value(value)
+    for key in checkpoint_keys:
+        if key in checkpoint:
+            return _plain_value(checkpoint[key])
+    return _plain_value(default)
+
+
 def _build_net_config(
     cfg: Any | None,
     obs_dim: int,
@@ -155,12 +188,16 @@ def _save_deploy_meta(
     action_dim: int,
     prop_hist_len: int,
     obs_per_step: int,
+    priv_info_dim: int,
     obs_window: int,
     dynamic_batch: bool,
     normalize_baked_in: bool,
     policy_rate: float,
     chunk_size: int,
     n_action_steps: int,
+    contact_force_scale: float,
+    contact_force_noise_std: float,
+    training_domain_randomization: dict[str, Any],
     runtime_reference: dict[str, Any],
 ) -> None:
     dof_count = int(action_dim)
@@ -184,7 +221,11 @@ def _save_deploy_meta(
                 {
                     "name": "priv_info",
                     "reason": "Stage2 deploy does not receive privileged information. During training only, env_mlp(priv_info) is used as the teacher latent target for adapt_tconv.",
-                }
+                },
+                {
+                    "name": "radius_and_gravity",
+                    "reason": "Cylinder radius and gravity direction are teacher-only domain parameters. Stage2 infers their effect from proprioceptive/tactile history; do not append them to ONNX inputs.",
+                },
             ],
             "outputs": [{"name": "action", "shape": ["B", action_dim], "dtype": "float32"}],
             "action_semantics": "delta",
@@ -199,7 +240,7 @@ def _save_deploy_meta(
         },
         "deploy_observation_contract": {
             "important": "Feed raw observations with this layout. Do not apply RunningMeanStd outside the ONNX graph.",
-            "stage2_summary": "Stage2 keeps the Stage1 tactile actor observation ABI at 141 dims and replaces env_mlp(priv_info) with adapt_tconv(proprio_hist). Both inputs require the five measured fingertip contact-force channels.",
+            "stage2_summary": "Stage2 keeps the 141-dim Stage1 tactile observation and replaces env_mlp(priv_info) with adapt_tconv(proprio_hist). Both inputs require five fingertip force magnitudes.",
             "joint_order": RIGHT_HAND_JOINT_ORDER,
             "joint_order_source": "Isaac Lab runtime hand.data.joint_names; same order is used by obs, proprio_hist, action, cur_targets, and joint limits.",
             "dof_count": dof_count,
@@ -216,7 +257,7 @@ def _save_deploy_meta(
                     "size": dof_count,
                     "units": "dimensionless",
                     "formula": "(2 * joint_pos_rad - joint_upper_rad - joint_lower_rad) / (joint_upper_rad - joint_lower_rad)",
-                    "training_noise": "Stage2 training inherited env joint noise before unscale; deploy should use measured joint_pos without adding noise.",
+                    "training_noise": "Training adds per-step joint noise and a per-episode randomized encoder zero offset before unscale; deploy should use the measured joint position without artificial randomization.",
                 },
                 {
                     "name": "cur_targets",
@@ -229,9 +270,12 @@ def _save_deploy_meta(
                     "name": "contact_forces",
                     "slice": [contact_start, contact_end],
                     "size": CONTACT_DIM,
-                    "units": "newtons",
+                    "units": "normalized_force_magnitude",
                     "order": ["thumb_DIP", "index_DIP", "middle_DIP", "ring_DIP", "little_DIP"],
-                    "sim_formula": "norm(current object-filtered fingertip contact force), sampled once per 20 Hz policy step, with optional latency hold",
+                    "scale": float(contact_force_scale),
+                    "training_noise_std": float(contact_force_noise_std),
+                    "deploy_formula": "measured_force_magnitude_newtons * contact_force_scale; do not add training randomization at deployment",
+                    "sim_formula": "current object-filtered fingertip force magnitude * contact_force_scale + Gaussian step noise, sampled once per policy step with optional latency hold",
                 },
             ],
             "obs": {
@@ -240,12 +284,12 @@ def _save_deploy_meta(
                 "frame_order": ["t-2", "t-1", "t"],
                 "flattening": "concat three 47-dim frames in chronological order: [frame(t-2), frame(t-1), frame(t)]",
                 "construction_steps": [
-                    "For each policy step, build one 47-dim raw frame as joint_pos_unscaled[21] + cur_targets[21] + contact_forces[5].",
+                    "For each policy step, build one 47-dim raw frame as joint_pos_unscaled[21] + cur_targets[21] + normalized_force_magnitudes[5].",
                     "Append the frame to a 3-frame chronological obs window.",
                     "Flatten the window to 141 dims.",
-                    "Preserve all five measured contact-force values in every frame.",
+                    "Preserve all five force magnitudes in every frame.",
                 ],
-                "stage2_contact_rule": "contact_forces are required: Stage1, Stage2, and deployment all use the same tactile channels.",
+                "stage2_contact_rule": "Force magnitudes are required: Stage1, Stage2, and deployment use the same five tactile channels.",
                 "privileged_info_rule": "Do not append or provide priv_info to obs. Stage2 ONNX has no priv_info input.",
                 "contact_slices": [
                     [frame * obs_per_step + contact_start, frame * obs_per_step + contact_end]
@@ -259,10 +303,10 @@ def _save_deploy_meta(
                 "per_frame_layout": "same 47-dim single_frame_layout as above",
                 "construction_steps": [
                     "Maintain a 30-frame chronological history of raw 47-dim frames.",
-                    "Each history frame uses joint_pos_unscaled[21] + cur_targets[21] + contact_forces[5].",
-                    "Populate contact_forces[42:47] from the five real fingertip tactile channels.",
+                    "Each history frame uses joint_pos_unscaled[21] + cur_targets[21] + normalized_force_magnitudes[5].",
+                    "Populate normalized_force_magnitudes[42:47] from the five real fingertip sensors after applying contact_force_scale.",
                 ],
-                "contact_rule": "Tactile contact values are required and must use the same order, units, calibration, and sampling rate as the actor observation.",
+                "contact_rule": "Force magnitudes are required and must use the same fingertip order, scale, calibration, and sampling rate as training.",
             },
             "reset_initialization": {
                 "history_fill": "On reset, fill all history frames with the current joint_pos_unscaled, current cur_targets, and current contact values.",
@@ -274,6 +318,32 @@ def _save_deploy_meta(
             "obs_normalizer": "checkpoint['running_mean_std']",
             "proprio_hist_normalizer": "checkpoint['sa_mean_std']",
         },
+        "training_privileged_observation_contract": {
+            "dimension": int(priv_info_dim),
+            "layout_version": "radius_gravity_v2" if int(priv_info_dim) == 21 else "legacy_or_custom",
+            "layout": (
+                [
+                    {"name": "object_position_delta", "slice": [0, 3], "units": "m"},
+                    {"name": "friction_scale", "slice": [3, 4], "units": "dimensionless"},
+                    {"name": "object_mass", "slice": [4, 5], "units": "kg"},
+                    {"name": "center_of_mass_offset", "slice": [5, 8], "units": "m"},
+                    {"name": "gravity_direction_world", "slice": [8, 11], "units": "unit_vector"},
+                    {
+                        "name": "normalized_cylinder_radius",
+                        "slice": [11, 12],
+                        "units": "dimensionless",
+                        "formula": "(radius_mm - 30) / 5",
+                    },
+                    {"name": "cylinder_axis_world", "slice": [12, 15], "units": "unit_vector"},
+                    {"name": "object_angular_velocity_world", "slice": [15, 18], "units": "rad/s"},
+                    {"name": "object_linear_velocity_world", "slice": [18, 21], "units": "m/s"},
+                ]
+                if int(priv_info_dim) == 21
+                else []
+            ),
+            "deploy_rule": "Training-only teacher input; not consumed by the exported Stage2 ONNX graph.",
+        },
+        "training_domain_randomization": training_domain_randomization,
         "runtime_reference": runtime_reference,
     }
     with meta_path.open("w", encoding="utf-8") as f:
@@ -421,6 +491,128 @@ def _resolve_scale_keys_from_config(cfg: Any | None) -> list[float]:
     return []
 
 
+def _resolve_training_domain_randomization(
+    cfg: Any | None, checkpoint: dict[str, Any]
+) -> dict[str, Any]:
+    """Resolve radius/gravity/mass metadata from new configs with legacy fallbacks."""
+    radius_bins = _runtime_or_checkpoint_value(
+        cfg,
+        checkpoint,
+        "cylinder_radius_bins_mm",
+        ("cylinder_radius_bins_mm",),
+        [30.0],
+    )
+    radius_randomization = _runtime_or_checkpoint_value(
+        cfg,
+        checkpoint,
+        "cylinder_radius_randomization",
+        ("cylinder_radius_randomization",),
+        len(radius_bins) > 1 if isinstance(radius_bins, list) else None,
+    )
+    radius_distribution = _runtime_or_checkpoint_value(
+        cfg,
+        checkpoint,
+        "cylinder_radius_distribution",
+        ("cylinder_radius_distribution",),
+        {"30": 1.0} if radius_bins == [30.0] else None,
+    )
+
+    scene_gravity = _get_cfg_value(cfg, "env_runtime.scene_gravity", _MISSING)
+    if scene_gravity is _MISSING:
+        # Legacy run configs recorded the actual scene gravity under `gravity`.
+        scene_gravity = _get_cfg_value(cfg, "env_runtime.gravity", _MISSING)
+    if scene_gravity is _MISSING:
+        scene_gravity = checkpoint.get("scene_gravity", None)
+    scene_gravity = _plain_value(scene_gravity)
+
+    gravity_direction_distribution = _runtime_or_checkpoint_value(
+        cfg,
+        checkpoint,
+        "equivalent_gravity_direction_distribution",
+        ("gravity_direction_distribution",),
+        "fixed_scene_gravity" if scene_gravity not in (None, [0.0, 0.0, 0.0]) else "unknown",
+    )
+    equivalent_gravity_enabled = _runtime_or_checkpoint_value(
+        cfg,
+        checkpoint,
+        "equivalent_gravity_enabled",
+        ("equivalent_gravity_enabled",),
+        (
+            gravity_direction_distribution in ("uniform_sphere", "uniform_sphere_per_episode")
+            if gravity_direction_distribution != "unknown"
+            else None
+        ),
+    )
+    try:
+        scene_gravity_magnitude = sum(float(component) ** 2 for component in scene_gravity) ** 0.5
+    except (TypeError, ValueError):
+        scene_gravity_magnitude = None
+    gravity_magnitude = _runtime_or_checkpoint_value(
+        cfg,
+        checkpoint,
+        "equivalent_gravity_magnitude",
+        ("gravity_magnitude",),
+        scene_gravity_magnitude,
+    )
+
+    return {
+        "cylinder_radius": {
+            "enabled": radius_randomization,
+            "bins_mm": radius_bins,
+            "distribution": radius_distribution,
+            "environment_counts": _runtime_or_checkpoint_value(
+                cfg,
+                checkpoint,
+                "cylinder_radius_env_counts",
+                ("cylinder_radius_env_counts",),
+                None,
+            ),
+            "slot_cycle_mm": _runtime_or_checkpoint_value(
+                cfg,
+                checkpoint,
+                "cylinder_radius_slot_cycle_mm",
+                ("cylinder_radius_slot_cycle_mm",),
+                None,
+            ),
+            "nominal_mm": _runtime_or_checkpoint_value(
+                cfg,
+                checkpoint,
+                "cylinder_radius_nominal_mm",
+                ("cylinder_radius_nominal_mm",),
+                30.0,
+            ),
+            "privileged_normalization": "(radius_mm - 30) / 5",
+        },
+        "gravity": {
+            "scene_gravity_m_per_s2": scene_gravity,
+            "equivalent_force_enabled": equivalent_gravity_enabled,
+            "magnitude_m_per_s2": gravity_magnitude,
+            "direction_distribution": gravity_direction_distribution,
+            "sampling_scope": (
+                "per_environment_per_episode"
+                if gravity_direction_distribution in ("uniform_sphere", "uniform_sphere_per_episode")
+                else "unknown_or_legacy"
+            ),
+        },
+        "object_mass": {
+            "enabled": _runtime_or_checkpoint_value(
+                cfg,
+                checkpoint,
+                "mass_randomization",
+                ("mass_randomization",),
+                None,
+            ),
+            "range_kg": _runtime_or_checkpoint_value(
+                cfg,
+                checkpoint,
+                "mass_range_kg",
+                ("mass_range_kg",),
+                None,
+            ),
+        },
+    }
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Export Stage2 checkpoint to ONNX.")
     parser.add_argument("--checkpoint", type=str, required=True, help="Path to stage2 .ckpt.")
@@ -513,6 +705,11 @@ def main() -> None:
 
     actions_num = int(args.action_dim)
     scale_keys = _resolve_scale_keys_from_config(cfg)
+    contact_force_scale = float(_get_cfg_value(cfg, "env_runtime.contact_force_scale", 0.1))
+    contact_force_noise_std = float(
+        _get_cfg_value(cfg, "env_runtime.contact_force_noise_std_normalized", 0.05)
+    )
+    training_domain_randomization = _resolve_training_domain_randomization(cfg, checkpoint)
 
     if obs_per_step != (obs_dim // 3):
         print(
@@ -609,12 +806,16 @@ def main() -> None:
         action_dim=actions_num,
         prop_hist_len=prop_hist_len,
         obs_per_step=obs_per_step,
+        priv_info_dim=priv_info_dim,
         obs_window=3,
         dynamic_batch=dynamic_batch,
         normalize_baked_in=True,
         policy_rate=float(args.policy_rate),
         chunk_size=int(args.chunk_size),
         n_action_steps=int(args.n_action_steps),
+        contact_force_scale=contact_force_scale,
+        contact_force_noise_std=contact_force_noise_std,
+        training_domain_randomization=training_domain_randomization,
         runtime_reference={
             "scale_keys": scale_keys,
             "running_mean_std_obs_shape": rms_obs_shape if rms_obs_shape is not None else [obs_dim],
@@ -623,6 +824,12 @@ def main() -> None:
             ),
             "joint_order_source": "Isaac Lab runtime hand.data.joint_names",
             "joint_order_right_hand": RIGHT_HAND_JOINT_ORDER,
+            "contact_force_scale": contact_force_scale,
+            "training_contact_force_noise_std_normalized": contact_force_noise_std,
+            "training_joint_zero_offset_range_rad": _get_cfg_value(
+                cfg, "env_runtime.joint_zero_offset_range_rad", [-0.02, 0.02]
+            ),
+            "priv_info_dim": priv_info_dim,
             "init_joint_pos": _resolve_init_joint_pos(run_dir),
         },
     )

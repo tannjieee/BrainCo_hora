@@ -13,6 +13,8 @@ from isaaclab.scene import InteractiveSceneCfg
 from isaaclab.sim import PhysxCfg, SimulationCfg
 from isaaclab.utils import configclass
 
+from .assets import make_cylinder_object_cfg
+
 _REVO3_USD = os.path.join(os.path.dirname(__file__), "../../../assets/usd/revo3_right.usd")
 
 
@@ -20,11 +22,12 @@ _REVO3_USD = os.path.join(os.path.dirname(__file__), "../../../assets/usd/revo3_
 class Revo3HandHoraEnvCfg(DirectRLEnvCfg):
     episode_length_s = 20.0
     action_space = 21
-    observation_space = 141  # 3 frames x 47 dims (21 joint_pos + 21 targets + 5 contacts)
+    observation_space = 141  # 3 frames x 47 dims (21 joint_pos + 21 targets + 5 fingertip force magnitudes)
     prop_hist_len = 30
-    # [object_pos_delta(3), friction(1), mass(1), com(3), gravity_magnitude(1),
-    #  cylinder_axis_world(3), object_angular_velocity(3), object_linear_velocity(3)]
-    priv_info_dim = 18
+    # [object_pos_delta(3), friction(1), mass(1), com(3), gravity_direction_world(3),
+    #  normalized_radius(1), cylinder_axis_world(3), object_angular_velocity(3),
+    #  object_linear_velocity(3)]
+    priv_info_dim = 21
     state_space = 0
     asymmetric_obs = False
     decimation = 12
@@ -55,7 +58,9 @@ class Revo3HandHoraEnvCfg(DirectRLEnvCfg):
 
     sim: SimulationCfg = SimulationCfg(
         dt=1 / 240, render_interval=2,
-        gravity=(0.0, 0.0, -0.05),
+        # Per-environment gravity is applied as an equivalent world-frame
+        # force at the object COM; scene gravity must remain disabled.
+        gravity=(0.0, 0.0, 0.0),
         physx=PhysxCfg(
             solver_type=1, max_position_iteration_count=8, max_velocity_iteration_count=0,
             bounce_threshold_velocity=0.2,
@@ -117,31 +122,15 @@ class Revo3HandHoraEnvCfg(DirectRLEnvCfg):
     ]
     contact_sensor = []
 
-    object_cfg: RigidObjectCfg = RigidObjectCfg(
-        prim_path="/World/envs/env_.*/object",
-        spawn=sim_utils.CylinderCfg(
-            radius=0.03, height=0.070,
-            rigid_props=sim_utils.RigidBodyPropertiesCfg(
-                kinematic_enabled=False, disable_gravity=False,
-                enable_gyroscopic_forces=True,
-                solver_position_iteration_count=8, solver_velocity_iteration_count=0,
-                sleep_threshold=0.005, stabilization_threshold=0.0025,
-                max_depenetration_velocity=1000.0,
-            ),
-            collision_props=sim_utils.CollisionPropertiesCfg(
-                collision_enabled=True, contact_offset=0.002, rest_offset=0.0,
-            ),
-            mass_props=sim_utils.MassPropertiesCfg(mass=0.10),
-        ),
-        init_state=RigidObjectCfg.InitialStateCfg(
-            pos=(0.000, -0.08, 1.635), rot=(1.0, 0.0, 0.0, 0.0)),
-    )
+    # Keep the standalone config consistent with train.py: direct users of
+    # Revo3HandHoraEnvCfg also receive the 11-radius deterministic mixture.
+    object_cfg: RigidObjectCfg = make_cylinder_object_cfg(use_radius_distribution=True)
 
     scene: InteractiveSceneCfg = InteractiveSceneCfg(
         num_envs=16384, env_spacing=0.75, replicate_physics=False)
 
-    reset_height_lower = 1.615
-    reset_height_upper = 1.655
+    drop_radial_distance = 0.020
+    drop_axial_distance = 0.020
     reset_angle_diff = 45 / 180 * math.pi
     reset_random_quat = False
 
@@ -163,8 +152,22 @@ class Revo3HandHoraEnvCfg(DirectRLEnvCfg):
 
     grasp_cache_path = 'cache/revo3_right_grasp_cylinder'
     grasp_cache_sequential = False
+    # Production training must fail fast if a radius-specific cache is absent.
+    # Collection/visualization tools explicitly disable this and use the
+    # configured default pose while they create or inspect a cache.
+    strict_grasp_caches = True
+    randomize_cylinder_radius = True
+    cylinder_radius_bins_mm: tuple = tuple(range(25, 36))
+    cylinder_radius_nominal_mm = 30
+    cylinder_radius_normalization_half_range_mm = 5
 
     joint_noise_scale = 0.02
+    # Encoder zero-offset error. One offset is sampled per environment/joint at
+    # reset and remains fixed for the whole episode; it only affects the joint
+    # position seen by the policy, not the simulated joint state or controller.
+    randomize_joint_zero = True
+    joint_zero_offset_lower = -0.02  # rad
+    joint_zero_offset_upper = 0.02   # rad
     enable_tactile = True
     enable_contact_in_obs = True   # Tactile Stage1/Stage2/deployment share the same contact channels.
     binary_contact = False
@@ -175,6 +178,13 @@ class Revo3HandHoraEnvCfg(DirectRLEnvCfg):
     contact_threshold = 0.05
     contact_latency = 0.0
     contact_sensor_noise = 0.01
+    # Fingertip-force magnitudes are normalized before entering the policy:
+    # force_obs = force_magnitude_newtons * contact_force_scale + N(0, std).
+    # The additive noise is sampled independently every policy step in the
+    # normalized observation space.
+    contact_force_scale = 0.1
+    randomize_contact_force = True
+    contact_force_noise_std = 0.05
     dof_limits_scale = 0.9
 
     randomize_pd_gains = True
@@ -192,7 +202,7 @@ class Revo3HandHoraEnvCfg(DirectRLEnvCfg):
     randomize_com_lower = -0.01
     randomize_com_upper = 0.01
     randomize_mass = True
-    randomize_mass_lower = 0.01
+    randomize_mass_lower = 0.05
     randomize_mass_upper = 0.20
 
     force_scale = 2
@@ -200,17 +210,48 @@ class Revo3HandHoraEnvCfg(DirectRLEnvCfg):
     force_decay = 0.9
     force_decay_interval = 0.08
 
-    gravity_curriculum = True
-    gravity_curriculum_target = 9.81
-    gravity_curriculum_step = 0.10
-    gravity_curriculum_window = 200       # 10 seconds at 20 Hz
-    gravity_curriculum_warmup_steps = 1000
-    gravity_curriculum_advance_reset_rate = 0.003
-    gravity_curriculum_rollback_reset_rate = 0.01
+    randomize_gravity_direction = True
+    gravity_magnitude = 9.81
+    drop_reset_rate_window = 200          # 10 seconds at 20 Hz
+    drop_stable_reset_rate = 0.003
     debug_show_axes = False
 
     def __post_init__(self):
         super().__post_init__()
+        expected_observation_space = 3 * (2 * self.action_space + len(self.fingertip_body_names))
+        if self.observation_space != expected_observation_space:
+            raise ValueError(
+                f"observation_space must be {expected_observation_space} for "
+                f"{self.action_space} joints and {len(self.fingertip_body_names)} fingertip force magnitudes"
+            )
+        if self.joint_zero_offset_lower > self.joint_zero_offset_upper:
+            raise ValueError("joint_zero_offset_lower must be <= joint_zero_offset_upper")
+        if self.contact_force_scale <= 0.0:
+            raise ValueError("contact_force_scale must be positive")
+        if self.contact_force_noise_std < 0.0:
+            raise ValueError("contact_force_noise_std must be non-negative")
+        if self.randomize_mass and self.randomize_mass_lower < 0.05:
+            raise ValueError("randomize_mass_lower must be at least 0.05 kg")
+        if self.randomize_mass_lower > self.randomize_mass_upper:
+            raise ValueError("randomize_mass_lower must be <= randomize_mass_upper")
+        if self.gravity_magnitude <= 0.0:
+            raise ValueError("gravity_magnitude must be positive")
+        if self.drop_reset_rate_window <= 0:
+            raise ValueError("drop_reset_rate_window must be positive")
+        if not 0.0 <= self.drop_stable_reset_rate <= 1.0:
+            raise ValueError("drop_stable_reset_rate must lie in [0, 1]")
+        if self.drop_radial_distance <= 0.0 or self.drop_axial_distance <= 0.0:
+            raise ValueError("drop distances must be positive")
+        if self.cylinder_radius_normalization_half_range_mm <= 0:
+            raise ValueError("cylinder_radius_normalization_half_range_mm must be positive")
+        if tuple(float(v) for v in self.sim.gravity) != (0.0, 0.0, 0.0):
+            raise ValueError("sim.gravity must be zero when using per-environment gravity")
+        if self.randomize_cylinder_radius:
+            if self.scene.replicate_physics:
+                raise ValueError("radius-randomized geometry requires scene.replicate_physics=False")
+            bins = tuple(int(v) for v in self.cylinder_radius_bins_mm)
+            if bins != tuple(range(25, 36)):
+                raise ValueError("cylinder_radius_bins_mm must be the 11 integer bins from 25 to 35 mm")
         for name in self.elastomer_body_names:
             self.contact_sensor.append(ContactSensorCfg(
                 prim_path=f"/World/envs/env_.*/hand/{name}",
