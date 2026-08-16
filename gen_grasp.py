@@ -34,6 +34,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--task", type=str, default="ball", choices=OBJECT_TASK_NAMES, help="Object task")
 parser.add_argument("--num_envs", type=int, default=8192)
 parser.add_argument("--target_count", type=int, default=8192)
+parser.add_argument("--seed", type=int, default=42, help="Random seed for grasp collection")
 parser.add_argument("--cache_file", type=str, default="", help="Override output cache filename under cache/.")
 parser.add_argument("--usd", type=str, default="", help="Override hand USD path.")
 parser.add_argument("--noise_scale", type=float, default=0.15, help="±noise added to init_joint_pos")
@@ -137,6 +138,7 @@ from isaaclab.utils.math import quat_apply, quat_conjugate, quat_mul, saturate
 
 from hora.tasks.isaaclab import Revo3HandHoraEnv, Revo3HandHoraEnvCfg
 from hora.tasks.isaaclab.assets import configure_env_for_object_task
+from hora.utils.misc import set_seed
 
 
 class GraspGenEnv(Revo3HandHoraEnv):
@@ -562,7 +564,9 @@ class GraspGenEnv(Revo3HandHoraEnv):
         sys.exit(0)
 
 
+seed = set_seed(args.seed)
 env_cfg = Revo3HandHoraEnvCfg()
+env_cfg.seed = seed
 
 object_spec = configure_env_for_object_task(env_cfg, args.task)
 max_axis_tilt_deg = (
@@ -586,6 +590,8 @@ if args.usd:
 
 env_cfg.gravity_curriculum = False
 env_cfg.scene.num_envs = args.num_envs
+if args.headless:
+    env_cfg.sim.render_interval = env_cfg.decimation
 env_cfg.episode_length_s = 5.0
 env_cfg.randomize_pd_gains = False
 env_cfg.randomize_com = False
@@ -627,6 +633,7 @@ print(f"  hand seed   : {object_spec.hand_pose} + {len(object_spec.hand_joint_po
 print(f"  local axis  : {object_spec.rotation_axis_local}")
 print(f"  target axis : {object_spec.target_axis_world}")
 print(f"  num_envs    : {args.num_envs}")
+print(f"  seed        : {seed}")
 print(f"  noise_scale : ±{args.noise_scale} rad")
 print(f"  episode_len : {env_cfg.episode_length_s}s  ({env.max_episode_length} steps)")
 print(f"  target      : {args.target_count} grasps")

@@ -27,6 +27,8 @@ REVO3_HAND_CYLINDER_CFG = ArticulationCfg(
     spawn=sim_utils.UsdFileCfg(
         usd_path=_REVO3_USD,
         activate_contact_sensors=True,
+        # Collider contact/rest offsets are authored in revo3_right_physics.usd.
+        # Runtime overrides cannot traverse the hand's instanceable collider prims.
         rigid_props=sim_utils.RigidBodyPropertiesCfg(
             disable_gravity=True,
             retain_accelerations=False,
@@ -35,8 +37,6 @@ REVO3_HAND_CYLINDER_CFG = ArticulationCfg(
             max_depenetration_velocity=1000.0,
             max_contact_impulse=1e32,
         ),
-        collision_props=sim_utils.CollisionPropertiesCfg(
-            collision_enabled=True, contact_offset=0.002, rest_offset=0.0),
         articulation_props=sim_utils.ArticulationRootPropertiesCfg(
             enabled_self_collisions=True,
             solver_position_iteration_count=8,
@@ -81,6 +81,8 @@ REVO3_HAND_BALL_CFG = ArticulationCfg(
     spawn=sim_utils.UsdFileCfg(
         usd_path=_REVO3_USD,
         activate_contact_sensors=True,
+        # Collider contact/rest offsets are authored in revo3_right_physics.usd.
+        # Runtime overrides cannot traverse the hand's instanceable collider prims.
         rigid_props=sim_utils.RigidBodyPropertiesCfg(
             disable_gravity=True,
             retain_accelerations=False,
@@ -89,8 +91,6 @@ REVO3_HAND_BALL_CFG = ArticulationCfg(
             max_depenetration_velocity=1000.0,
             max_contact_impulse=1e32,
         ),
-        collision_props=sim_utils.CollisionPropertiesCfg(
-            collision_enabled=True, contact_offset=0.002, rest_offset=0.0),
         articulation_props=sim_utils.ArticulationRootPropertiesCfg(
             enabled_self_collisions=True,
             solver_position_iteration_count=8,

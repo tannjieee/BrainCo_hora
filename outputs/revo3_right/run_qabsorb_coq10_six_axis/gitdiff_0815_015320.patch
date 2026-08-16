@@ -1,0 +1,38 @@
+diff --git a/scripts/train_s1.sh b/scripts/train_s1.sh
+index 28b2525..666ae9c 100755
+--- a/scripts/train_s1.sh
++++ b/scripts/train_s1.sh
+@@ -1,6 +1,13 @@
+ #!/bin/bash
+ 
+-ISAACLAB=${ISAACLAB_PATH:-"$HOME/IsaacLab/isaaclab.sh"}
++ISAACLAB=${ISAACLAB_PATH:-"$HOME/IsaacLab"}
++if [ -d "${ISAACLAB}" ]; then
++    ISAACLAB="${ISAACLAB}/isaaclab.sh"
++fi
++if [ ! -x "${ISAACLAB}" ]; then
++    echo "Isaac Lab launcher not found or not executable: ${ISAACLAB}" >&2
++    exit 1
++fi
+ OUTPUT_NAME="debug"
+ 
+ if [ "$#" -gt 0 ] && [[ "$1" != --* ]]; then
+diff --git a/scripts/train_s2.sh b/scripts/train_s2.sh
+index 4a38dd3..9cfa180 100755
+--- a/scripts/train_s2.sh
++++ b/scripts/train_s2.sh
+@@ -1,6 +1,13 @@
+ #!/bin/bash
+ 
+-ISAACLAB=${ISAACLAB_PATH:-"$HOME/IsaacLab/isaaclab.sh"}
++ISAACLAB=${ISAACLAB_PATH:-"$HOME/IsaacLab"}
++if [ -d "${ISAACLAB}" ]; then
++    ISAACLAB="${ISAACLAB}/isaaclab.sh"
++fi
++if [ ! -x "${ISAACLAB}" ]; then
++    echo "Isaac Lab launcher not found or not executable: ${ISAACLAB}" >&2
++    exit 1
++fi
+ OUTPUT_NAME="debug"
+ 
+ if [ "$#" -gt 0 ] && [[ "$1" != --* ]] && [[ "$1" != *.pth ]] && [[ "$1" != *.ckpt ]]; then

@@ -1,0 +1,134 @@
+rl_device: cuda:0
+test: false
+seed: 42
+train:
+  algo: PPO
+  network:
+    mlp:
+      units:
+      - 512
+      - 256
+      - 128
+    priv_mlp:
+      units:
+      - 256
+      - 128
+      - 8
+  load_path: ''
+  ppo:
+    output_name: run_qabsorb_coq10_six_axis
+    normalize_input: true
+    normalize_value: true
+    value_bootstrap: true
+    num_actors: 65536
+    normalize_advantage: true
+    reward_scale: 0.01
+    gamma: 0.99
+    tau: 0.95
+    learning_rate: 0.0003
+    kl_threshold: 0.01
+    horizon_length: 16
+    minibatch_size: 32768
+    mini_epochs: 3
+    clip_value: true
+    critic_coef: 2
+    entropy_coef: 0.001
+    e_clip: 0.2
+    bounds_loss_coef: 0.001
+    truncate_grads: true
+    grad_norm: 1.0
+    save_best_after: 0
+    save_frequency: 250
+    max_agent_steps: 10485760000
+    priv_info: true
+    priv_info_dim: 18
+    priv_info_embed_dim: 8
+    proprio_adapt: false
+    full_gravity_magnitude: 9.81
+    full_gravity_tolerance: 0.02
+    full_gravity_max_reset_rate: 0.003
+    full_gravity_eval_epochs: 25
+  stage2:
+    learning_rate: 0.0003
+    latent_loss_coef: 1.0
+    action_loss_coef: 0.25
+    grad_norm: 1.0
+    teacher_warmup_steps: 10000000
+    teacher_mix_steps: 40000000
+    best_after_steps: 50000000
+    best_min_episodes: 4096
+    save_interval_steps: 25000000
+    log_interval: 20
+env_runtime:
+  object:
+    task: qabsorb_coq10
+    display_name: QAbsorb_CoQ10_53iUqjWjW3O
+    kind: usd
+    usd_path: /workspace/BrainCo_hora/assets/usd/objects/qabsorb_coq10/training.usda
+    scale: 1.2
+    source_size_m:
+    - 0.056954
+    - 0.057308
+    - 0.099318
+    scaled_size_m:
+    - 0.0683448
+    - 0.0687696
+    - 0.1191816
+    hand_pose: custom
+    hand_joint_pos_rad:
+      right_thumb_CMP_joint: 1.53
+      right_thumb_CMR_joint: 0.88
+      right_thumb_MCP_joint: 0.21
+      right_thumb_PIP_joint: 0.3
+      right_thumb_DIP_joint: 0.26
+      right_index_MPR_joint: 0.23
+      right_index_MCP_joint: 1.05
+      right_index_PIP_joint: 0.36
+      right_index_DIP_joint: 0.43
+      right_middle_MPR_joint: 0.07
+      right_middle_MCP_joint: 0.82
+      right_middle_PIP_joint: 0.4
+      right_middle_DIP_joint: 0.45
+      right_ring_MPR_joint: -0.15
+      right_ring_MCP_joint: 0.79
+      right_ring_PIP_joint: 0.46
+      right_ring_DIP_joint: 0.28
+      right_little_MPR_joint: -0.19
+      right_little_MCP_joint: 0.73
+      right_little_PIP_joint: 0.72
+      right_little_DIP_joint: 0.81
+    object_init_pos_m:
+    - 0.0
+    - -0.075
+    - 1.636
+    object_init_quat_wxyz:
+    - 1.0
+    - 0.0
+    - 0.0
+    - 0.0
+    rotation_axis_local:
+    - 0.0
+    - 0.0
+    - 1.0
+    target_axis_world:
+    - 0.0
+    - 0.0
+    - 1.0
+    axis_bidirectional: false
+    enforce_axis_alignment: true
+    axis_tilt_tolerance_deg: 10.0
+    grasp_cache_path: cache/revo3_right_grasp_qabsorb_coq10
+  grasp_cache_path: cache/revo3_right_grasp_qabsorb_coq10_six_axis
+  enable_tactile: true
+  enable_contact_in_obs: true
+  contact_order:
+  - thumb_DIP
+  - index_DIP
+  - middle_DIP
+  - ring_DIP
+  - little_DIP
+  policy_dt: 0.05
+  gravity:
+  - 0.0
+  - 0.0
+  - -0.05

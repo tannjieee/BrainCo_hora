@@ -18,6 +18,7 @@ _REVO3_USD = os.path.join(os.path.dirname(__file__), "../../../assets/usd/revo3_
 
 @configclass
 class Revo3HandHoraEnvCfg(DirectRLEnvCfg):
+    seed = 42
     episode_length_s = 20.0
     action_space = 21
     observation_space = 141  # 3 frames x 47 dims (21 joint_pos + 21 targets + 5 contacts)
@@ -69,6 +70,8 @@ class Revo3HandHoraEnvCfg(DirectRLEnvCfg):
         spawn=sim_utils.UsdFileCfg(
             usd_path=_REVO3_USD,
             activate_contact_sensors=True,
+            # Collider contact/rest offsets are authored in revo3_right_physics.usd.
+            # Runtime overrides cannot traverse the hand's instanceable collider prims.
             rigid_props=sim_utils.RigidBodyPropertiesCfg(
                 disable_gravity=True, angular_damping=0.01,
                 max_linear_velocity=1000.0,
@@ -79,9 +82,6 @@ class Revo3HandHoraEnvCfg(DirectRLEnvCfg):
                 enabled_self_collisions=True,
                 solver_position_iteration_count=8, solver_velocity_iteration_count=0,
                 sleep_threshold=0.005, stabilization_threshold=0.0005, fix_root_link=True,
-            ),
-            collision_props=sim_utils.CollisionPropertiesCfg(
-                collision_enabled=True, contact_offset=0.002, rest_offset=0.0,
             ),
         ),
         init_state=ArticulationCfg.InitialStateCfg(
@@ -226,6 +226,6 @@ class Revo3HandHoraEnvCfg(DirectRLEnvCfg):
             self.contact_sensor.append(ContactSensorCfg(
                 prim_path=f"/World/envs/env_.*/hand/{name}",
                 history_length=3,
-                track_contact_points=True,
+                track_contact_points=False,
                 filter_prim_paths_expr=["/World/envs/env_.*/object"],
             ))

@@ -161,7 +161,8 @@ def _build_env_cfg(seed: int):
         env_cfg.robot_cfg.spawn.usd_path = usd_path
 
     env_cfg.scene.num_envs = args.num_envs
-
+    if args.headless:
+        env_cfg.sim.render_interval = env_cfg.decimation
 
     if hasattr(env_cfg, 'seed'):
         env_cfg.seed = seed
