@@ -1,0 +1,405 @@
+diff --git a/README.md b/README.md
+index 67703c7..18ca7c7 100644
+--- a/README.md
++++ b/README.md
+@@ -77,7 +77,7 @@ RL.md                           # RL 设计文档 (obs/act/rew/sim/DR 完整 spe
+ - **手部/物体**: `hora/object_registry.py` 与 `assets/usd/objects/manifest.json` 是采集、训练和工具共用的注册表；`assets.py` 根据 `--task` 构建对应 `RigidObjectCfg`
+ - **Checkpoint 路径**: `outputs/revo3_right/run_<task>/stage1_nn/best.pth`（Stage1）和 `outputs/revo3_right/run_<task>/stage2_nn/model_best.ckpt`（Stage2）
+ - **初始姿态**: `env.init_joint_pos` 从 `assets.py` 构建，用于无 cache 时的 reset；有 cache 时，`pos_diff_penalty` 使用每个环境实际抽到的 cache 关节姿态作为参照
+-- **PD 控制**: 7 组 per-joint-type 基础值（thumb_CMP:16.4/0.23, thumb_CMR:0.7/0.02, thumb_flexion:1.2/0.09, DIP:8.0/0.10, MPR:0.7/0.04, MCP:0.6/0.014, PIP:0.8/0.027）。每 reset 随机化 ×[0.5,2.0] per-DOF
++- **PD 控制**: 7 组 per-joint-type 基础值（thumb_CMP:16.4/0.23, thumb_CMR:0.7/0.02, thumb_flexion:1.2/0.09, DIP:8.0/0.10, MPR:0.7/0.04, MCP:0.6/0.014, PIP:0.8/0.027）。每 reset 随机化 ×[0.8,1.2] per-DOF
+ - **最低 env 数**: 2048（batch_size = num_envs × 16 ≥ minibatch_size=32768 且可整除）
+ - **满重力 checkpoint**: `best.pth` 只在 9.81m/s² 下连续稳定评测 25 个 PPO epoch 后更新；课程阶段最优另存为 `best_curriculum.pth`
+ 
+diff --git a/RL.md b/RL.md
+index 2a2c478..08f80f2 100644
+--- a/RL.md
++++ b/RL.md
+@@ -17,7 +17,8 @@
+ - **算法**: PPO + GAE-lambda
+ - **特权信息**: `env_mlp` 将 18 维 priv_info（位置偏差/摩擦/质量/COM/重力大小/物体配置轴的世界方向/物体角速度/线速度）编码为 8 维隐变量，tanh 后拼入观测 → 149 维入 `actor_mlp`
+ - **网络**: `actor_mlp` [512,256,128] ELU, value 头 Linear(128,1), mu 头 Linear(128,21), 可学习 log_std
+-- **PPO 超参**: lr=3e-4, gamma=0.99, tau=0.95, kl_threshold=0.01, e_clip=0.2, critic_coef=2, entropy_coef=0.001, bounds_loss_coef=0.001
++- **PPO 超参**: lr=3e-4, gamma=0.99, tau=0.95, kl_threshold=0.01, e_clip=0.2, critic_coef=2, entropy_coef=0.0001, bounds_loss_coef=0.001
++- **探索噪声**: 可学习 log_std 从 -1.0 开始，并限制在 [-2.3,-0.7]（std≈[0.10,0.50]），避免灵巧操作初期大量动作饱和
+ - **数据流**: horizon=16；4096 环境时为 65536 transitions/epoch，minibatch=32768，3 mini-epochs
+ - **奖励缩放**: ×0.01 后用于 GAE
+ - **训练上限**: 300M agent steps
+@@ -56,10 +57,11 @@ network:
+   mlp:       {units: [512, 256, 128]}
+   priv_mlp:  {units: [256, 128, 8]}
+ ppo:
+-  learning_rate: 5e-3    gamma: 0.99          tau: 0.95
+-  kl_threshold: 0.02     horizon_length: 8    minibatch_size: 32768
+-  mini_epochs: 5         e_clip: 0.2          critic_coef: 4
+-  entropy_coef: 0.0      bounds_loss_coef: 0.0001
++  learning_rate: 3e-4    gamma: 0.99          tau: 0.95
++  kl_threshold: 0.01     horizon_length: 16   minibatch_size: 32768
++  mini_epochs: 3         e_clip: 0.2          critic_coef: 2
++  entropy_coef: 0.0001   bounds_loss_coef: 0.001
++  initial_log_std: -1.0  min_log_std: -2.3    max_log_std: -0.7
+   max_agent_steps: 300M
+   reward_scale: 0.01
+ stage2:
+@@ -79,7 +81,7 @@ stage2:
+ | | Stage1 | Stage2 |
+ |---|---|---|
+ | 保存 | model+optimizer+agent_steps+epoch_num+best_rewards+last_lr+rms+vms → `.pth` | model+optimizer+agent_steps+best_rewards+rms+sa_ms → `.ckpt` |
+-| 触发 | epoch_num % 500 == 0 | iter_num % 500 == 0 |
++| 触发 | epoch_num % 50 == 0 | iter_num % 500 == 0 |
+ | best | mean_rewards > best_rewards | mean_rewards > best_rewards |
+ 
+ ### 域随机化 (DR)
+@@ -88,12 +90,12 @@ stage2:
+ |---|---|---|
+ | 物体形状 | 每次运行由 `--task` 选择球、圆柱或注册表中的扫描物体 | — |
+ | 物体缩放 | 球/圆柱为 1.0；扫描物体使用 `assets/usd/objects/manifest.json` 中各自的固定比例 | — |
+-| 物体质量 | U(0.01, 0.20) kg | init 一次 |
+-| 摩擦 | 手 metal_base=0.1, object_base=0.5, scale×U(0.5, 2.0) | init 一次 |
+-| COM | U(-0.01, 0.01) m | init 一次 |
+-| PD gains | per-joint-type base × [0.5, 2.0], 每 DOF 独立 | 每 reset |
+-| 随机外力 | force_scale=2.0, prob=0.25, decay=0.9 | 每步 |
+-| 重力课程 | (0,0,-0.05) → 递增 0.05/step → 上限 10 m/s² | 自动 |
++| 物体质量 | U(0.07, 0.13) kg | init 一次 |
++| 摩擦 | 手 metal_base=0.1, object_base=0.5, scale×U(0.8, 1.2) | init 一次 |
++| COM | U(-0.003, 0.003) m | init 一次 |
++| PD gains | per-joint-type base × [0.8, 1.2], 每 DOF 独立 | 每 reset |
++| 随机外力 | 关闭（force_scale=0.0；prob/decay 仅在重新启用后生效） | 每步 |
++| 重力课程 | (0,0,-0.05) → 递增 0.10 m/s²/window → 上限 9.81 m/s² | 自动 |
+ 
+ DR 在 init 时随机化一次，PD 每 reset 重新随机化。
+ 
+@@ -101,7 +103,7 @@ DR 在 init 时随机化一次，PD 每 reset 重新随机化。
+ 
+ - **高度越界**: 物体 Z 超出 [init_Z - 0.02, init_Z + 0.02] 窗口 (±2cm)
+ - **超时**: episode 长度 ≥ 20s (400 步 @20Hz)
+-- **重力课程**: 当高度越界率 < 0.05% 且 step > 1000 时, 重力递增 0.05 m/s², 上限 10 m/s²
++- **重力课程**: 前 1000 个策略步暖启动；随后每 200 步统计窗口，高度越界率 ≤0.3% 时递增 0.10m/s²，≥1% 时回退 0.10m/s²，上限 9.81m/s²
+ 
+ ### 物理配置
+ 
+@@ -141,7 +143,7 @@ torque = p_gain × (target - joint_pos) - d_gain × joint_vel
+ | `p_gain` (刚度) | 位置偏差→力矩的增益 | 跟踪更紧，但接触冲击大 | 更柔顺，但跟踪松 |
+ | `d_gain` (阻尼) | 速度→力矩的增益 | 响应迟钝，能量耗散大 | 响应快，但可能振荡 |
+ 
+-训练设置了高度随机化 (`Kp×[0.5,2.0]`, `Kd×[0.5,2.0]`, per-DOF 独立)，以提高策略对刚度/阻尼变化的鲁棒性。
++训练设置了适度随机化 (`Kp×[0.8,1.2]`, `Kd×[0.8,1.2]`, per-DOF 独立)，以兼顾初期抓握稳定性和对刚度/阻尼变化的鲁棒性。
+ 
+ #### 来源与基础值
+ 
+@@ -313,20 +315,25 @@ reward 中的 `torque_penalty` 和 `work_penalty` 使用 `self.torques`——即
+ | 项 | 公式 | Scale | 作用 |
+ |---|---|---|---|
+ | **旋转奖励** | `clip((angvel · target_axis_world), -0.5, 0.5)` | **+2.5** | 鼓励绕该物体配置的世界目标轴旋转 |
+-| **线速度惩罚** | `‖obj_pos - prev_pos‖₁ / dt` | **-0.3** | 抑制物体平动 |
+-| **物体位置奖励** | `1 / (‖obj_pos - init_pos‖ + 0.001)` | **+0.003** | 物体保持在初始位置附近 |
+-| **姿态偏离惩罚** | `Σ (joint_pos - init_joint_pos)²` | **-0.4** | 保持抓取构型, 避免过度伸展 |
++| **存活奖励** | `1 - drop` | **+1.0** | 明确鼓励延长稳定抓握，避免快速终止局部最优 |
++| **物体轴倾斜惩罚** | `(tilt / tolerance)²` | **-0.25** | 保持物体配置轴与目标世界轴对齐 |
++| **非目标轴角速度惩罚** | `‖ω - (ω·axis)axis‖²` | **-0.2** | 抑制偏离目标轴的转动 |
++| **XY/Z 漂移惩罚** | 以 5mm 容差归一化的 smooth-L1 | **-0.15/-0.25** | 保持物体中心位置 |
++| **掉落惩罚** | 高度超出初始值 ±2cm | **-20.0** | 使掉落代价显著高于继续控制 |
++| **姿态偏离惩罚** | `Σ (joint_pos - sampled_cache_pos)²` | **-0.4** | 保持每个环境实际采样的抓取构型 |
+ | **力矩惩罚** | `Σ torque²` (显式 PD 命令力矩) | **-0.1** | 抑制过大关节力矩 |
+ | **功惩罚** | `(Σ torque · vel)²` | **-0.5** | 抑制机械功率 |
+ 
+-- 角速度通过四元数差分计算: `dq = q_curr * inv(q_prev)`, `angle = 2*acos(dq.w)`, `axis = dq.xyz / sin(angle/2)`
+-- **姿态偏离参照**: `self.init_joint_pos` — 来自 `assets.py` 的 `robot_cfg.init_state.joint_pos`，即训练/部署时目标抓取姿态
++- 角速度直接使用 PhysX 报告的世界坐标系刚体角速度。
++- **姿态偏离参照**: `self.grasp_joint_pos` — 每个环境本次实际抽取的 cache 关节姿态。
+ - **力矩来源**: `self.torques` — 在 `_apply_action` 中显式计算的 PD 命令扭矩，不走 PhysX `applied_torque`
+ 
+ ### 总奖励
+ 
+ ```
+-R = 2.5×rotate - 0.3×linvel + 0.003/(d+0.001) - 0.4×pose_diff - 0.1×torque - 0.5×work
++R = 2.5×rotate + alive - 0.25×tilt - 0.2×off_axis
++    - 0.15×xy_drift - 0.25×z_drift - 20×drop
++    - 0.4×pose_diff - 0.1×torque - 0.5×work
+ ```
+ 
+ 乘以 0.01 后作为 PPO 优化目标。
+diff --git a/configs/train/Revo3HandHora.yaml b/configs/train/Revo3HandHora.yaml
+index 928e2a5..a587d8a 100644
+--- a/configs/train/Revo3HandHora.yaml
++++ b/configs/train/Revo3HandHora.yaml
+@@ -27,13 +27,19 @@ ppo:
+   mini_epochs: 3
+   clip_value: True
+   critic_coef: 2
+-  entropy_coef: 0.001
++  # Delicate in-hand grasps cannot tolerate the legacy std=1 policy noise:
++  # sampled actions were saturating and ejecting the object before PPO could
++  # learn. Keep modest exploration and bound the learned log standard deviation.
++  entropy_coef: 0.0001
++  initial_log_std: -1.0
++  min_log_std: -2.3
++  max_log_std: -0.7
+   e_clip: 0.2
+   bounds_loss_coef: 0.001
+   truncate_grads: True
+   grad_norm: 1.0
+   save_best_after: 0
+-  save_frequency: 250
++  save_frequency: 50
+   max_agent_steps: 300000000
+   priv_info: True
+   priv_info_dim: 18
+diff --git a/hora/algo/ppo/ppo.py b/hora/algo/ppo/ppo.py
+index 05e11ab..8c68adb 100644
+--- a/hora/algo/ppo/ppo.py
++++ b/hora/algo/ppo/ppo.py
+@@ -56,6 +56,16 @@ class PPO(object):
+             'obs_per_step': self.obs_shape[0] // 3,
+         }
+         self.model = ActorCritic(net_config)
++        self.initial_log_std = float(self.ppo_config.get('initial_log_std', -1.0))
++        self.min_log_std = float(self.ppo_config.get('min_log_std', -2.3))
++        self.max_log_std = float(self.ppo_config.get('max_log_std', -0.7))
++        if not self.min_log_std <= self.initial_log_std <= self.max_log_std:
++            raise ValueError(
++                'Expected min_log_std <= initial_log_std <= max_log_std, got '
++                f'{self.min_log_std} <= {self.initial_log_std} <= {self.max_log_std}'
++            )
++        with torch.no_grad():
++            self.model.sigma.fill_(self.initial_log_std)
+         self.model.to(self.device)
+         self.running_mean_std = RunningMeanStd(self.obs_shape).to(self.device)
+         self.value_mean_std = RunningMeanStd((1,)).to(self.device)
+@@ -175,6 +185,11 @@ class PPO(object):
+         if self.normalize_value:
+             self.value_mean_std.train()
+ 
++    def _clamp_action_log_std(self):
++        """Keep exploration noise within the safe range for in-hand control."""
++        with torch.no_grad():
++            self.model.sigma.clamp_(self.min_log_std, self.max_log_std)
++
+     def model_act(self, obs_dict):
+         processed_obs = self.running_mean_std(obs_dict['obs'])
+         input_dict = {
+@@ -309,6 +324,7 @@ class PPO(object):
+             )
+ 
+         self.model.load_state_dict(checkpoint['model'], strict=True)
++        self._clamp_action_log_std()
+         self.running_mean_std.load_state_dict(checkpoint['running_mean_std'])
+         self.value_mean_std.load_state_dict(checkpoint['value_mean_std'])
+         self.optimizer.load_state_dict(checkpoint['optimizer'])
+@@ -446,6 +462,7 @@ class PPO(object):
+                 if self.truncate_grads:
+                     torch.nn.utils.clip_grad_norm_(self.model.parameters(), self.grad_norm)
+                 self.optimizer.step()
++                self._clamp_action_log_std()
+ 
+                 with torch.no_grad():
+                     kl_dist = policy_kl(mu.detach(), sigma.detach(), old_mu, old_sigma)
+@@ -510,6 +527,7 @@ class PPO(object):
+     def play_steps(self):
+         extra_sums = {}
+         extra_counts = {}
++        action_saturation_sum = 0.0
+         for n in range(self.horizon_length):
+             res_dict = self.model_act(self.obs)
+             # collect o_t
+@@ -518,7 +536,9 @@ class PPO(object):
+             for k in ['actions', 'neglogpacs', 'values', 'mus', 'sigmas']:
+                 self.storage.update_data(k, n, res_dict[k])
+             # do env step
+-            actions = torch.clamp(res_dict['actions'], -1.0, 1.0)
++            sampled_actions = res_dict['actions']
++            action_saturation_sum += float((sampled_actions.abs() > 1.0).float().mean().item())
++            actions = torch.clamp(sampled_actions, -1.0, 1.0)
+             self.obs, rewards, self.dones, infos = self.env.step(actions)
+             rewards = rewards.unsqueeze(1)
+             # update dones and rewards after env step
+@@ -559,6 +579,12 @@ class PPO(object):
+             k: extra_sums[k] / extra_counts[k]
+             for k in extra_sums
+         }
++        self.extra_info['policy/action_saturation_rate'] = action_saturation_sum / self.horizon_length
++        with torch.no_grad():
++            action_std = self.model.sigma.exp()
++            self.extra_info['policy/action_std_mean'] = float(action_std.mean().item())
++            self.extra_info['policy/action_std_min'] = float(action_std.min().item())
++            self.extra_info['policy/action_std_max'] = float(action_std.max().item())
+ 
+         res_dict = self.model_act(self.obs)
+         last_values = res_dict['values']
+diff --git a/hora/tasks/isaaclab/assets.py b/hora/tasks/isaaclab/assets.py
+index 133c419..d95d1aa 100644
+--- a/hora/tasks/isaaclab/assets.py
++++ b/hora/tasks/isaaclab/assets.py
+@@ -183,7 +183,6 @@ def _usd_object_cfg(spec: ObjectTaskSpec) -> RigidObjectCfg:
+             rigid_props=_COMMON_RIGID,
+             mass_props=_COMMON_MASS,
+             collision_props=_COMMON_COLLISION,
+-            semantic_tags=[("class", spec.name)],
+         ),
+         # training.usda recenters every scanned mesh around its rigid-body root,
+         # so all objects share the same in-hand center as the reference cylinder.
+diff --git a/hora/tasks/isaaclab/revo3_hand_hora_env.py b/hora/tasks/isaaclab/revo3_hand_hora_env.py
+index 83b3345..56fce1d 100644
+--- a/hora/tasks/isaaclab/revo3_hand_hora_env.py
++++ b/hora/tasks/isaaclab/revo3_hand_hora_env.py
+@@ -230,9 +230,10 @@ class Revo3HandHoraEnv(DirectRLEnv):
+         self.object = RigidObject(self.cfg.object_cfg)
+         # add ground plane
+         spawn_ground_plane(prim_path="/World/ground", cfg=GroundPlaneCfg())
+-        # clone and replicate (no need to filter for this environment)
++        # Clone heterogeneous environments, then explicitly filter cross-env
++        # collisions while keeping collisions with the shared ground plane.
+         self.scene.clone_environments(copy_from_source=False)
+-        self.scene.filter_collisions()
++        self.scene.filter_collisions(global_prim_paths=["/World/ground"])
+         # add articulation to scene - we must register to scene to randomize with EventManager
+         self.scene.articulations["hand"] = self.hand
+         self.scene.rigid_objects["object"] = self.object
+@@ -346,9 +347,11 @@ class Revo3HandHoraEnv(DirectRLEnv):
+             (self.object_pos[:, 2] < self.reset_height_lower)
+             | (self.object_pos[:, 2] > self.reset_height_upper)
+         ).float()
++        alive_reward = 1.0 - drop_penalty
+ 
+         total_reward = compute_rewards(
+             rotate_reward, self.cfg.rotate_reward_scale,
++            alive_reward, self.cfg.alive_reward_scale,
+             object_axis_tilt_penalty, self.cfg.object_axis_tilt_penalty_scale,
+             off_axis_angvel_penalty, self.cfg.off_axis_angvel_penalty_scale,
+             xy_drift_penalty, self.cfg.xy_drift_penalty_scale,
+@@ -360,6 +363,7 @@ class Revo3HandHoraEnv(DirectRLEnv):
+         )
+ 
+         self.extras["rew/rotate"] = (rotate_reward * self.cfg.rotate_reward_scale).mean()
++        self.extras["rew/alive"] = (alive_reward * self.cfg.alive_reward_scale).mean()
+         self.extras["rew/object_axis_tilt"] = (
+             object_axis_tilt_penalty * self.cfg.object_axis_tilt_penalty_scale
+         ).mean()
+@@ -683,6 +687,7 @@ def unscale(x, lower, upper):
+ @torch.jit.script
+ def compute_rewards(
+     rotate_reward: torch.Tensor, rotate_reward_scale: float,
++    alive_reward: torch.Tensor, alive_reward_scale: float,
+     object_axis_tilt_penalty: torch.Tensor, object_axis_tilt_penalty_scale: float,
+     off_axis_angvel_penalty: torch.Tensor, off_axis_angvel_penalty_scale: float,
+     xy_drift_penalty: torch.Tensor, xy_drift_penalty_scale: float,
+@@ -693,6 +698,7 @@ def compute_rewards(
+     work_penalty: torch.Tensor, work_penalty_scale: float,
+ ):
+     reward = rotate_reward * rotate_reward_scale
++    reward += alive_reward * alive_reward_scale
+     reward += object_axis_tilt_penalty * object_axis_tilt_penalty_scale
+     reward += off_axis_angvel_penalty * off_axis_angvel_penalty_scale
+     reward += xy_drift_penalty * xy_drift_penalty_scale
+diff --git a/hora/tasks/isaaclab/revo3_hand_hora_env_cfg.py b/hora/tasks/isaaclab/revo3_hand_hora_env_cfg.py
+index 5edcf6b..00a08a3 100644
+--- a/hora/tasks/isaaclab/revo3_hand_hora_env_cfg.py
++++ b/hora/tasks/isaaclab/revo3_hand_hora_env_cfg.py
+@@ -59,6 +59,9 @@ class Revo3HandHoraEnvCfg(DirectRLEnvCfg):
+         gravity=(0.0, 0.0, -0.05),
+         physx=PhysxCfg(
+             solver_type=1, max_position_iteration_count=8, max_velocity_iteration_count=0,
++            # This PhysX option only controls how an already-applied wrench is
++            # integrated by TGS; it does not create random disturbances.
++            enable_external_forces_every_iteration=True,
+             bounce_threshold_velocity=0.2,
+             gpu_max_rigid_contact_count=8388608, gpu_max_rigid_patch_count=5 * 2**18,
+         ),
+@@ -150,7 +153,10 @@ class Revo3HandHoraEnvCfg(DirectRLEnvCfg):
+     enforce_object_axis_alignment = True
+ 
+     scene: InteractiveSceneCfg = InteractiveSceneCfg(
+-        num_envs=16384, env_spacing=0.75, replicate_physics=False)
++        num_envs=16384, env_spacing=0.75, replicate_physics=False,
++        # With heterogeneous physics replication, collision filtering is done
++        # explicitly in _setup_scene() after cloning.
++        filter_collisions=False)
+ 
+     reset_height_lower = 1.615
+     reset_height_upper = 1.655
+@@ -160,6 +166,7 @@ class Revo3HandHoraEnvCfg(DirectRLEnvCfg):
+     angvel_clip_min = -0.5
+     angvel_clip_max = 0.5
+     rotate_reward_scale = 2.5
++    alive_reward_scale = 1.0
+     object_axis_tilt_tolerance = 10 / 180 * math.pi
+     object_axis_tilt_penalty_scale = -0.25
+     off_axis_angvel_penalty_scale = -0.2
+@@ -167,7 +174,9 @@ class Revo3HandHoraEnvCfg(DirectRLEnvCfg):
+     xy_drift_penalty_scale = -0.15
+     z_drift_tolerance = 0.005
+     z_drift_penalty_scale = -0.25
+-    drop_penalty_scale = -5.0
++    # A terminal drop must cost more than another typical unstable transition;
++    # otherwise a negative-reward policy can prefer ending the episode early.
++    drop_penalty_scale = -20.0
+     pos_diff_penalty_scale = -0.4
+     torque_penalty_scale = -0.1
+     work_penalty_scale = -0.5
+@@ -189,24 +198,26 @@ class Revo3HandHoraEnvCfg(DirectRLEnvCfg):
+     dof_limits_scale = 0.9
+ 
+     randomize_pd_gains = True
+-    randomize_p_gain_scale_lower = 0.5
+-    randomize_p_gain_scale_upper = 2
+-    randomize_d_gain_scale_lower = 0.5
+-    randomize_d_gain_scale_upper = 2
++    randomize_p_gain_scale_lower = 0.8
++    randomize_p_gain_scale_upper = 1.2
++    randomize_d_gain_scale_lower = 0.8
++    randomize_d_gain_scale_upper = 1.2
+     randomize_friction = True
+-    randomize_friction_scale_lower = 0.5
+-    randomize_friction_scale_upper = 2.0
++    randomize_friction_scale_lower = 0.8
++    randomize_friction_scale_upper = 1.2
+     elastomer_base_friction = 0.8
+     metal_base_friction = 0.1
+     object_base_friction = 0.5
+     randomize_com = True
+-    randomize_com_lower = -0.01
+-    randomize_com_upper = 0.01
++    randomize_com_lower = -0.003
++    randomize_com_upper = 0.003
+     randomize_mass = True
+-    randomize_mass_lower = 0.01
+-    randomize_mass_upper = 0.20
++    randomize_mass_lower = 0.07
++    randomize_mass_upper = 0.13
+ 
+-    force_scale = 2
++    # Random object-wrench disturbance is disabled. Set this above zero only
++    # for experiments that intentionally train with external pushes.
++    force_scale = 0.0
+     random_force_prob_scalar = 0.25
+     force_decay = 0.9
+     force_decay_interval = 0.08
+diff --git a/train.py b/train.py
+index da291d2..2c51448 100644
+--- a/train.py
++++ b/train.py
+@@ -201,6 +201,24 @@ def _attach_env_runtime_to_config(full_config, env_cfg) -> None:
+             'contact_order': ['thumb_DIP', 'index_DIP', 'middle_DIP', 'ring_DIP', 'little_DIP'],
+             'policy_dt': float(env_cfg.decimation * env_cfg.sim.dt),
+             'gravity': tuple(float(v) for v in env_cfg.sim.gravity),
++            'action_scale': float(env_cfg.action_scale),
++            'force_scale': float(env_cfg.force_scale),
++            'reward': {
++                'alive': float(env_cfg.alive_reward_scale),
++                'drop': float(env_cfg.drop_penalty_scale),
++            },
++            'domain_randomization': {
++                'pd_gain_scale': (
++                    float(env_cfg.randomize_p_gain_scale_lower),
++                    float(env_cfg.randomize_p_gain_scale_upper),
++                ),
++                'friction_scale': (
++                    float(env_cfg.randomize_friction_scale_lower),
++                    float(env_cfg.randomize_friction_scale_upper),
++                ),
++                'com_m': (float(env_cfg.randomize_com_lower), float(env_cfg.randomize_com_upper)),
++                'mass_kg': (float(env_cfg.randomize_mass_lower), float(env_cfg.randomize_mass_upper)),
++            },
+         }
+     )
+ 

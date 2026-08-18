@@ -17,7 +17,8 @@
 - **算法**: PPO + GAE-lambda
 - **特权信息**: `env_mlp` 将 18 维 priv_info（位置偏差/摩擦/质量/COM/重力大小/物体配置轴的世界方向/物体角速度/线速度）编码为 8 维隐变量，tanh 后拼入观测 → 149 维入 `actor_mlp`
 - **网络**: `actor_mlp` [512,256,128] ELU, value 头 Linear(128,1), mu 头 Linear(128,21), 可学习 log_std
-- **PPO 超参**: lr=3e-4, gamma=0.99, tau=0.95, kl_threshold=0.01, e_clip=0.2, critic_coef=2, entropy_coef=0.001, bounds_loss_coef=0.001
+- **PPO 超参**: lr=3e-4, gamma=0.99, tau=0.95, kl_threshold=0.01, e_clip=0.2, critic_coef=2, entropy_coef=0.0001, bounds_loss_coef=0.001
+- **探索噪声**: 可学习 log_std 从 -1.0 开始，并限制在 [-2.3,-0.7]（std≈[0.10,0.50]），避免灵巧操作初期大量动作饱和
 - **数据流**: horizon=16；4096 环境时为 65536 transitions/epoch，minibatch=32768，3 mini-epochs
 - **奖励缩放**: ×0.01 后用于 GAE
 - **训练上限**: 300M agent steps
@@ -56,10 +57,11 @@ network:
   mlp:       {units: [512, 256, 128]}
   priv_mlp:  {units: [256, 128, 8]}
 ppo:
-  learning_rate: 5e-3    gamma: 0.99          tau: 0.95
-  kl_threshold: 0.02     horizon_length: 8    minibatch_size: 32768
-  mini_epochs: 5         e_clip: 0.2          critic_coef: 4
-  entropy_coef: 0.0      bounds_loss_coef: 0.0001
+  learning_rate: 3e-4    gamma: 0.99          tau: 0.95
+  kl_threshold: 0.01     horizon_length: 16   minibatch_size: 32768
+  mini_epochs: 3         e_clip: 0.2          critic_coef: 2
+  entropy_coef: 0.0001   bounds_loss_coef: 0.001
+  initial_log_std: -1.0  min_log_std: -2.3    max_log_std: -0.7
   max_agent_steps: 300M
   reward_scale: 0.01
 stage2:
@@ -79,7 +81,7 @@ stage2:
 | | Stage1 | Stage2 |
 |---|---|---|
 | 保存 | model+optimizer+agent_steps+epoch_num+best_rewards+last_lr+rms+vms → `.pth` | model+optimizer+agent_steps+best_rewards+rms+sa_ms → `.ckpt` |
-| 触发 | epoch_num % 500 == 0 | iter_num % 500 == 0 |
+| 触发 | epoch_num % 50 == 0 | iter_num % 500 == 0 |
 | best | mean_rewards > best_rewards | mean_rewards > best_rewards |
 
 ### 域随机化 (DR)
@@ -88,12 +90,12 @@ stage2:
 |---|---|---|
 | 物体形状 | 每次运行由 `--task` 选择球、圆柱或注册表中的扫描物体 | — |
 | 物体缩放 | 球/圆柱为 1.0；扫描物体使用 `assets/usd/objects/manifest.json` 中各自的固定比例 | — |
-| 物体质量 | U(0.01, 0.20) kg | init 一次 |
-| 摩擦 | 手 metal_base=0.1, object_base=0.5, scale×U(0.5, 2.0) | init 一次 |
-| COM | U(-0.01, 0.01) m | init 一次 |
-| PD gains | per-joint-type base × [0.5, 2.0], 每 DOF 独立 | 每 reset |
-| 随机外力 | force_scale=2.0, prob=0.25, decay=0.9 | 每步 |
-| 重力课程 | (0,0,-0.05) → 递增 0.05/step → 上限 10 m/s² | 自动 |
+| 物体质量 | U(0.07, 0.13) kg | init 一次 |
+| 摩擦 | 手 metal_base=0.1, object_base=0.5, scale×U(0.8, 1.2) | init 一次 |
+| COM | U(-0.003, 0.003) m | init 一次 |
+| PD gains | per-joint-type base × [0.8, 1.2], 每 DOF 独立 | 每 reset |
+| 随机外力 | 关闭（force_scale=0.0；prob/decay 仅在重新启用后生效） | 每步 |
+| 重力课程 | (0,0,-0.05) → 递增 0.10 m/s²/window → 上限 9.81 m/s² | 自动 |
 
 DR 在 init 时随机化一次，PD 每 reset 重新随机化。
 
@@ -101,7 +103,7 @@ DR 在 init 时随机化一次，PD 每 reset 重新随机化。
 
 - **高度越界**: 物体 Z 超出 [init_Z - 0.02, init_Z + 0.02] 窗口 (±2cm)
 - **超时**: episode 长度 ≥ 20s (400 步 @20Hz)
-- **重力课程**: 当高度越界率 < 0.05% 且 step > 1000 时, 重力递增 0.05 m/s², 上限 10 m/s²
+- **重力课程**: 前 1000 个策略步暖启动；随后每 200 步统计窗口，高度越界率 ≤0.3% 时递增 0.10m/s²，≥1% 时回退 0.10m/s²，上限 9.81m/s²
 
 ### 物理配置
 
@@ -141,7 +143,7 @@ torque = p_gain × (target - joint_pos) - d_gain × joint_vel
 | `p_gain` (刚度) | 位置偏差→力矩的增益 | 跟踪更紧，但接触冲击大 | 更柔顺，但跟踪松 |
 | `d_gain` (阻尼) | 速度→力矩的增益 | 响应迟钝，能量耗散大 | 响应快，但可能振荡 |
 
-训练设置了高度随机化 (`Kp×[0.5,2.0]`, `Kd×[0.5,2.0]`, per-DOF 独立)，以提高策略对刚度/阻尼变化的鲁棒性。
+训练设置了适度随机化 (`Kp×[0.8,1.2]`, `Kd×[0.8,1.2]`, per-DOF 独立)，以兼顾初期抓握稳定性和对刚度/阻尼变化的鲁棒性。
 
 #### 来源与基础值
 
@@ -163,7 +165,7 @@ torque = p_gain × (target - joint_pos) - d_gain × joint_vel
 ### 初始姿态
 
 - **定义**: `env.__init__` 中 `self.init_joint_pos` (shape `(1,21)`)，从 `assets.py` 的 `robot_cfg.init_state.joint_pos` 构建
-- **用途**: 无 cache 时的 reset 起始姿态；有 cache 时，`pos_diff_penalty` 参照为每个环境实际抽到的 cache 关节姿态
+- **用途**: 无 cache 时的 reset 起始姿态；有 cache 时仅作为每个环境的采样 reset 姿态，不再作为奖励参考
 
 ---
 
@@ -300,7 +302,7 @@ reward 中的 `torque_penalty` 和 `work_penalty` 使用 `self.torques`——即
 | `PIP` | 其余 finger flexion 关节 | index/middle/ring/little 的 4 个 PIP | 0.8 | 0.027 |
 
 - 分组匹配优先级: `CMP` → `CMR` → `thumb_flexion` → `DIP` → `MPR` → `MCP` → `PIP`
-- 随机化: 每 reset 乘以 `Kp × [0.5, 2.0]`, `Kd × [0.5, 2.0]`，每 DOF 独立
+- 随机化: 每 reset 乘以 `Kp × [0.8, 1.2]`, `Kd × [0.8, 1.2]`，每 DOF 独立
 - 控制频率: 240Hz 物理 ÷ 12 decimation = 20Hz
 - 旋转目标轴: 每个任务由 manifest 的 `rotation.target_axis_world` 独立配置
 
@@ -312,21 +314,29 @@ reward 中的 `torque_penalty` 和 `work_penalty` 使用 `self.torques`——即
 
 | 项 | 公式 | Scale | 作用 |
 |---|---|---|---|
-| **旋转奖励** | `clip((angvel · target_axis_world), -0.5, 0.5)` | **+2.5** | 鼓励绕该物体配置的世界目标轴旋转 |
-| **线速度惩罚** | `‖obj_pos - prev_pos‖₁ / dt` | **-0.3** | 抑制物体平动 |
-| **物体位置奖励** | `1 / (‖obj_pos - init_pos‖ + 0.001)` | **+0.003** | 物体保持在初始位置附近 |
-| **姿态偏离惩罚** | `Σ (joint_pos - init_joint_pos)²` | **-0.4** | 保持抓取构型, 避免过度伸展 |
-| **力矩惩罚** | `Σ torque²` (显式 PD 命令力矩) | **-0.1** | 抑制过大关节力矩 |
-| **功惩罚** | `(Σ torque · vel)²` | **-0.5** | 抑制机械功率 |
+| **旋转奖励** | `clip((angvel · target_axis_world) / 1.0, -1, 1)` | **+10.0** | 有符号奖励：+1rad/s 得 +10，-1rad/s 得 -10 |
+| **稳定旋转奖励** | `angvel_axis≥0.5` 且倾角、XY/Z 漂移均达标 | **+0.5** | 奖励满重力下保持姿态和位置的正向旋转 |
+| **存活奖励** | `1 - drop` | **+0.2** | 提供小幅抓持基线，但不能盖过旋转目标 |
+| **物体轴倾斜惩罚** | `(tilt / tolerance)²` | **-1.0** | 强约束物体配置轴与目标世界轴对齐 |
+| **非目标轴角速度惩罚** | `‖ω - (ω·axis)axis‖²` | **-0.5** | 阻尼偏离目标轴的转动，减少轴向晃动 |
+| **XY 漂移惩罚** | `smoothL1(relu(xy-10mm)/5mm)` | **-0.15** | 允许 10mm 平面偏移，超出后平滑惩罚 |
+| **Z 漂移惩罚** | `smoothL1(abs(z-z0)/5mm)` | **-0.25** | 保持物体高度 |
+| **掉落惩罚** | 高度超出初始值 ±2cm | **-20.0** | 使掉落代价显著高于继续控制 |
+| **手部自碰撞惩罚** | 最大手—手法向接触力超过 0.5N 后的 smooth-L1（5N尺度） | **-1.0** | 抑制不同手指链之间的碰撞；不统计手—物体接触 |
+| **力矩惩罚** | `mean((torque/1Nm)²)` | **-2.0** | 归一化后抑制过大关节力矩 |
+| **功惩罚** | `mean(abs((torque/1Nm) · vel))` | **-0.1** | 逐关节惩罚机械功率，避免正负抵消 |
 
-- 角速度通过四元数差分计算: `dq = q_curr * inv(q_prev)`, `angle = 2*acos(dq.w)`, `axis = dq.xyz / sin(angle/2)`
-- **姿态偏离参照**: `self.init_joint_pos` — 来自 `assets.py` 的 `robot_cfg.init_state.joint_pos`，即训练/部署时目标抓取姿态
+- 角速度直接使用 PhysX 报告的世界坐标系刚体角速度。
+- **姿态偏离参照**: `self.grasp_joint_pos` — 每个环境本次实际抽取的 cache 关节姿态。
 - **力矩来源**: `self.torques` — 在 `_apply_action` 中显式计算的 PD 命令扭矩，不走 PhysX `applied_torque`
 
 ### 总奖励
 
 ```
-R = 2.5×rotate - 0.3×linvel + 0.003/(d+0.001) - 0.4×pose_diff - 0.1×torque - 0.5×work
+R = 10×rotate + 0.5×stable_rotation + 0.2×alive
+    - 1.0×tilt - 0.5×off_axis
+    - 0.15×xy_drift - 0.25×z_drift - 20×drop
+    - 1.0×self_collision - 2.0×torque - 0.1×work
 ```
 
 乘以 0.01 后作为 PPO 优化目标。

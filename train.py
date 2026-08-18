@@ -32,6 +32,14 @@ parser.add_argument('--algo', type=str, default='PPO', choices=['PPO', 'ProprioA
 parser.add_argument('--train_cfg', type=str, default='Revo3HandHora')
 parser.add_argument('--output_name', type=str, default='debug')
 parser.add_argument('--checkpoint', type=str, default='')
+parser.add_argument(
+    '--weights_only',
+    action='store_true',
+    help=(
+        'Warm-start PPO from checkpoint actor/observation normalization only; reset the '
+        'value head, value normalization, optimizer, counters and best-checkpoint scores.'
+    ),
+)
 parser.add_argument('--cache_file', type=str, default='', help='Override grasp cache filename under cache/.')
 parser.add_argument('--usd', type=str, default='', help='Override hand USD path.')
 parser.add_argument('--num_envs', type=int, default=16384)
@@ -39,6 +47,16 @@ parser.add_argument('--seed', type=int, default=42)
 parser.add_argument(
     '--max_agent_steps', type=int, default=None,
     help='Override train.ppo.max_agent_steps (useful when resuming beyond the original training budget).',
+)
+parser.add_argument(
+    '--fixed_train_gravity',
+    type=float,
+    default=None,
+    metavar='M_S2',
+    help=(
+        'Lock PPO training to this downward gravity magnitude. The value is reapplied after '
+        'checkpoint restore so a saved curriculum gravity cannot override it.'
+    ),
 )
 parser.add_argument('--test', action='store_true')
 parser.add_argument(
@@ -69,6 +87,22 @@ parser.add_argument(
 parser.add_argument('--force_overwrite', action='store_true')
 AppLauncher.add_app_launcher_args(parser)
 args = parser.parse_args()
+
+if args.fixed_train_gravity is not None:
+    if args.fixed_train_gravity <= 0.0:
+        parser.error('--fixed_train_gravity must be greater than 0')
+    if args.test:
+        parser.error('--fixed_train_gravity is for training; --test already evaluates at 9.81 m/s^2')
+    if args.algo != 'PPO':
+        parser.error('--fixed_train_gravity is only supported for PPO Stage1 training')
+
+if args.weights_only:
+    if not args.checkpoint:
+        parser.error('--weights_only requires --checkpoint')
+    if args.test:
+        parser.error('--weights_only is only supported for training')
+    if args.algo != 'PPO':
+        parser.error('--weights_only is only supported for PPO Stage1 training')
 
 if args.video:
     args.enable_cameras = True
@@ -117,6 +151,7 @@ def _build_full_config(seed: int):
     train_cfg = OmegaConf.load(cfg_path)
     train_cfg.algo = args.algo
     train_cfg.load_path = os.path.abspath(args.checkpoint) if args.checkpoint else ''
+    train_cfg.resume_mode = 'weights_only' if args.weights_only else 'strict'
     train_cfg.ppo.output_name = args.output_name
     minibatch = train_cfg.ppo.minibatch_size
     min_envs = minibatch // train_cfg.ppo.horizon_length
@@ -201,6 +236,35 @@ def _attach_env_runtime_to_config(full_config, env_cfg) -> None:
             'contact_order': ['thumb_DIP', 'index_DIP', 'middle_DIP', 'ring_DIP', 'little_DIP'],
             'policy_dt': float(env_cfg.decimation * env_cfg.sim.dt),
             'gravity': tuple(float(v) for v in env_cfg.sim.gravity),
+            'action_scale': float(env_cfg.action_scale),
+            'force_scale': float(env_cfg.force_scale),
+            'reward': {
+                'target_angvel': float(env_cfg.target_angvel),
+                'stable_rotation_min_angvel': float(env_cfg.stable_rotation_min_angvel),
+                'rotate': float(env_cfg.rotate_reward_scale),
+                'stable_rotation_bonus': float(env_cfg.stable_rotation_bonus_scale),
+                'alive': float(env_cfg.alive_reward_scale),
+                'drop': float(env_cfg.drop_penalty_scale),
+                'xy_drift_deadzone_m': float(env_cfg.xy_drift_deadzone),
+                'self_collision_force_threshold_n': float(env_cfg.self_collision_force_threshold),
+                'self_collision_force_tolerance_n': float(env_cfg.self_collision_force_tolerance),
+                'self_collision': float(env_cfg.self_collision_penalty_scale),
+                'torque_normalization': float(env_cfg.torque_normalization),
+                'torque': float(env_cfg.torque_penalty_scale),
+                'work': float(env_cfg.work_penalty_scale),
+            },
+            'domain_randomization': {
+                'pd_gain_scale': (
+                    float(env_cfg.randomize_p_gain_scale_lower),
+                    float(env_cfg.randomize_p_gain_scale_upper),
+                ),
+                'friction_scale': (
+                    float(env_cfg.randomize_friction_scale_lower),
+                    float(env_cfg.randomize_friction_scale_upper),
+                ),
+                'com_m': (float(env_cfg.randomize_com_lower), float(env_cfg.randomize_com_upper)),
+                'mass_kg': (float(env_cfg.randomize_mass_lower), float(env_cfg.randomize_mass_upper)),
+            },
         }
     )
 
@@ -225,6 +289,15 @@ def main():
         env_cfg.viewer.eye = tuple(args.camera_eye)
     if args.camera_lookat is not None:
         env_cfg.viewer.lookat = tuple(args.camera_lookat)
+    if args.fixed_train_gravity is not None:
+        fixed_gravity = float(args.fixed_train_gravity)
+        # Keep the curriculum tracker enabled so PPO still receives a rolling
+        # height-reset rate and can gate best_full_gravity checkpoints. Setting
+        # both the floor (sim.gravity) and target to the same value makes the
+        # physical gravity immutable even when the tracker requests a rollback.
+        env_cfg.gravity_curriculum = True
+        env_cfg.gravity_curriculum_target = fixed_gravity
+        env_cfg.sim.gravity = (0.0, 0.0, -fixed_gravity)
     if args.algo == 'ProprioAdapt':
         # Tactile deployment contract: keep the five fingertip-force channels
         # in both the frozen actor observation and the adaptation history.
@@ -315,7 +388,27 @@ def main():
 
         _attach_env_runtime_to_config(full_config, env_cfg)
         _save_run_metadata(output_dif, full_config)
-        agent.restore_train(full_config.train.load_path)
+        if args.weights_only:
+            agent.restore_weights_only(full_config.train.load_path)
+        else:
+            agent.restore_train(full_config.train.load_path)
+        if args.fixed_train_gravity is not None:
+            fixed_gravity = float(args.fixed_train_gravity)
+            base_env = env._base_env
+            # Strict resume restores the checkpoint's curriculum gravity
+            # (0.05 for the sapota run). The explicit training override must
+            # win after all checkpoint state has been loaded.
+            base_env.set_gravity_magnitude(fixed_gravity)
+            base_env._gravity_reset_sum.zero_()
+            base_env._gravity_window_steps = 0
+            base_env._gravity_window_reset_rate = 1.0
+            if hasattr(agent, 'full_gravity_epochs'):
+                agent.full_gravity_epochs = 0
+            print(
+                f'[INFO] Fixed PPO training gravity: {fixed_gravity:.3f} m/s^2 downward '
+                '(checkpoint gravity overridden; curriculum metrics retained)',
+                flush=True,
+            )
         agent.train()
 
 

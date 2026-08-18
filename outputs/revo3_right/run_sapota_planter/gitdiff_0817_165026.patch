@@ -1,0 +1,79 @@
+diff --git a/RL.md b/RL.md
+index 2a2c478..c677db0 100644
+--- a/RL.md
++++ b/RL.md
+@@ -92,7 +92,7 @@ stage2:
+ | 摩擦 | 手 metal_base=0.1, object_base=0.5, scale×U(0.5, 2.0) | init 一次 |
+ | COM | U(-0.01, 0.01) m | init 一次 |
+ | PD gains | per-joint-type base × [0.5, 2.0], 每 DOF 独立 | 每 reset |
+-| 随机外力 | force_scale=2.0, prob=0.25, decay=0.9 | 每步 |
++| 随机外力 | 关闭（force_scale=0.0；prob/decay 仅在重新启用后生效） | 每步 |
+ | 重力课程 | (0,0,-0.05) → 递增 0.05/step → 上限 10 m/s² | 自动 |
+ 
+ DR 在 init 时随机化一次，PD 每 reset 重新随机化。
+diff --git a/hora/tasks/isaaclab/assets.py b/hora/tasks/isaaclab/assets.py
+index 133c419..d95d1aa 100644
+--- a/hora/tasks/isaaclab/assets.py
++++ b/hora/tasks/isaaclab/assets.py
+@@ -183,7 +183,6 @@ def _usd_object_cfg(spec: ObjectTaskSpec) -> RigidObjectCfg:
+             rigid_props=_COMMON_RIGID,
+             mass_props=_COMMON_MASS,
+             collision_props=_COMMON_COLLISION,
+-            semantic_tags=[("class", spec.name)],
+         ),
+         # training.usda recenters every scanned mesh around its rigid-body root,
+         # so all objects share the same in-hand center as the reference cylinder.
+diff --git a/hora/tasks/isaaclab/revo3_hand_hora_env.py b/hora/tasks/isaaclab/revo3_hand_hora_env.py
+index 83b3345..ce7d291 100644
+--- a/hora/tasks/isaaclab/revo3_hand_hora_env.py
++++ b/hora/tasks/isaaclab/revo3_hand_hora_env.py
+@@ -230,9 +230,10 @@ class Revo3HandHoraEnv(DirectRLEnv):
+         self.object = RigidObject(self.cfg.object_cfg)
+         # add ground plane
+         spawn_ground_plane(prim_path="/World/ground", cfg=GroundPlaneCfg())
+-        # clone and replicate (no need to filter for this environment)
++        # Clone heterogeneous environments, then explicitly filter cross-env
++        # collisions while keeping collisions with the shared ground plane.
+         self.scene.clone_environments(copy_from_source=False)
+-        self.scene.filter_collisions()
++        self.scene.filter_collisions(global_prim_paths=["/World/ground"])
+         # add articulation to scene - we must register to scene to randomize with EventManager
+         self.scene.articulations["hand"] = self.hand
+         self.scene.rigid_objects["object"] = self.object
+diff --git a/hora/tasks/isaaclab/revo3_hand_hora_env_cfg.py b/hora/tasks/isaaclab/revo3_hand_hora_env_cfg.py
+index 5edcf6b..15fe743 100644
+--- a/hora/tasks/isaaclab/revo3_hand_hora_env_cfg.py
++++ b/hora/tasks/isaaclab/revo3_hand_hora_env_cfg.py
+@@ -59,6 +59,9 @@ class Revo3HandHoraEnvCfg(DirectRLEnvCfg):
+         gravity=(0.0, 0.0, -0.05),
+         physx=PhysxCfg(
+             solver_type=1, max_position_iteration_count=8, max_velocity_iteration_count=0,
++            # This PhysX option only controls how an already-applied wrench is
++            # integrated by TGS; it does not create random disturbances.
++            enable_external_forces_every_iteration=True,
+             bounce_threshold_velocity=0.2,
+             gpu_max_rigid_contact_count=8388608, gpu_max_rigid_patch_count=5 * 2**18,
+         ),
+@@ -150,7 +153,10 @@ class Revo3HandHoraEnvCfg(DirectRLEnvCfg):
+     enforce_object_axis_alignment = True
+ 
+     scene: InteractiveSceneCfg = InteractiveSceneCfg(
+-        num_envs=16384, env_spacing=0.75, replicate_physics=False)
++        num_envs=16384, env_spacing=0.75, replicate_physics=False,
++        # With heterogeneous physics replication, collision filtering is done
++        # explicitly in _setup_scene() after cloning.
++        filter_collisions=False)
+ 
+     reset_height_lower = 1.615
+     reset_height_upper = 1.655
+@@ -206,7 +212,9 @@ class Revo3HandHoraEnvCfg(DirectRLEnvCfg):
+     randomize_mass_lower = 0.01
+     randomize_mass_upper = 0.20
+ 
+-    force_scale = 2
++    # Random object-wrench disturbance is disabled. Set this above zero only
++    # for experiments that intentionally train with external pushes.
++    force_scale = 0.0
+     random_force_prob_scalar = 0.25
+     force_decay = 0.9
+     force_decay_interval = 0.08

@@ -1,0 +1,1203 @@
+diff --git a/README.md b/README.md
+index 67703c7..d8fb588 100644
+--- a/README.md
++++ b/README.md
+@@ -77,9 +77,9 @@ RL.md                           # RL 设计文档 (obs/act/rew/sim/DR 完整 spe
+ - **手部/物体**: `hora/object_registry.py` 与 `assets/usd/objects/manifest.json` 是采集、训练和工具共用的注册表；`assets.py` 根据 `--task` 构建对应 `RigidObjectCfg`
+ - **Checkpoint 路径**: `outputs/revo3_right/run_<task>/stage1_nn/best.pth`（Stage1）和 `outputs/revo3_right/run_<task>/stage2_nn/model_best.ckpt`（Stage2）
+ - **初始姿态**: `env.init_joint_pos` 从 `assets.py` 构建，用于无 cache 时的 reset；有 cache 时，`pos_diff_penalty` 使用每个环境实际抽到的 cache 关节姿态作为参照
+-- **PD 控制**: 7 组 per-joint-type 基础值（thumb_CMP:16.4/0.23, thumb_CMR:0.7/0.02, thumb_flexion:1.2/0.09, DIP:8.0/0.10, MPR:0.7/0.04, MCP:0.6/0.014, PIP:0.8/0.027）。每 reset 随机化 ×[0.5,2.0] per-DOF
++- **PD 控制**: 7 组 per-joint-type 基础值（thumb_CMP:16.4/0.23, thumb_CMR:0.7/0.02, thumb_flexion:1.2/0.09, DIP:8.0/0.10, MPR:0.7/0.04, MCP:0.6/0.014, PIP:0.8/0.027）。每 reset 随机化 ×[0.8,1.2] per-DOF
+ - **最低 env 数**: 2048（batch_size = num_envs × 16 ≥ minibatch_size=32768 且可整除）
+-- **满重力 checkpoint**: `best.pth` 只在 9.81m/s² 下连续稳定评测 25 个 PPO epoch 后更新；课程阶段最优另存为 `best_curriculum.pth`
++- **满重力 checkpoint**: `best.pth` 只在 9.81m/s²、低 reset、目标轴角速度 ≥0.5rad/s 且稳定旋转率 ≥30% 连续保持 25 个 PPO epoch 后更新；课程阶段最优另存为 `best_curriculum.pth`
+ 
+ ### 扫描物体资产
+ 
+@@ -185,6 +185,16 @@ scripts/train_s1.sh --task great_dinos_triceratops --num_envs 16384 --headless
+ # 本次 18 维特权观测版本建议使用新输出目录（示例为 4096 环境）
+ scripts/train_s1.sh run_cylinder_v2 --task cylinder --num_envs 4096 --headless
+ 
++# sapota_planter：从已有满重力抓稳策略做“仅策略权重”热启动。
++# 价值函数、价值归一化、优化器、训练步数和 best 分数会全部重置；
++# 下方 30M steps 先用于验证稳定旋转奖励，确认后再扩大训练预算。
++scripts/train_s1.sh run_sapota_planter_rotation_v4_signed_1rads \
++  --task sapota_planter --num_envs 4096 --headless \
++  --cache_file revo3_right_grasp_sapota_planter_full_g_narrow.npy \
++  --checkpoint outputs/revo3_right/run_sapota_planter_rotation_v3/stage1_nn/last.pth \
++  --weights_only --fixed_train_gravity 9.81 \
++  --max_agent_steps 30000000
++
+ # Stage 2
+ scripts/train_s2.sh outputs/revo3_right/run_ball/stage1_nn/best.pth --task ball --num_envs 16384 --headless
+ scripts/train_s2.sh outputs/revo3_right/run_cylinder/stage1_nn/best.pth --task cylinder --num_envs 16384 --headless
+@@ -225,6 +235,15 @@ scripts/train_s2.sh outputs/revo3_right/run_cylinder/stage2_nn/model_last.ckpt \
+   --task cylinder --num_envs 16384 --headless
+ ```
+ 
++Stage 1 默认是严格断点续训，会恢复 actor、critic、归一化统计、optimizer、
++学习率和步数。奖励定义发生变化时应增加 `--weights_only`：只保留 actor、
++env_mlp、动作标准差和 observation RMS，以 `warmstart_learning_rate=1e-4`
++重新训练；critic/value RMS/optimizer/计数器不会从旧奖励 checkpoint 恢复。
++
++新的 `best.pth` / `best_full_gravity.pth` 必须连续 25 个 epoch 同时满足：
++满重力、窗口 reset rate 不高于 0.3%、目标轴平均角速度至少 0.50 rad/s，且
++稳定旋转帧比例至少 30%。`best_curriculum.pth` 仍只是诊断用，不应直接进入 Stage 2。
++
+ ### 推理可视化
+ 
+ ```bash
+diff --git a/RL.md b/RL.md
+index 2a2c478..e169f44 100644
+--- a/RL.md
++++ b/RL.md
+@@ -17,7 +17,8 @@
+ - **算法**: PPO + GAE-lambda
+ - **特权信息**: `env_mlp` 将 18 维 priv_info（位置偏差/摩擦/质量/COM/重力大小/物体配置轴的世界方向/物体角速度/线速度）编码为 8 维隐变量，tanh 后拼入观测 → 149 维入 `actor_mlp`
+ - **网络**: `actor_mlp` [512,256,128] ELU, value 头 Linear(128,1), mu 头 Linear(128,21), 可学习 log_std
+-- **PPO 超参**: lr=3e-4, gamma=0.99, tau=0.95, kl_threshold=0.01, e_clip=0.2, critic_coef=2, entropy_coef=0.001, bounds_loss_coef=0.001
++- **PPO 超参**: lr=3e-4, gamma=0.99, tau=0.95, kl_threshold=0.01, e_clip=0.2, critic_coef=2, entropy_coef=0.0001, bounds_loss_coef=0.001
++- **探索噪声**: 可学习 log_std 从 -1.0 开始，并限制在 [-2.3,-0.7]（std≈[0.10,0.50]），避免灵巧操作初期大量动作饱和
+ - **数据流**: horizon=16；4096 环境时为 65536 transitions/epoch，minibatch=32768，3 mini-epochs
+ - **奖励缩放**: ×0.01 后用于 GAE
+ - **训练上限**: 300M agent steps
+@@ -56,10 +57,11 @@ network:
+   mlp:       {units: [512, 256, 128]}
+   priv_mlp:  {units: [256, 128, 8]}
+ ppo:
+-  learning_rate: 5e-3    gamma: 0.99          tau: 0.95
+-  kl_threshold: 0.02     horizon_length: 8    minibatch_size: 32768
+-  mini_epochs: 5         e_clip: 0.2          critic_coef: 4
+-  entropy_coef: 0.0      bounds_loss_coef: 0.0001
++  learning_rate: 3e-4    gamma: 0.99          tau: 0.95
++  kl_threshold: 0.01     horizon_length: 16   minibatch_size: 32768
++  mini_epochs: 3         e_clip: 0.2          critic_coef: 2
++  entropy_coef: 0.0001   bounds_loss_coef: 0.001
++  initial_log_std: -1.0  min_log_std: -2.3    max_log_std: -0.7
+   max_agent_steps: 300M
+   reward_scale: 0.01
+ stage2:
+@@ -79,7 +81,7 @@ stage2:
+ | | Stage1 | Stage2 |
+ |---|---|---|
+ | 保存 | model+optimizer+agent_steps+epoch_num+best_rewards+last_lr+rms+vms → `.pth` | model+optimizer+agent_steps+best_rewards+rms+sa_ms → `.ckpt` |
+-| 触发 | epoch_num % 500 == 0 | iter_num % 500 == 0 |
++| 触发 | epoch_num % 50 == 0 | iter_num % 500 == 0 |
+ | best | mean_rewards > best_rewards | mean_rewards > best_rewards |
+ 
+ ### 域随机化 (DR)
+@@ -88,12 +90,12 @@ stage2:
+ |---|---|---|
+ | 物体形状 | 每次运行由 `--task` 选择球、圆柱或注册表中的扫描物体 | — |
+ | 物体缩放 | 球/圆柱为 1.0；扫描物体使用 `assets/usd/objects/manifest.json` 中各自的固定比例 | — |
+-| 物体质量 | U(0.01, 0.20) kg | init 一次 |
+-| 摩擦 | 手 metal_base=0.1, object_base=0.5, scale×U(0.5, 2.0) | init 一次 |
+-| COM | U(-0.01, 0.01) m | init 一次 |
+-| PD gains | per-joint-type base × [0.5, 2.0], 每 DOF 独立 | 每 reset |
+-| 随机外力 | force_scale=2.0, prob=0.25, decay=0.9 | 每步 |
+-| 重力课程 | (0,0,-0.05) → 递增 0.05/step → 上限 10 m/s² | 自动 |
++| 物体质量 | U(0.07, 0.13) kg | init 一次 |
++| 摩擦 | 手 metal_base=0.1, object_base=0.5, scale×U(0.8, 1.2) | init 一次 |
++| COM | U(-0.003, 0.003) m | init 一次 |
++| PD gains | per-joint-type base × [0.8, 1.2], 每 DOF 独立 | 每 reset |
++| 随机外力 | 关闭（force_scale=0.0；prob/decay 仅在重新启用后生效） | 每步 |
++| 重力课程 | (0,0,-0.05) → 递增 0.10 m/s²/window → 上限 9.81 m/s² | 自动 |
+ 
+ DR 在 init 时随机化一次，PD 每 reset 重新随机化。
+ 
+@@ -101,7 +103,7 @@ DR 在 init 时随机化一次，PD 每 reset 重新随机化。
+ 
+ - **高度越界**: 物体 Z 超出 [init_Z - 0.02, init_Z + 0.02] 窗口 (±2cm)
+ - **超时**: episode 长度 ≥ 20s (400 步 @20Hz)
+-- **重力课程**: 当高度越界率 < 0.05% 且 step > 1000 时, 重力递增 0.05 m/s², 上限 10 m/s²
++- **重力课程**: 前 1000 个策略步暖启动；随后每 200 步统计窗口，高度越界率 ≤0.3% 时递增 0.10m/s²，≥1% 时回退 0.10m/s²，上限 9.81m/s²
+ 
+ ### 物理配置
+ 
+@@ -141,7 +143,7 @@ torque = p_gain × (target - joint_pos) - d_gain × joint_vel
+ | `p_gain` (刚度) | 位置偏差→力矩的增益 | 跟踪更紧，但接触冲击大 | 更柔顺，但跟踪松 |
+ | `d_gain` (阻尼) | 速度→力矩的增益 | 响应迟钝，能量耗散大 | 响应快，但可能振荡 |
+ 
+-训练设置了高度随机化 (`Kp×[0.5,2.0]`, `Kd×[0.5,2.0]`, per-DOF 独立)，以提高策略对刚度/阻尼变化的鲁棒性。
++训练设置了适度随机化 (`Kp×[0.8,1.2]`, `Kd×[0.8,1.2]`, per-DOF 独立)，以兼顾初期抓握稳定性和对刚度/阻尼变化的鲁棒性。
+ 
+ #### 来源与基础值
+ 
+@@ -300,7 +302,7 @@ reward 中的 `torque_penalty` 和 `work_penalty` 使用 `self.torques`——即
+ | `PIP` | 其余 finger flexion 关节 | index/middle/ring/little 的 4 个 PIP | 0.8 | 0.027 |
+ 
+ - 分组匹配优先级: `CMP` → `CMR` → `thumb_flexion` → `DIP` → `MPR` → `MCP` → `PIP`
+-- 随机化: 每 reset 乘以 `Kp × [0.5, 2.0]`, `Kd × [0.5, 2.0]`，每 DOF 独立
++- 随机化: 每 reset 乘以 `Kp × [0.8, 1.2]`, `Kd × [0.8, 1.2]`，每 DOF 独立
+ - 控制频率: 240Hz 物理 ÷ 12 decimation = 20Hz
+ - 旋转目标轴: 每个任务由 manifest 的 `rotation.target_axis_world` 独立配置
+ 
+@@ -312,21 +314,27 @@ reward 中的 `torque_penalty` 和 `work_penalty` 使用 `self.torques`——即
+ 
+ | 项 | 公式 | Scale | 作用 |
+ |---|---|---|---|
+-| **旋转奖励** | `clip((angvel · target_axis_world), -0.5, 0.5)` | **+2.5** | 鼓励绕该物体配置的世界目标轴旋转 |
+-| **线速度惩罚** | `‖obj_pos - prev_pos‖₁ / dt` | **-0.3** | 抑制物体平动 |
+-| **物体位置奖励** | `1 / (‖obj_pos - init_pos‖ + 0.001)` | **+0.003** | 物体保持在初始位置附近 |
+-| **姿态偏离惩罚** | `Σ (joint_pos - init_joint_pos)²` | **-0.4** | 保持抓取构型, 避免过度伸展 |
+-| **力矩惩罚** | `Σ torque²` (显式 PD 命令力矩) | **-0.1** | 抑制过大关节力矩 |
+-| **功惩罚** | `(Σ torque · vel)²` | **-0.5** | 抑制机械功率 |
+-
+-- 角速度通过四元数差分计算: `dq = q_curr * inv(q_prev)`, `angle = 2*acos(dq.w)`, `axis = dq.xyz / sin(angle/2)`
+-- **姿态偏离参照**: `self.init_joint_pos` — 来自 `assets.py` 的 `robot_cfg.init_state.joint_pos`，即训练/部署时目标抓取姿态
++| **旋转奖励** | `clip((angvel · target_axis_world) / 1.0, -1, 1)` | **+10.0** | 有符号奖励：+1rad/s 得 +10，-1rad/s 得 -10 |
++| **稳定旋转奖励** | `angvel_axis≥0.5` 且倾角、XY/Z 漂移均达标 | **+0.5** | 奖励满重力下保持姿态和位置的正向旋转 |
++| **存活奖励** | `1 - drop` | **+0.2** | 提供小幅抓持基线，但不能盖过旋转目标 |
++| **物体轴倾斜惩罚** | `(tilt / tolerance)²` | **-0.25** | 保持物体配置轴与目标世界轴对齐 |
++| **非目标轴角速度惩罚** | `‖ω - (ω·axis)axis‖²` | **-0.2** | 抑制偏离目标轴的转动 |
++| **XY/Z 漂移惩罚** | 以 5mm 容差归一化的 smooth-L1 | **-0.15/-0.25** | 保持物体中心位置 |
++| **掉落惩罚** | 高度超出初始值 ±2cm | **-20.0** | 使掉落代价显著高于继续控制 |
++| **姿态偏离惩罚** | `mean(relu(abs(q-q_cache)-0.05)²)` | **-0.1** | 允许手指在缓存姿态附近运动后再惩罚偏离 |
++| **力矩惩罚** | `mean((torque/1Nm)²)` | **-2.0** | 归一化后抑制过大关节力矩 |
++| **功惩罚** | `mean(abs((torque/1Nm) · vel))` | **-0.1** | 逐关节惩罚机械功率，避免正负抵消 |
++
++- 角速度直接使用 PhysX 报告的世界坐标系刚体角速度。
++- **姿态偏离参照**: `self.grasp_joint_pos` — 每个环境本次实际抽取的 cache 关节姿态。
+ - **力矩来源**: `self.torques` — 在 `_apply_action` 中显式计算的 PD 命令扭矩，不走 PhysX `applied_torque`
+ 
+ ### 总奖励
+ 
+ ```
+-R = 2.5×rotate - 0.3×linvel + 0.003/(d+0.001) - 0.4×pose_diff - 0.1×torque - 0.5×work
++R = 2.5×rotate + alive - 0.25×tilt - 0.2×off_axis
++    - 0.15×xy_drift - 0.25×z_drift - 20×drop
++    - 0.4×pose_diff - 0.1×torque - 0.5×work
+ ```
+ 
+ 乘以 0.01 后作为 PPO 优化目标。
+diff --git a/configs/train/Revo3HandHora.yaml b/configs/train/Revo3HandHora.yaml
+index 928e2a5..d60070a 100644
+--- a/configs/train/Revo3HandHora.yaml
++++ b/configs/train/Revo3HandHora.yaml
+@@ -21,19 +21,28 @@ ppo:
+   gamma: 0.99
+   tau: 0.95
+   learning_rate: 3e-4
++  # Policy-only warm starts face a new reward/value distribution.  Reuse the
++  # actor and observation RMS, but train a fresh critic/optimizer conservatively.
++  warmstart_learning_rate: 1e-4
+   kl_threshold: 0.01
+   horizon_length: 16
+   minibatch_size: 32768
+   mini_epochs: 3
+   clip_value: True
+-  critic_coef: 2
+-  entropy_coef: 0.001
++  critic_coef: 1
++  # Delicate in-hand grasps cannot tolerate the legacy std=1 policy noise:
++  # sampled actions were saturating and ejecting the object before PPO could
++  # learn. Keep modest exploration and bound the learned log standard deviation.
++  entropy_coef: 0.0001
++  initial_log_std: -1.0
++  min_log_std: -2.3
++  max_log_std: -0.7
+   e_clip: 0.2
+   bounds_loss_coef: 0.001
+   truncate_grads: True
+   grad_norm: 1.0
+   save_best_after: 0
+-  save_frequency: 250
++  save_frequency: 50
+   max_agent_steps: 300000000
+   priv_info: True
+   priv_info_dim: 18
+@@ -43,6 +52,8 @@ ppo:
+   full_gravity_tolerance: 0.02
+   full_gravity_max_reset_rate: 0.003
+   full_gravity_eval_epochs: 25
++  full_gravity_min_target_angvel: 0.50
++  full_gravity_min_stable_rotation_rate: 0.30
+ 
+ # Stage2 / ProprioAdapt supervised distillation.
+ stage2:
+diff --git a/gen_grasp.py b/gen_grasp.py
+index a156259..22d7e52 100644
+--- a/gen_grasp.py
++++ b/gen_grasp.py
+@@ -7,7 +7,9 @@ Grasp detection (reset_buf approach in _get_rewards):
+   cond4: after settling, XY drift <=5mm and Z drift <=15mm
+ 
+ Gravity testing defaults to fixed -Z gravity. Six-axis cycling is opt-in after the
+-  fixed-gravity baseline produces stable grasps.
++fixed-gravity baseline produces stable grasps. In six-axis mode every direction
++gets a fresh settling/contact window and must pass a consecutive-stability gate.
++A candidate is cached only after all six directions have passed.
+ 
+ Joint exploration: ±noise_scale (default 0.15) rad around init_joint_pos, clamped to
+   joint limits. Noise scale is NOT zeroed for any task — cylinder benefits from
+@@ -39,6 +41,12 @@ parser.add_argument("--cache_file", type=str, default="", help="Override output
+ parser.add_argument("--usd", type=str, default="", help="Override hand USD path.")
+ parser.add_argument("--noise_scale", type=float, default=0.15, help="±noise added to init_joint_pos")
+ parser.add_argument("--progress_interval", type=float, default=10.0, help="Seconds between progress updates.")
++parser.add_argument(
++    "--episode_length_s",
++    type=float,
++    default=None,
++    help="Validation episode length. Defaults to 5s for fixed gravity and seven gravity intervals for six_axis.",
++)
+ parser.add_argument("--settle_steps", type=int, default=20, help="Steps allowed for contact establishment.")
+ parser.add_argument("--contact_force_threshold", type=float, default=0.05, help="Per-fingertip object contact threshold in N.")
+ parser.add_argument(
+@@ -92,8 +100,20 @@ parser.add_argument(
+ parser.add_argument(
+     "--gravity_interval",
+     type=int,
+-    default=15,
+-    help="Global steps per direction in six_axis mode; 15 visits all six axes within a 100-step episode.",
++    default=40,
++    help="Policy steps per direction in six_axis mode.",
++)
++parser.add_argument(
++    "--gravity_settle_steps",
++    type=int,
++    default=20,
++    help="Grace period after every gravity switch in six_axis mode.",
++)
++parser.add_argument(
++    "--axis_validation_steps",
++    type=int,
++    default=10,
++    help="Consecutive stable steps required to pass one gravity direction.",
+ )
+ AppLauncher.add_app_launcher_args(parser)
+ args = parser.parse_args()
+@@ -104,6 +124,8 @@ if args.target_count <= 0:
+     parser.error("--target_count must be greater than 0")
+ if args.progress_interval <= 0:
+     parser.error("--progress_interval must be greater than 0")
++if args.episode_length_s is not None and args.episode_length_s <= 0.0:
++    parser.error("--episode_length_s must be greater than 0")
+ if args.settle_steps < 0:
+     parser.error("--settle_steps must be greater than or equal to 0")
+ if args.contact_force_threshold < 0:
+@@ -126,6 +148,22 @@ if args.max_height_drift_m <= 0.0:
+     parser.error("--max_height_drift_m must be greater than 0")
+ if args.gravity_interval <= 0:
+     parser.error("--gravity_interval must be greater than 0")
++if args.gravity_settle_steps < 0:
++    parser.error("--gravity_settle_steps must be greater than or equal to 0")
++if args.axis_validation_steps <= 0:
++    parser.error("--axis_validation_steps must be greater than 0")
++if args.gravity_mode == "six_axis":
++    if args.gravity_settle_steps < args.contact_window_steps:
++        parser.error(
++            "six_axis requires --gravity_settle_steps >= --contact_window_steps "
++            "so the contact window can refill after each gravity switch"
++        )
++    minimum_interval = args.gravity_settle_steps + args.axis_validation_steps
++    if args.gravity_interval < minimum_interval:
++        parser.error(
++            "six_axis requires --gravity_interval >= --gravity_settle_steps + "
++            f"--axis_validation_steps ({minimum_interval})"
++        )
+ 
+ app_launcher = AppLauncher(args)
+ simulation_app = app_launcher.app
+@@ -163,7 +201,9 @@ class GraspGenEnv(Revo3HandHoraEnv):
+         fingertip_near_threshold_m: float = 0.10,
+         check_axis_tilt: bool = True,
+         gravity_mode: str = "fixed",
+-        gravity_interval: int = 15,
++        gravity_interval: int = 40,
++        gravity_settle_steps: int = 20,
++        axis_validation_steps: int = 10,
+         **kwargs,
+     ):
+         self._noise_scale = noise_scale
+@@ -191,6 +231,8 @@ class GraspGenEnv(Revo3HandHoraEnv):
+         self._check_axis_tilt = bool(check_axis_tilt)
+         self._gravity_mode = gravity_mode
+         self._gravity_interval = int(gravity_interval)
++        self._gravity_settle_steps = int(gravity_settle_steps)
++        self._axis_validation_steps = int(axis_validation_steps)
+         self._contact_history = torch.zeros(
+             (cfg.scene.num_envs, self._contact_window_steps, 5),
+             dtype=torch.bool,
+@@ -201,6 +243,7 @@ class GraspGenEnv(Revo3HandHoraEnv):
+         )
+         self._contact_history_index = 0
+         self._gravity_id = 0
++        self._gravity_steps_in_direction = 0
+         self._gravity_directions = [
+             carb.Float3(0.0, 0.0, -9.81),
+             carb.Float3(0.0, 0.0, 9.81),
+@@ -209,6 +252,13 @@ class GraspGenEnv(Revo3HandHoraEnv):
+             carb.Float3(0.0, 9.81, 0.0),
+             carb.Float3(0.0, -9.81, 0.0),
+         ]
++        self._required_axis_mask = (1 << len(self._gravity_directions)) - 1
++        self._axis_pass_mask = torch.zeros(
++            cfg.scene.num_envs, dtype=torch.int16, device=cfg.sim.device
++        )
++        self._axis_stable_steps = torch.zeros(
++            cfg.scene.num_envs, dtype=torch.int16, device=cfg.sim.device
++        )
+         self._reset_condition_stats()
+         super().__init__(cfg, render_mode, **kwargs)
+         # The state that must be cached is the candidate at the start of its
+@@ -220,8 +270,6 @@ class GraspGenEnv(Revo3HandHoraEnv):
+         self._candidate_object_pos = torch.zeros((self.num_envs, 3), device=self.device)
+         self._candidate_object_quat = torch.zeros((self.num_envs, 4), device=self.device)
+         self.physics_sim_view.set_gravity(self._gravity_directions[0])
+-        if self._gravity_mode == "six_axis":
+-            self._gravity_id = 1
+ 
+     def _reset_condition_stats(self):
+         self._condition_samples = 0
+@@ -325,6 +373,26 @@ class GraspGenEnv(Revo3HandHoraEnv):
+                 )
+             print(f"[FINGERS] {' | '.join(finger_stats)}", flush=True)
+ 
++        if self._gravity_mode == "six_axis":
++            axis_names = ("-Z", "+Z", "+X", "-X", "+Y", "-Y")
++            pass_rates = [
++                100.0
++                * float(((self._axis_pass_mask & (1 << axis_id)) != 0).float().mean().item())
++                for axis_id in range(len(axis_names))
++            ]
++            complete_rate = 100.0 * float(
++                (self._axis_pass_mask == self._required_axis_mask).float().mean().item()
++            )
++            formatted = " ".join(
++                f"{name}={rate:5.1f}%" for name, rate in zip(axis_names, pass_rates)
++            )
++            print(
++                f"[SIX_AXIS] current={axis_names[self._gravity_id]} "
++                f"step={self._gravity_steps_in_direction}/{self._gravity_interval}"
++                f" | {formatted} | all={complete_rate:5.1f}%",
++                flush=True,
++            )
++
+         self._last_progress_time = now
+         self._last_progress_total = completed
+         self._reset_condition_stats()
+@@ -401,6 +469,8 @@ class GraspGenEnv(Revo3HandHoraEnv):
+ 
+     def _get_rewards(self) -> torch.Tensor:
+         self._refresh_lab()
++        if self._gravity_mode == "six_axis":
++            self._gravity_steps_in_direction += 1
+         # cond1: all 5 fingertips within 0.1m of object
+         fingertip_distances = torch.norm(self.fingertip_pos - self.object_pos.unsqueeze(1), dim=-1)
+         cond1 = (fingertip_distances < self._fingertip_near_threshold).all(-1)
+@@ -466,14 +536,42 @@ class GraspGenEnv(Revo3HandHoraEnv):
+         # contact floor, and (when enabled) tight object-axis alignment.
+         settling = self.episode_length_buf <= self._settle_steps
+         stable = contact_established & live_contact & cond3 & cond_height & cond_horizontal
+-        cond = cond1 & (stable | settling)
++        if self._gravity_mode == "six_axis":
++            gravity_settling = self._gravity_steps_in_direction <= self._gravity_settle_steps
++            if gravity_settling:
++                self._axis_stable_steps.zero_()
++                cond = cond1
++            else:
++                eligible = stable & ~settling
++                self._axis_stable_steps = torch.where(
++                    eligible,
++                    self._axis_stable_steps + 1,
++                    torch.zeros_like(self._axis_stable_steps),
++                )
++                passed = self._axis_stable_steps >= self._axis_validation_steps
++                if passed.any():
++                    self._axis_pass_mask[passed] = (
++                        self._axis_pass_mask[passed] | (1 << self._gravity_id)
++                    )
++                cond = cond1 & (stable | settling)
++        else:
++            cond = cond1 & (stable | settling)
+         self.reset_buf[~cond] = 1
+ 
+-        # Six-axis testing is deliberately opt-in. Baseline cache generation
+-        # uses fixed -Z gravity until stable candidates have been confirmed.
+-        if self._gravity_mode == "six_axis" and self.common_step_counter % self._gravity_interval == 0:
+-            self.physics_sim_view.set_gravity(self._gravity_directions[self._gravity_id])
++        # Switch only after evaluating the final state under the current
++        # direction. The next direction starts with fresh contact evidence and
++        # its own grace period, so load-bearing contacts cannot be inherited.
++        if (
++            self._gravity_mode == "six_axis"
++            and self._gravity_steps_in_direction >= self._gravity_interval
++        ):
+             self._gravity_id = (self._gravity_id + 1) % len(self._gravity_directions)
++            self.physics_sim_view.set_gravity(self._gravity_directions[self._gravity_id])
++            self._gravity_steps_in_direction = 0
++            self._contact_history.zero_()
++            self._contact_window_counts.zero_()
++            self._contact_history_index = 0
++            self._axis_stable_steps.zero_()
+ 
+         self._print_progress()
+         return torch.zeros(self.num_envs, device=self.device)
+@@ -488,6 +586,8 @@ class GraspGenEnv(Revo3HandHoraEnv):
+ 
+         # collect states that survived full episode (successful grasps)
+         success = self.episode_length_buf >= self.max_episode_length
++        if self._gravity_mode == "six_axis":
++            success &= self._axis_pass_mask == self._required_axis_mask
+         n_success = success.sum().item()
+         if n_success > 0:
+             joint_pos = self._candidate_joint_pos[success].cpu().numpy()
+@@ -514,8 +614,10 @@ class GraspGenEnv(Revo3HandHoraEnv):
+         self.episode_length_buf[env_ids] = 0
+         self._contact_history[env_ids] = False
+         self._contact_window_counts[env_ids] = 0
++        self._axis_pass_mask[env_ids] = 0
++        self._axis_stable_steps[env_ids] = 0
+ 
+-        # random joint exploration: ±0.15 rad around default
++        # Random joint exploration around the manifest/default grasp.
+         ndof = self.num_hand_dofs
+         rand_floats = 2.0 * torch.rand((len(env_ids), ndof), device=self.device) - 1.0
+         dof_pos = self.init_joint_pos.expand(len(env_ids), -1) + self._noise_scale * rand_floats
+@@ -592,7 +694,26 @@ env_cfg.gravity_curriculum = False
+ env_cfg.scene.num_envs = args.num_envs
+ if args.headless:
+     env_cfg.sim.render_interval = env_cfg.decimation
+-env_cfg.episode_length_s = 5.0
++policy_dt = float(env_cfg.decimation * env_cfg.sim.dt)
++minimum_six_axis_episode_s = 7.0 * args.gravity_interval * policy_dt
++if args.episode_length_s is not None:
++    if (
++        args.gravity_mode == "six_axis"
++        and args.episode_length_s + 1.0e-9 < minimum_six_axis_episode_s
++    ):
++        raise ValueError(
++            "--episode_length_s is too short for complete six-axis validation: "
++            f"need at least {minimum_six_axis_episode_s:g}s with "
++            f"--gravity_interval {args.gravity_interval}"
++        )
++    env_cfg.episode_length_s = float(args.episode_length_s)
++elif args.gravity_mode == "six_axis":
++    # Seven intervals guarantee that an asynchronously reset candidate sees a
++    # complete interval for all six directions, even if it starts immediately
++    # before a global gravity switch.
++    env_cfg.episode_length_s = minimum_six_axis_episode_s
++else:
++    env_cfg.episode_length_s = 5.0
+ env_cfg.randomize_pd_gains = False
+ env_cfg.randomize_com = False
+ env_cfg.randomize_friction = False
+@@ -620,6 +741,8 @@ env = GraspGenEnv(
+     check_axis_tilt=env_cfg.enforce_object_axis_alignment,
+     gravity_mode=args.gravity_mode,
+     gravity_interval=args.gravity_interval,
++    gravity_settle_steps=args.gravity_settle_steps,
++    axis_validation_steps=args.axis_validation_steps,
+ )
+ env.reset()
+ env.start_progress_tracking()
+@@ -652,6 +775,12 @@ if env_cfg.enforce_object_axis_alignment:
+ print(f"  XY drift    : <= {1000.0 * args.max_horizontal_drift_m:g}mm after settle")
+ print(f"  height drift: <= {1000.0 * args.max_height_drift_m:g}mm after settle")
+ print(f"  gravity     : {args.gravity_mode} (9.81m/s²)")
++if args.gravity_mode == "six_axis":
++    print(
++        f"  axis gate   : {args.gravity_interval} steps/direction, "
++        f"{args.gravity_settle_steps} settle + "
++        f"{args.axis_validation_steps} consecutive stable, all 6 required"
++    )
+ print("  disturbance : random force off, friction randomization off")
+ print(f"  output      : {cache_path}\n")
+ if args.usd:
+diff --git a/hora/algo/ppo/ppo.py b/hora/algo/ppo/ppo.py
+index 05e11ab..fa619a8 100644
+--- a/hora/algo/ppo/ppo.py
++++ b/hora/algo/ppo/ppo.py
+@@ -56,6 +56,16 @@ class PPO(object):
+             'obs_per_step': self.obs_shape[0] // 3,
+         }
+         self.model = ActorCritic(net_config)
++        self.initial_log_std = float(self.ppo_config.get('initial_log_std', -1.0))
++        self.min_log_std = float(self.ppo_config.get('min_log_std', -2.3))
++        self.max_log_std = float(self.ppo_config.get('max_log_std', -0.7))
++        if not self.min_log_std <= self.initial_log_std <= self.max_log_std:
++            raise ValueError(
++                'Expected min_log_std <= initial_log_std <= max_log_std, got '
++                f'{self.min_log_std} <= {self.initial_log_std} <= {self.max_log_std}'
++            )
++        with torch.no_grad():
++            self.model.sigma.fill_(self.initial_log_std)
+         self.model.to(self.device)
+         self.running_mean_std = RunningMeanStd(self.obs_shape).to(self.device)
+         self.value_mean_std = RunningMeanStd((1,)).to(self.device)
+@@ -100,6 +110,16 @@ class PPO(object):
+         self.full_gravity_tolerance = float(self.ppo_config.get('full_gravity_tolerance', 0.02))
+         self.full_gravity_max_reset_rate = float(self.ppo_config.get('full_gravity_max_reset_rate', 0.003))
+         self.full_gravity_eval_epochs = int(self.ppo_config.get('full_gravity_eval_epochs', 25))
++        self.full_gravity_min_target_angvel = float(
++            self.ppo_config.get('full_gravity_min_target_angvel', 0.50)
++        )
++        self.full_gravity_min_stable_rotation_rate = float(
++            self.ppo_config.get('full_gravity_min_stable_rotation_rate', 0.30)
++        )
++        if self.full_gravity_min_target_angvel < 0.0:
++            raise ValueError('full_gravity_min_target_angvel must be non-negative')
++        if not 0.0 <= self.full_gravity_min_stable_rotation_rate <= 1.0:
++            raise ValueError('full_gravity_min_stable_rotation_rate must be in [0, 1]')
+         # ---- Tensorboard Logger ----
+         self.extra_info = {}
+         writer = SummaryWriter(self.tb_dif)
+@@ -175,6 +195,11 @@ class PPO(object):
+         if self.normalize_value:
+             self.value_mean_std.train()
+ 
++    def _clamp_action_log_std(self):
++        """Keep exploration noise within the safe range for in-hand control."""
++        with torch.no_grad():
++            self.model.sigma.clamp_(self.min_log_std, self.max_log_std)
++
+     def model_act(self, obs_dict):
+         processed_obs = self.running_mean_std(obs_dict['obs'])
+         input_dict = {
+@@ -212,14 +237,22 @@ class PPO(object):
+             self.writer.add_scalar('episode_lengths/step', mean_lengths, self.agent_steps)
+             gravity_magnitude = float(self.extra_info.get('gravity_magnitude', 0.0))
+             gravity_reset_rate = float(self.extra_info.get('gravity_reset_rate_window', 1.0))
+-            at_full_gravity = (
++            target_angvel = float(self.extra_info.get('target_angvel', 0.0))
++            stable_rotation_rate = float(self.extra_info.get('stable_rotation_rate', 0.0))
++            gravity_qualified = (
+                 gravity_magnitude >= self.full_gravity_magnitude - self.full_gravity_tolerance
+                 and gravity_reset_rate <= self.full_gravity_max_reset_rate
+             )
+-            self.full_gravity_epochs = self.full_gravity_epochs + 1 if at_full_gravity else 0
++            rotation_qualified = (
++                target_angvel >= self.full_gravity_min_target_angvel
++                and stable_rotation_rate >= self.full_gravity_min_stable_rotation_rate
++            )
++            full_gravity_qualified = gravity_qualified and rotation_qualified
++            self.full_gravity_epochs = self.full_gravity_epochs + 1 if full_gravity_qualified else 0
+             full_gravity_evaluated = self.full_gravity_epochs >= self.full_gravity_eval_epochs
+             self.writer.add_scalar('gravity/full_eval_epochs', self.full_gravity_epochs, self.agent_steps)
+             self.writer.add_scalar('gravity/full_eval_ready', float(full_gravity_evaluated), self.agent_steps)
++            self.writer.add_scalar('rotation/checkpoint_qualified', float(rotation_qualified), self.agent_steps)
+ 
+             checkpoint_name = (
+                 f'ep_{self.epoch_num}_step_{int(self.agent_steps // 1e6):04}M_'
+@@ -249,7 +282,8 @@ class PPO(object):
+             if full_gravity_evaluated and mean_rewards > self.best_rewards and self.epoch_num >= self.save_best_after:
+                 print(
+                     f'save full-gravity best reward: {mean_rewards:.2f} '
+-                    f'(g={gravity_magnitude:.2f}, reset_rate={gravity_reset_rate:.5f})',
++                    f'(g={gravity_magnitude:.2f}, reset_rate={gravity_reset_rate:.5f}, '
++                    f'target_angvel={target_angvel:.3f}, stable_rotation={stable_rotation_rate:.1%})',
+                     flush=True,
+                 )
+                 self.best_rewards = mean_rewards
+@@ -263,6 +297,7 @@ class PPO(object):
+         print('max steps achieved')
+ 
+     def save(self, name):
++        base_env = getattr(self.env, '_base_env', self.env)
+         weights = {
+             'model': self.model.state_dict(),
+             'optimizer': self.optimizer.state_dict(),
+@@ -271,8 +306,8 @@ class PPO(object):
+             'best_rewards': float(self.best_rewards),
+             'best_curriculum_rewards': float(self.best_curriculum_rewards),
+             'full_gravity_epochs': int(self.full_gravity_epochs),
+-            'gravity_magnitude': float(getattr(self.env, '_gravity_magnitude', 0.0)),
+-            'gravity_reset_rate_window': float(getattr(self.env, '_gravity_window_reset_rate', 1.0)),
++            'gravity_magnitude': float(getattr(base_env, '_gravity_magnitude', 0.0)),
++            'gravity_reset_rate_window': float(getattr(base_env, '_gravity_window_reset_rate', 1.0)),
+             'priv_info_dim': int(self.priv_info_dim),
+             'last_lr': float(self.last_lr),
+         }
+@@ -309,6 +344,7 @@ class PPO(object):
+             )
+ 
+         self.model.load_state_dict(checkpoint['model'], strict=True)
++        self._clamp_action_log_std()
+         self.running_mean_std.load_state_dict(checkpoint['running_mean_std'])
+         self.value_mean_std.load_state_dict(checkpoint['value_mean_std'])
+         self.optimizer.load_state_dict(checkpoint['optimizer'])
+@@ -318,10 +354,11 @@ class PPO(object):
+         self.best_curriculum_rewards = float(checkpoint.get('best_curriculum_rewards', self.best_rewards))
+         self.full_gravity_epochs = int(checkpoint.get('full_gravity_epochs', 0))
+         self.last_lr = float(checkpoint['last_lr'])
+-        if 'gravity_magnitude' in checkpoint and hasattr(self.env, 'set_gravity_magnitude'):
+-            self.env.set_gravity_magnitude(float(checkpoint['gravity_magnitude']))
+-        if 'gravity_reset_rate_window' in checkpoint and hasattr(self.env, '_gravity_window_reset_rate'):
+-            self.env._gravity_window_reset_rate = float(checkpoint['gravity_reset_rate_window'])
++        base_env = getattr(self.env, '_base_env', self.env)
++        if 'gravity_magnitude' in checkpoint and hasattr(base_env, 'set_gravity_magnitude'):
++            base_env.set_gravity_magnitude(float(checkpoint['gravity_magnitude']))
++        if 'gravity_reset_rate_window' in checkpoint and hasattr(base_env, '_gravity_window_reset_rate'):
++            base_env._gravity_window_reset_rate = float(checkpoint['gravity_reset_rate_window'])
+         for param_group in self.optimizer.param_groups:
+             param_group['lr'] = self.last_lr
+         print(
+@@ -330,6 +367,71 @@ class PPO(object):
+             flush=True,
+         )
+ 
++    def restore_weights_only(self, fn):
++        """Warm-start the actor while resetting the critic, optimizer and counters.
++
++        Observation normalization is part of the actor input contract and is
++        therefore retained.  Value normalization and the value head describe
++        the old reward distribution, so both intentionally remain fresh.
++        """
++        if not fn:
++            return
++        checkpoint = torch.load(fn, map_location=self.device)
++        required_keys = ['model', 'running_mean_std']
++        missing = [key for key in required_keys if key not in checkpoint]
++        if missing:
++            raise RuntimeError(
++                f"Policy warm start failed: missing keys {missing} in checkpoint: {fn}"
++            )
++        checkpoint_priv_dim = checkpoint.get('priv_info_dim')
++        if checkpoint_priv_dim is not None and int(checkpoint_priv_dim) != self.priv_info_dim:
++            raise RuntimeError(
++                f"Stage1 checkpoint privileged-observation mismatch: checkpoint={checkpoint_priv_dim}, "
++                f"current={self.priv_info_dim}. Retrain Stage1 after changing privileged observations."
++            )
++
++        actor_state = {
++            key: value
++            for key, value in checkpoint['model'].items()
++            if key not in {'value.weight', 'value.bias'}
++        }
++        incompatible = self.model.load_state_dict(actor_state, strict=False)
++        expected_missing = {'value.weight', 'value.bias'}
++        if set(incompatible.missing_keys) != expected_missing or incompatible.unexpected_keys:
++            raise RuntimeError(
++                'Policy warm start model mismatch: '
++                f'missing={incompatible.missing_keys}, unexpected={incompatible.unexpected_keys}'
++            )
++        torch.nn.init.zeros_(self.model.value.weight)
++        torch.nn.init.zeros_(self.model.value.bias)
++        self._clamp_action_log_std()
++        self.running_mean_std.load_state_dict(checkpoint['running_mean_std'])
++        self.value_mean_std = RunningMeanStd((1,)).to(self.device)
++
++        self.last_lr = float(
++            self.ppo_config.get('warmstart_learning_rate', self.ppo_config['learning_rate'])
++        )
++        self.optimizer = torch.optim.Adam(
++            self.model.parameters(), self.last_lr, weight_decay=self.weight_decay
++        )
++        self.agent_steps = 0
++        self.epoch_num = 0
++        self.best_rewards = -10000
++        self.best_curriculum_rewards = -10000
++        self.full_gravity_epochs = 0
++        self.current_rewards.zero_()
++        self.current_raw_rewards.zero_()
++        self.current_lengths.zero_()
++        self.dones.fill_(1)
++        self.episode_rewards = AverageScalarMeter(100)
++        self.episode_raw_rewards = AverageScalarMeter(100)
++        self.episode_lengths = AverageScalarMeter(100)
++        print(
++            '[INFO] Warm-started Stage1 policy and observation RMS; reset value head, '
++            f'value RMS, optimizer, counters and best scores (lr={self.last_lr:.6g})',
++            flush=True,
++        )
++
+     def restore_test(self, fn):
+         checkpoint = torch.load(fn, map_location=self.device)
+         self.model.load_state_dict(checkpoint['model'], strict=True)
+@@ -350,6 +452,8 @@ class PPO(object):
+         height_reset_count = 0.0
+         timeout_count = 0.0
+         tilt_sum = 0.0
++        target_angvel_sum = 0.0
++        stable_rotation_sum = 0.0
+         step_dt = float(getattr(self.env, 'step_dt', 0.0))
+         while max_steps <= 0 or step < max_steps:
+             step_start = time.time()
+@@ -366,6 +470,8 @@ class PPO(object):
+             height_reset_count += self._info_scalar(info, 'height_reset_upper') * self.num_actors
+             timeout_count += self._info_scalar(info, 'time_out') * self.num_actors
+             tilt_sum += self._info_scalar(info, 'object_axis_tilt_deg')
++            target_angvel_sum += self._info_scalar(info, 'target_angvel')
++            stable_rotation_sum += self._info_scalar(info, 'stable_rotation_rate')
+             sleep_time = step_dt - (time.time() - step_start)
+             if real_time and sleep_time > 0:
+                 time.sleep(sleep_time)
+@@ -378,6 +484,8 @@ class PPO(object):
+                 f"  policy steps  : {max_steps}\n"
+                 f"  transitions   : {transitions}\n"
+                 f"  mean reward   : {reward_sum / max_steps:.6f}\n"
++                f"  target angvel : {target_angvel_sum / max_steps:.4f} rad/s\n"
++                f"  stable rotate : {stable_rotation_sum / max_steps:.2%}\n"
+                 f"  mean tilt     : {tilt_sum / max_steps:.3f} deg\n"
+                 f"  height resets : {height_reset_count:.0f} ({height_reset_count / transitions:.6%}/step)\n"
+                 f"  timeouts      : {timeout_count:.0f}",
+@@ -446,6 +554,7 @@ class PPO(object):
+                 if self.truncate_grads:
+                     torch.nn.utils.clip_grad_norm_(self.model.parameters(), self.grad_norm)
+                 self.optimizer.step()
++                self._clamp_action_log_std()
+ 
+                 with torch.no_grad():
+                     kl_dist = policy_kl(mu.detach(), sigma.detach(), old_mu, old_sigma)
+@@ -510,6 +619,7 @@ class PPO(object):
+     def play_steps(self):
+         extra_sums = {}
+         extra_counts = {}
++        action_saturation_sum = 0.0
+         for n in range(self.horizon_length):
+             res_dict = self.model_act(self.obs)
+             # collect o_t
+@@ -518,7 +628,9 @@ class PPO(object):
+             for k in ['actions', 'neglogpacs', 'values', 'mus', 'sigmas']:
+                 self.storage.update_data(k, n, res_dict[k])
+             # do env step
+-            actions = torch.clamp(res_dict['actions'], -1.0, 1.0)
++            sampled_actions = res_dict['actions']
++            action_saturation_sum += float((sampled_actions.abs() > 1.0).float().mean().item())
++            actions = torch.clamp(sampled_actions, -1.0, 1.0)
+             self.obs, rewards, self.dones, infos = self.env.step(actions)
+             rewards = rewards.unsqueeze(1)
+             # update dones and rewards after env step
+@@ -559,6 +671,12 @@ class PPO(object):
+             k: extra_sums[k] / extra_counts[k]
+             for k in extra_sums
+         }
++        self.extra_info['policy/action_saturation_rate'] = action_saturation_sum / self.horizon_length
++        with torch.no_grad():
++            action_std = self.model.sigma.exp()
++            self.extra_info['policy/action_std_mean'] = float(action_std.mean().item())
++            self.extra_info['policy/action_std_min'] = float(action_std.min().item())
++            self.extra_info['policy/action_std_max'] = float(action_std.max().item())
+ 
+         res_dict = self.model_act(self.obs)
+         last_values = res_dict['values']
+diff --git a/hora/tasks/isaaclab/assets.py b/hora/tasks/isaaclab/assets.py
+index 133c419..d95d1aa 100644
+--- a/hora/tasks/isaaclab/assets.py
++++ b/hora/tasks/isaaclab/assets.py
+@@ -183,7 +183,6 @@ def _usd_object_cfg(spec: ObjectTaskSpec) -> RigidObjectCfg:
+             rigid_props=_COMMON_RIGID,
+             mass_props=_COMMON_MASS,
+             collision_props=_COMMON_COLLISION,
+-            semantic_tags=[("class", spec.name)],
+         ),
+         # training.usda recenters every scanned mesh around its rigid-body root,
+         # so all objects share the same in-hand center as the reference cylinder.
+diff --git a/hora/tasks/isaaclab/revo3_hand_hora_env.py b/hora/tasks/isaaclab/revo3_hand_hora_env.py
+index 83b3345..b0e100d 100644
+--- a/hora/tasks/isaaclab/revo3_hand_hora_env.py
++++ b/hora/tasks/isaaclab/revo3_hand_hora_env.py
+@@ -40,12 +40,12 @@ class Revo3HandHoraEnv(DirectRLEnv):
+     Action (21 dims) — delta position control:
+       action ∈ [-1,1] → target = prev_target + (1/24)*action → clamp(joint_limits)
+       Torque control: torque = p_gain*(target - pos) - d_gain*vel
+-      p_gain/d_gain from cfg (2.0/0.2), randomized per reset: ×[0.5, 2.0] per-DOF
++      p_gain/d_gain from cfg, randomized per reset: ×[0.8, 1.2] per-DOF
+ 
+-    Reward (total ×0.01 for PPO): configured world-axis rotation; object-axis tilt and
+-      off-axis angular-velocity penalties; independent smooth XY/Z drift
+-      penalties; explicit drop penalty; sampled-cache posture, torque and work
+-      regularization.
++    Reward (total ×0.01 for PPO): normalized directed rotation progress and a
++      stable-rotation bonus; reverse-rotation, object-axis tilt, off-axis angular
++      velocity and XY/Z drift penalties; explicit drop penalty; dead-zone cache
++      posture, normalized torque and per-joint work regularization.
+ 
+     Termination:
+       height:    obj_z outside [init_z - 2cm, init_z + 2cm]
+@@ -230,9 +230,10 @@ class Revo3HandHoraEnv(DirectRLEnv):
+         self.object = RigidObject(self.cfg.object_cfg)
+         # add ground plane
+         spawn_ground_plane(prim_path="/World/ground", cfg=GroundPlaneCfg())
+-        # clone and replicate (no need to filter for this environment)
++        # Clone heterogeneous environments, then explicitly filter cross-env
++        # collisions while keeping collisions with the shared ground plane.
+         self.scene.clone_environments(copy_from_source=False)
+-        self.scene.filter_collisions()
++        self.scene.filter_collisions(global_prim_paths=["/World/ground"])
+         # add articulation to scene - we must register to scene to randomize with EventManager
+         self.scene.articulations["hand"] = self.hand
+         self.scene.rigid_objects["object"] = self.object
+@@ -298,10 +299,16 @@ class Revo3HandHoraEnv(DirectRLEnv):
+         # PhysX reports angular velocity directly in the world frame.  The
+         # task registry supplies the desired world-frame rotation axis.
+         object_angvel = self.object_angvel
+-        rotate_reward = saturate(
+-            (object_angvel * self.target_rotation_axis_world).sum(-1),
+-            torch.tensor(self.cfg.angvel_clip_min),
+-            torch.tensor(self.cfg.angvel_clip_max),
++        target_axis_angvel = (
++            object_angvel * self.target_rotation_axis_world
++        ).sum(-1)
++        # Signed progress: positive rotation is rewarded and reverse rotation
++        # receives an equal-magnitude penalty.  Saturation at the target speed
++        # avoids rewarding unsafe angular velocity beyond the task objective.
++        rotate_reward = torch.clamp(
++            target_axis_angvel / self.cfg.target_angvel,
++            min=-1.0,
++            max=1.0,
+         )
+ 
+         # Rotate the task-specific local object axis into world coordinates and
+@@ -324,11 +331,11 @@ class Revo3HandHoraEnv(DirectRLEnv):
+             object_axis_tilt = torch.zeros_like(object_angvel[:, 0])
+             object_axis_tilt_penalty = torch.zeros_like(object_angvel[:, 0])
+ 
+-        target_angvel = (
+-            (object_angvel * self.target_rotation_axis_world).sum(-1, keepdim=True)
++        target_angvel_vector = (
++            target_axis_angvel.unsqueeze(-1)
+             * self.target_rotation_axis_world
+         )
+-        off_axis_angvel_penalty = ((object_angvel - target_angvel) ** 2).sum(-1)
++        off_axis_angvel_penalty = ((object_angvel - target_angvel_vector) ** 2).sum(-1)
+ 
+         object_pos_delta = self.object_pos - self.object_default_pose[:, :3]
+         xy_drift = torch.norm(object_pos_delta[:, :2], dim=-1)
+@@ -338,17 +345,39 @@ class Revo3HandHoraEnv(DirectRLEnv):
+ 
+         # The penalty reference must match the specific cache row sampled for
+         # each environment, not one canonical pose shared by the whole batch.
+-        pos_diff_penalty = ((self.hand_dof_pos[:, self.actuated_dof_indices] - self.grasp_joint_pos[:, self.actuated_dof_indices]) ** 2).sum(-1)
+-        torque_penalty = (self.torques[:, self.actuated_dof_indices] ** 2).sum(-1)
+-        work_penalty = ((self.torques[:, self.actuated_dof_indices] * self.hand_dof_vel[:, self.actuated_dof_indices]).sum(-1)) ** 2
++        posture_error = torch.relu(
++            torch.abs(
++                self.hand_dof_pos[:, self.actuated_dof_indices]
++                - self.grasp_joint_pos[:, self.actuated_dof_indices]
++            )
++            - self.cfg.posture_deadzone
++        )
++        pos_diff_penalty = posture_error.square().mean(-1)
++        normalized_torque = (
++            self.torques[:, self.actuated_dof_indices]
++            / self.cfg.torque_normalization
++        )
++        torque_penalty = normalized_torque.square().mean(-1)
++        joint_power = normalized_torque * self.hand_dof_vel[:, self.actuated_dof_indices]
++        work_penalty = joint_power.abs().mean(-1)
+         # Applied on the terminal transition, before DirectRLEnv resets it.
+         drop_penalty = (
+             (self.object_pos[:, 2] < self.reset_height_lower)
+             | (self.object_pos[:, 2] > self.reset_height_upper)
+         ).float()
++        alive_reward = 1.0 - drop_penalty
++        stable_rotation_bonus = (
++            (target_axis_angvel >= self.cfg.stable_rotation_min_angvel)
++            & (object_axis_tilt <= self.cfg.object_axis_tilt_tolerance)
++            & (xy_drift <= self.cfg.xy_drift_tolerance)
++            & (z_drift <= self.cfg.z_drift_tolerance)
++            & (drop_penalty == 0.0)
++        ).float()
+ 
+         total_reward = compute_rewards(
+             rotate_reward, self.cfg.rotate_reward_scale,
++            stable_rotation_bonus, self.cfg.stable_rotation_bonus_scale,
++            alive_reward, self.cfg.alive_reward_scale,
+             object_axis_tilt_penalty, self.cfg.object_axis_tilt_penalty_scale,
+             off_axis_angvel_penalty, self.cfg.off_axis_angvel_penalty_scale,
+             xy_drift_penalty, self.cfg.xy_drift_penalty_scale,
+@@ -360,6 +389,10 @@ class Revo3HandHoraEnv(DirectRLEnv):
+         )
+ 
+         self.extras["rew/rotate"] = (rotate_reward * self.cfg.rotate_reward_scale).mean()
++        self.extras["rew/stable_rotation"] = (
++            stable_rotation_bonus * self.cfg.stable_rotation_bonus_scale
++        ).mean()
++        self.extras["rew/alive"] = (alive_reward * self.cfg.alive_reward_scale).mean()
+         self.extras["rew/object_axis_tilt"] = (
+             object_axis_tilt_penalty * self.cfg.object_axis_tilt_penalty_scale
+         ).mean()
+@@ -376,6 +409,10 @@ class Revo3HandHoraEnv(DirectRLEnv):
+         self.extras['angvelX'] = object_angvel[:, 0].mean()
+         self.extras['angvelY'] = object_angvel[:, 1].mean()
+         self.extras['angvelZ'] = object_angvel[:, 2].mean()
++        self.extras['target_angvel'] = target_axis_angvel.mean()
++        self.extras['rotation_progress'] = rotate_reward.mean()
++        self.extras['stable_rotation_rate'] = stable_rotation_bonus.mean()
++        self.extras['reverse_rotation_rate'] = (target_axis_angvel < 0.0).float().mean()
+         self.extras['total_reward'] = total_reward.mean()
+         return total_reward
+ 
+@@ -683,6 +720,8 @@ def unscale(x, lower, upper):
+ @torch.jit.script
+ def compute_rewards(
+     rotate_reward: torch.Tensor, rotate_reward_scale: float,
++    stable_rotation_bonus: torch.Tensor, stable_rotation_bonus_scale: float,
++    alive_reward: torch.Tensor, alive_reward_scale: float,
+     object_axis_tilt_penalty: torch.Tensor, object_axis_tilt_penalty_scale: float,
+     off_axis_angvel_penalty: torch.Tensor, off_axis_angvel_penalty_scale: float,
+     xy_drift_penalty: torch.Tensor, xy_drift_penalty_scale: float,
+@@ -693,6 +732,8 @@ def compute_rewards(
+     work_penalty: torch.Tensor, work_penalty_scale: float,
+ ):
+     reward = rotate_reward * rotate_reward_scale
++    reward += stable_rotation_bonus * stable_rotation_bonus_scale
++    reward += alive_reward * alive_reward_scale
+     reward += object_axis_tilt_penalty * object_axis_tilt_penalty_scale
+     reward += off_axis_angvel_penalty * off_axis_angvel_penalty_scale
+     reward += xy_drift_penalty * xy_drift_penalty_scale
+diff --git a/hora/tasks/isaaclab/revo3_hand_hora_env_cfg.py b/hora/tasks/isaaclab/revo3_hand_hora_env_cfg.py
+index 5edcf6b..52974e5 100644
+--- a/hora/tasks/isaaclab/revo3_hand_hora_env_cfg.py
++++ b/hora/tasks/isaaclab/revo3_hand_hora_env_cfg.py
+@@ -59,6 +59,9 @@ class Revo3HandHoraEnvCfg(DirectRLEnvCfg):
+         gravity=(0.0, 0.0, -0.05),
+         physx=PhysxCfg(
+             solver_type=1, max_position_iteration_count=8, max_velocity_iteration_count=0,
++            # This PhysX option only controls how an already-applied wrench is
++            # integrated by TGS; it does not create random disturbances.
++            enable_external_forces_every_iteration=True,
+             bounce_threshold_velocity=0.2,
+             gpu_max_rigid_contact_count=8388608, gpu_max_rigid_patch_count=5 * 2**18,
+         ),
+@@ -150,16 +153,23 @@ class Revo3HandHoraEnvCfg(DirectRLEnvCfg):
+     enforce_object_axis_alignment = True
+ 
+     scene: InteractiveSceneCfg = InteractiveSceneCfg(
+-        num_envs=16384, env_spacing=0.75, replicate_physics=False)
++        num_envs=16384, env_spacing=0.75, replicate_physics=False,
++        # With heterogeneous physics replication, collision filtering is done
++        # explicitly in _setup_scene() after cloning.
++        filter_collisions=False)
+ 
+     reset_height_lower = 1.615
+     reset_height_upper = 1.655
+     reset_angle_diff = 45 / 180 * math.pi
+     reset_random_quat = False
+ 
+-    angvel_clip_min = -0.5
+-    angvel_clip_max = 0.5
+-    rotate_reward_scale = 2.5
++    # Normalize the directed angular velocity by a reachable task speed.  This
++    # makes a useful rotation worth substantially more than merely surviving.
++    target_angvel = 1.0
++    stable_rotation_min_angvel = 0.5
++    rotate_reward_scale = 10.0
++    stable_rotation_bonus_scale = 0.5
++    alive_reward_scale = 0.2
+     object_axis_tilt_tolerance = 10 / 180 * math.pi
+     object_axis_tilt_penalty_scale = -0.25
+     off_axis_angvel_penalty_scale = -0.2
+@@ -167,10 +177,16 @@ class Revo3HandHoraEnvCfg(DirectRLEnvCfg):
+     xy_drift_penalty_scale = -0.15
+     z_drift_tolerance = 0.005
+     z_drift_penalty_scale = -0.25
+-    drop_penalty_scale = -5.0
+-    pos_diff_penalty_scale = -0.4
+-    torque_penalty_scale = -0.1
+-    work_penalty_scale = -0.5
++    # A terminal drop must cost more than another typical unstable transition;
++    # otherwise a negative-reward policy can prefer ending the episode early.
++    drop_penalty_scale = -20.0
++    posture_deadzone = 0.05
++    pos_diff_penalty_scale = -0.1
++    # Torque is a per-joint mean after normalization by the 1 Nm actuator
++    # limit, so -2.0 keeps approximately the old aggregate regularization.
++    torque_normalization = 1.0
++    torque_penalty_scale = -2.0
++    work_penalty_scale = -0.1
+ 
+     grasp_cache_path = 'cache/revo3_right_grasp_cylinder'
+     grasp_cache_sequential = False
+@@ -189,24 +205,26 @@ class Revo3HandHoraEnvCfg(DirectRLEnvCfg):
+     dof_limits_scale = 0.9
+ 
+     randomize_pd_gains = True
+-    randomize_p_gain_scale_lower = 0.5
+-    randomize_p_gain_scale_upper = 2
+-    randomize_d_gain_scale_lower = 0.5
+-    randomize_d_gain_scale_upper = 2
++    randomize_p_gain_scale_lower = 0.8
++    randomize_p_gain_scale_upper = 1.2
++    randomize_d_gain_scale_lower = 0.8
++    randomize_d_gain_scale_upper = 1.2
+     randomize_friction = True
+-    randomize_friction_scale_lower = 0.5
+-    randomize_friction_scale_upper = 2.0
++    randomize_friction_scale_lower = 0.8
++    randomize_friction_scale_upper = 1.2
+     elastomer_base_friction = 0.8
+     metal_base_friction = 0.1
+     object_base_friction = 0.5
+     randomize_com = True
+-    randomize_com_lower = -0.01
+-    randomize_com_upper = 0.01
++    randomize_com_lower = -0.003
++    randomize_com_upper = 0.003
+     randomize_mass = True
+-    randomize_mass_lower = 0.01
+-    randomize_mass_upper = 0.20
++    randomize_mass_lower = 0.07
++    randomize_mass_upper = 0.13
+ 
+-    force_scale = 2
++    # Random object-wrench disturbance is disabled. Set this above zero only
++    # for experiments that intentionally train with external pushes.
++    force_scale = 0.0
+     random_force_prob_scalar = 0.25
+     force_decay = 0.9
+     force_decay_interval = 0.08
+@@ -222,6 +240,16 @@ class Revo3HandHoraEnvCfg(DirectRLEnvCfg):
+ 
+     def __post_init__(self):
+         super().__post_init__()
++        if self.target_angvel <= 0.0:
++            raise ValueError('target_angvel must be greater than zero')
++        if self.stable_rotation_min_angvel < 0.0:
++            raise ValueError('stable_rotation_min_angvel must be non-negative')
++        if self.stable_rotation_min_angvel > self.target_angvel:
++            raise ValueError('stable_rotation_min_angvel must not exceed target_angvel')
++        if self.rotate_reward_scale <= 0.0:
++            raise ValueError('rotate_reward_scale must be greater than zero')
++        if self.torque_normalization <= 0.0:
++            raise ValueError('torque_normalization must be greater than zero')
+         for name in self.elastomer_body_names:
+             self.contact_sensor.append(ContactSensorCfg(
+                 prim_path=f"/World/envs/env_.*/hand/{name}",
+diff --git a/train.py b/train.py
+index da291d2..55d9526 100644
+--- a/train.py
++++ b/train.py
+@@ -32,6 +32,14 @@ parser.add_argument('--algo', type=str, default='PPO', choices=['PPO', 'ProprioA
+ parser.add_argument('--train_cfg', type=str, default='Revo3HandHora')
+ parser.add_argument('--output_name', type=str, default='debug')
+ parser.add_argument('--checkpoint', type=str, default='')
++parser.add_argument(
++    '--weights_only',
++    action='store_true',
++    help=(
++        'Warm-start PPO from checkpoint actor/observation normalization only; reset the '
++        'value head, value normalization, optimizer, counters and best-checkpoint scores.'
++    ),
++)
+ parser.add_argument('--cache_file', type=str, default='', help='Override grasp cache filename under cache/.')
+ parser.add_argument('--usd', type=str, default='', help='Override hand USD path.')
+ parser.add_argument('--num_envs', type=int, default=16384)
+@@ -40,6 +48,16 @@ parser.add_argument(
+     '--max_agent_steps', type=int, default=None,
+     help='Override train.ppo.max_agent_steps (useful when resuming beyond the original training budget).',
+ )
++parser.add_argument(
++    '--fixed_train_gravity',
++    type=float,
++    default=None,
++    metavar='M_S2',
++    help=(
++        'Lock PPO training to this downward gravity magnitude. The value is reapplied after '
++        'checkpoint restore so a saved curriculum gravity cannot override it.'
++    ),
++)
+ parser.add_argument('--test', action='store_true')
+ parser.add_argument(
+     '--test_steps', type=int, default=0,
+@@ -70,6 +88,22 @@ parser.add_argument('--force_overwrite', action='store_true')
+ AppLauncher.add_app_launcher_args(parser)
+ args = parser.parse_args()
+ 
++if args.fixed_train_gravity is not None:
++    if args.fixed_train_gravity <= 0.0:
++        parser.error('--fixed_train_gravity must be greater than 0')
++    if args.test:
++        parser.error('--fixed_train_gravity is for training; --test already evaluates at 9.81 m/s^2')
++    if args.algo != 'PPO':
++        parser.error('--fixed_train_gravity is only supported for PPO Stage1 training')
++
++if args.weights_only:
++    if not args.checkpoint:
++        parser.error('--weights_only requires --checkpoint')
++    if args.test:
++        parser.error('--weights_only is only supported for training')
++    if args.algo != 'PPO':
++        parser.error('--weights_only is only supported for PPO Stage1 training')
++
+ if args.video:
+     args.enable_cameras = True
+ 
+@@ -117,6 +151,7 @@ def _build_full_config(seed: int):
+     train_cfg = OmegaConf.load(cfg_path)
+     train_cfg.algo = args.algo
+     train_cfg.load_path = os.path.abspath(args.checkpoint) if args.checkpoint else ''
++    train_cfg.resume_mode = 'weights_only' if args.weights_only else 'strict'
+     train_cfg.ppo.output_name = args.output_name
+     minibatch = train_cfg.ppo.minibatch_size
+     min_envs = minibatch // train_cfg.ppo.horizon_length
+@@ -201,6 +236,33 @@ def _attach_env_runtime_to_config(full_config, env_cfg) -> None:
+             'contact_order': ['thumb_DIP', 'index_DIP', 'middle_DIP', 'ring_DIP', 'little_DIP'],
+             'policy_dt': float(env_cfg.decimation * env_cfg.sim.dt),
+             'gravity': tuple(float(v) for v in env_cfg.sim.gravity),
++            'action_scale': float(env_cfg.action_scale),
++            'force_scale': float(env_cfg.force_scale),
++            'reward': {
++                'target_angvel': float(env_cfg.target_angvel),
++                'stable_rotation_min_angvel': float(env_cfg.stable_rotation_min_angvel),
++                'rotate': float(env_cfg.rotate_reward_scale),
++                'stable_rotation_bonus': float(env_cfg.stable_rotation_bonus_scale),
++                'alive': float(env_cfg.alive_reward_scale),
++                'drop': float(env_cfg.drop_penalty_scale),
++                'posture_deadzone': float(env_cfg.posture_deadzone),
++                'posture': float(env_cfg.pos_diff_penalty_scale),
++                'torque_normalization': float(env_cfg.torque_normalization),
++                'torque': float(env_cfg.torque_penalty_scale),
++                'work': float(env_cfg.work_penalty_scale),
++            },
++            'domain_randomization': {
++                'pd_gain_scale': (
++                    float(env_cfg.randomize_p_gain_scale_lower),
++                    float(env_cfg.randomize_p_gain_scale_upper),
++                ),
++                'friction_scale': (
++                    float(env_cfg.randomize_friction_scale_lower),
++                    float(env_cfg.randomize_friction_scale_upper),
++                ),
++                'com_m': (float(env_cfg.randomize_com_lower), float(env_cfg.randomize_com_upper)),
++                'mass_kg': (float(env_cfg.randomize_mass_lower), float(env_cfg.randomize_mass_upper)),
++            },
+         }
+     )
+ 
+@@ -225,6 +287,15 @@ def main():
+         env_cfg.viewer.eye = tuple(args.camera_eye)
+     if args.camera_lookat is not None:
+         env_cfg.viewer.lookat = tuple(args.camera_lookat)
++    if args.fixed_train_gravity is not None:
++        fixed_gravity = float(args.fixed_train_gravity)
++        # Keep the curriculum tracker enabled so PPO still receives a rolling
++        # height-reset rate and can gate best_full_gravity checkpoints. Setting
++        # both the floor (sim.gravity) and target to the same value makes the
++        # physical gravity immutable even when the tracker requests a rollback.
++        env_cfg.gravity_curriculum = True
++        env_cfg.gravity_curriculum_target = fixed_gravity
++        env_cfg.sim.gravity = (0.0, 0.0, -fixed_gravity)
+     if args.algo == 'ProprioAdapt':
+         # Tactile deployment contract: keep the five fingertip-force channels
+         # in both the frozen actor observation and the adaptation history.
+@@ -315,7 +386,27 @@ def main():
+ 
+         _attach_env_runtime_to_config(full_config, env_cfg)
+         _save_run_metadata(output_dif, full_config)
+-        agent.restore_train(full_config.train.load_path)
++        if args.weights_only:
++            agent.restore_weights_only(full_config.train.load_path)
++        else:
++            agent.restore_train(full_config.train.load_path)
++        if args.fixed_train_gravity is not None:
++            fixed_gravity = float(args.fixed_train_gravity)
++            base_env = env._base_env
++            # Strict resume restores the checkpoint's curriculum gravity
++            # (0.05 for the sapota run). The explicit training override must
++            # win after all checkpoint state has been loaded.
++            base_env.set_gravity_magnitude(fixed_gravity)
++            base_env._gravity_reset_sum.zero_()
++            base_env._gravity_window_steps = 0
++            base_env._gravity_window_reset_rate = 1.0
++            if hasattr(agent, 'full_gravity_epochs'):
++                agent.full_gravity_epochs = 0
++            print(
++                f'[INFO] Fixed PPO training gravity: {fixed_gravity:.3f} m/s^2 downward '
++                '(checkpoint gravity overridden; curriculum metrics retained)',
++                flush=True,
++            )
+         agent.train()
+ 
+ 

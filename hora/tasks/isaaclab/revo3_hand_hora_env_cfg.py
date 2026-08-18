@@ -59,6 +59,9 @@ class Revo3HandHoraEnvCfg(DirectRLEnvCfg):
         gravity=(0.0, 0.0, -0.05),
         physx=PhysxCfg(
             solver_type=1, max_position_iteration_count=8, max_velocity_iteration_count=0,
+            # This PhysX option only controls how an already-applied wrench is
+            # integrated by TGS; it does not create random disturbances.
+            enable_external_forces_every_iteration=True,
             bounce_threshold_velocity=0.2,
             gpu_max_rigid_contact_count=8388608, gpu_max_rigid_patch_count=5 * 2**18,
         ),
@@ -116,6 +119,8 @@ class Revo3HandHoraEnvCfg(DirectRLEnvCfg):
         "right_middle_DIP_Link", "right_ring_DIP_Link", "right_little_DIP_Link",
     ]
     contact_sensor = []
+    self_collision_body_names = []
+    self_collision_sensor = []
 
     object_cfg: RigidObjectCfg = RigidObjectCfg(
         prim_path="/World/envs/env_.*/object",
@@ -150,27 +155,50 @@ class Revo3HandHoraEnvCfg(DirectRLEnvCfg):
     enforce_object_axis_alignment = True
 
     scene: InteractiveSceneCfg = InteractiveSceneCfg(
-        num_envs=16384, env_spacing=0.75, replicate_physics=False)
+        num_envs=16384, env_spacing=0.75, replicate_physics=False,
+        # With heterogeneous physics replication, collision filtering is done
+        # explicitly in _setup_scene() after cloning.
+        filter_collisions=False)
 
     reset_height_lower = 1.615
     reset_height_upper = 1.655
     reset_angle_diff = 45 / 180 * math.pi
     reset_random_quat = False
 
-    angvel_clip_min = -0.5
-    angvel_clip_max = 0.5
-    rotate_reward_scale = 2.5
+    # Normalize the directed angular velocity by a reachable task speed.  This
+    # makes a useful rotation worth substantially more than merely surviving.
+    target_angvel = 1.0
+    stable_rotation_min_angvel = 0.5
+    rotate_reward_scale = 10.0
+    stable_rotation_bonus_scale = 0.5
+    alive_reward_scale = 0.2
     object_axis_tilt_tolerance = 10 / 180 * math.pi
-    object_axis_tilt_penalty_scale = -0.25
-    off_axis_angvel_penalty_scale = -0.2
+    # Keep the object's configured local axis aligned with the target world
+    # axis.  At the 10-degree tolerance the previous -0.25 penalty was too
+    # small compared with a +5 to +10 rotation reward, so the policy could
+    # profit from fast but visibly tilted rotation.  The stronger tilt term
+    # corrects the angle, while the stronger off-axis angular-velocity term
+    # damps the X/Y wobble that changes that angle over time.
+    object_axis_tilt_penalty_scale = -1.0
+    off_axis_angvel_penalty_scale = -0.5
+    # XY translation is free inside a 10 mm radius.  Beyond that dead-zone,
+    # the Huber transition scale remains 5 mm.
+    xy_drift_deadzone = 0.010
     xy_drift_tolerance = 0.005
     xy_drift_penalty_scale = -0.15
     z_drift_tolerance = 0.005
     z_drift_penalty_scale = -0.25
-    drop_penalty_scale = -5.0
-    pos_diff_penalty_scale = -0.4
-    torque_penalty_scale = -0.1
-    work_penalty_scale = -0.5
+    # A terminal drop must cost more than another typical unstable transition;
+    # otherwise a negative-reward policy can prefer ending the episode early.
+    drop_penalty_scale = -20.0
+    self_collision_force_threshold = 0.5
+    self_collision_force_tolerance = 5.0
+    self_collision_penalty_scale = -1.0
+    # Torque is a per-joint mean after normalization by the 1 Nm actuator
+    # limit, so -2.0 keeps approximately the old aggregate regularization.
+    torque_normalization = 1.0
+    torque_penalty_scale = -2.0
+    work_penalty_scale = -0.1
 
     grasp_cache_path = 'cache/revo3_right_grasp_cylinder'
     grasp_cache_sequential = False
@@ -189,24 +217,26 @@ class Revo3HandHoraEnvCfg(DirectRLEnvCfg):
     dof_limits_scale = 0.9
 
     randomize_pd_gains = True
-    randomize_p_gain_scale_lower = 0.5
-    randomize_p_gain_scale_upper = 2
-    randomize_d_gain_scale_lower = 0.5
-    randomize_d_gain_scale_upper = 2
+    randomize_p_gain_scale_lower = 0.8
+    randomize_p_gain_scale_upper = 1.2
+    randomize_d_gain_scale_lower = 0.8
+    randomize_d_gain_scale_upper = 1.2
     randomize_friction = True
-    randomize_friction_scale_lower = 0.5
-    randomize_friction_scale_upper = 2.0
+    randomize_friction_scale_lower = 0.8
+    randomize_friction_scale_upper = 1.2
     elastomer_base_friction = 0.8
     metal_base_friction = 0.1
     object_base_friction = 0.5
     randomize_com = True
-    randomize_com_lower = -0.01
-    randomize_com_upper = 0.01
+    randomize_com_lower = -0.003
+    randomize_com_upper = 0.003
     randomize_mass = True
-    randomize_mass_lower = 0.01
-    randomize_mass_upper = 0.20
+    randomize_mass_lower = 0.07
+    randomize_mass_upper = 0.13
 
-    force_scale = 2
+    # Random object-wrench disturbance is disabled. Set this above zero only
+    # for experiments that intentionally train with external pushes.
+    force_scale = 0.0
     random_force_prob_scalar = 0.25
     force_decay = 0.9
     force_decay_interval = 0.08
@@ -222,10 +252,54 @@ class Revo3HandHoraEnvCfg(DirectRLEnvCfg):
 
     def __post_init__(self):
         super().__post_init__()
+        if self.target_angvel <= 0.0:
+            raise ValueError('target_angvel must be greater than zero')
+        if self.stable_rotation_min_angvel < 0.0:
+            raise ValueError('stable_rotation_min_angvel must be non-negative')
+        if self.stable_rotation_min_angvel > self.target_angvel:
+            raise ValueError('stable_rotation_min_angvel must not exceed target_angvel')
+        if self.rotate_reward_scale <= 0.0:
+            raise ValueError('rotate_reward_scale must be greater than zero')
+        if self.torque_normalization <= 0.0:
+            raise ValueError('torque_normalization must be greater than zero')
+        if self.xy_drift_deadzone < 0.0 or self.xy_drift_tolerance <= 0.0:
+            raise ValueError('XY drift dead-zone must be non-negative and tolerance positive')
+        if self.self_collision_force_threshold < 0.0:
+            raise ValueError('self_collision_force_threshold must be non-negative')
+        if self.self_collision_force_tolerance <= 0.0:
+            raise ValueError('self_collision_force_tolerance must be greater than zero')
+        # These are class-level config defaults, so rebuild the lists for each
+        # instance instead of accumulating duplicate sensors across env builds.
+        self.contact_sensor = []
         for name in self.elastomer_body_names:
             self.contact_sensor.append(ContactSensorCfg(
                 prim_path=f"/World/envs/env_.*/hand/{name}",
                 history_length=3,
                 track_contact_points=False,
                 filter_prim_paths_expr=["/World/envs/env_.*/object"],
+            ))
+        self.self_collision_body_names = [
+            name.replace("_joint", "_Link") for name in self.actuated_joint_names
+        ]
+        self_collision_filter_body_names = [
+            "right_palm",
+            "right_hand_base_link",
+            *self.self_collision_body_names,
+        ]
+        self_collision_filter_paths = [
+            f"/World/envs/env_.*/hand/{name}"
+            for name in self_collision_filter_body_names
+        ]
+        self.self_collision_sensor = []
+        for name in self.self_collision_body_names:
+            self.self_collision_sensor.append(ContactSensorCfg(
+                # Filtering is reliable because each sensor selects exactly
+                # one hand body per environment.
+                prim_path=f"/World/envs/env_.*/hand/{name}",
+                history_length=0,
+                track_contact_points=False,
+                # Keep one force-matrix column per opposing link.  A single
+                # wildcard filter would aggregate vectors and could hide two
+                # simultaneous contacts through cancellation.
+                filter_prim_paths_expr=self_collision_filter_paths.copy(),
             ))

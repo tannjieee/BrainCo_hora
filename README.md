@@ -68,6 +68,7 @@ cache/
   revo3_right_grasp_cylinder.npy   # 圆柱抓握缓存
 
 RL.md                           # RL 设计文档 (obs/act/rew/sim/DR 完整 spec)
+REWARD_AND_LOSS.md              # 当前 Stage1 奖励公式、日志缩放与 PPO loss
 ```
 
 ### Config 说明
@@ -76,10 +77,10 @@ RL.md                           # RL 设计文档 (obs/act/rew/sim/DR 完整 spe
 - **网络配置**: `configs/train/Revo3HandHora.yaml` 定义 PPO 超参、网络结构、训练步数
 - **手部/物体**: `hora/object_registry.py` 与 `assets/usd/objects/manifest.json` 是采集、训练和工具共用的注册表；`assets.py` 根据 `--task` 构建对应 `RigidObjectCfg`
 - **Checkpoint 路径**: `outputs/revo3_right/run_<task>/stage1_nn/best.pth`（Stage1）和 `outputs/revo3_right/run_<task>/stage2_nn/model_best.ckpt`（Stage2）
-- **初始姿态**: `env.init_joint_pos` 从 `assets.py` 构建，用于无 cache 时的 reset；有 cache 时，`pos_diff_penalty` 使用每个环境实际抽到的 cache 关节姿态作为参照
-- **PD 控制**: 7 组 per-joint-type 基础值（thumb_CMP:16.4/0.23, thumb_CMR:0.7/0.02, thumb_flexion:1.2/0.09, DIP:8.0/0.10, MPR:0.7/0.04, MCP:0.6/0.014, PIP:0.8/0.027）。每 reset 随机化 ×[0.5,2.0] per-DOF
+- **初始姿态**: `env.init_joint_pos` 从 `assets.py` 构建，用于无 cache 时的 reset；有 cache 时每个环境从 cache 独立采样 reset 姿态，但奖励不再约束策略回到该姿态
+- **PD 控制**: 7 组 per-joint-type 基础值（thumb_CMP:16.4/0.23, thumb_CMR:0.7/0.02, thumb_flexion:1.2/0.09, DIP:8.0/0.10, MPR:0.7/0.04, MCP:0.6/0.014, PIP:0.8/0.027）。每 reset 随机化 ×[0.8,1.2] per-DOF
 - **最低 env 数**: 2048（batch_size = num_envs × 16 ≥ minibatch_size=32768 且可整除）
-- **满重力 checkpoint**: `best.pth` 只在 9.81m/s² 下连续稳定评测 25 个 PPO epoch 后更新；课程阶段最优另存为 `best_curriculum.pth`
+- **满重力 checkpoint**: `best.pth` 只在 9.81m/s²、低 reset、目标轴角速度 ≥0.5rad/s 且稳定旋转率 ≥30% 连续保持 25 个 PPO epoch 后更新；课程阶段最优另存为 `best_curriculum.pth`
 
 ### 扫描物体资产
 
@@ -185,6 +186,25 @@ scripts/train_s1.sh --task great_dinos_triceratops --num_envs 16384 --headless
 # 本次 18 维特权观测版本建议使用新输出目录（示例为 4096 环境）
 scripts/train_s1.sh run_cylinder_v2 --task cylinder --num_envs 4096 --headless
 
+# sapota_planter：从已有满重力旋转策略做“仅策略权重”热启动。
+# 价值函数、价值归一化、优化器、训练步数和 best 分数会全部重置；
+# 下方 30M steps 用于验证无姿态约束、10mm XY 免罚区和自碰撞惩罚。
+scripts/train_s1.sh run_sapota_planter_rotation_v5_free_xy_self_collision \
+  --task sapota_planter --num_envs 4096 --headless \
+  --cache_file revo3_right_grasp_sapota_planter_full_g_narrow.npy \
+  --checkpoint outputs/revo3_right/run_sapota_planter_rotation_v4_signed_1rads/stage1_nn/ep_950_step_0062M_g_9.81_reward_4.44.pth \
+  --weights_only --fixed_train_gravity 9.81 \
+  --max_agent_steps 30000000
+
+# sapota_planter：从 v5 旋转策略热启动，加强局部 Z 轴对世界 Z 轴的
+# 倾角约束和 X/Y 角速度阻尼。奖励已变化，因此必须使用 --weights_only。
+scripts/train_s1.sh run_sapota_planter_rotation_v6_axis_stable \
+  --task sapota_planter --num_envs 4096 --headless \
+  --cache_file revo3_right_grasp_sapota_planter_full_g_narrow.npy \
+  --checkpoint outputs/revo3_right/run_sapota_planter_rotation_v5_free_xy_self_collision/stage1_nn/ep_450_step_0029M_g_9.81_reward_19.86.pth \
+  --weights_only --fixed_train_gravity 9.81 \
+  --max_agent_steps 30000000
+
 # Stage 2
 scripts/train_s2.sh outputs/revo3_right/run_ball/stage1_nn/best.pth --task ball --num_envs 16384 --headless
 scripts/train_s2.sh outputs/revo3_right/run_cylinder/stage1_nn/best.pth --task cylinder --num_envs 16384 --headless
@@ -224,6 +244,15 @@ scripts/train_s1.sh --task cylinder --num_envs 16384 --headless \
 scripts/train_s2.sh outputs/revo3_right/run_cylinder/stage2_nn/model_last.ckpt \
   --task cylinder --num_envs 16384 --headless
 ```
+
+Stage 1 默认是严格断点续训，会恢复 actor、critic、归一化统计、optimizer、
+学习率和步数。奖励定义发生变化时应增加 `--weights_only`：只保留 actor、
+env_mlp、动作标准差和 observation RMS，以 `warmstart_learning_rate=1e-4`
+重新训练；critic/value RMS/optimizer/计数器不会从旧奖励 checkpoint 恢复。
+
+新的 `best.pth` / `best_full_gravity.pth` 必须连续 25 个 epoch 同时满足：
+满重力、窗口 reset rate 不高于 0.3%、目标轴平均角速度至少 0.50 rad/s，且
+稳定旋转帧比例至少 30%。`best_curriculum.pth` 仍只是诊断用，不应直接进入 Stage 2。
 
 ### 推理可视化
 

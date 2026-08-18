@@ -56,6 +56,16 @@ class PPO(object):
             'obs_per_step': self.obs_shape[0] // 3,
         }
         self.model = ActorCritic(net_config)
+        self.initial_log_std = float(self.ppo_config.get('initial_log_std', -1.0))
+        self.min_log_std = float(self.ppo_config.get('min_log_std', -2.3))
+        self.max_log_std = float(self.ppo_config.get('max_log_std', -0.7))
+        if not self.min_log_std <= self.initial_log_std <= self.max_log_std:
+            raise ValueError(
+                'Expected min_log_std <= initial_log_std <= max_log_std, got '
+                f'{self.min_log_std} <= {self.initial_log_std} <= {self.max_log_std}'
+            )
+        with torch.no_grad():
+            self.model.sigma.fill_(self.initial_log_std)
         self.model.to(self.device)
         self.running_mean_std = RunningMeanStd(self.obs_shape).to(self.device)
         self.value_mean_std = RunningMeanStd((1,)).to(self.device)
@@ -100,6 +110,16 @@ class PPO(object):
         self.full_gravity_tolerance = float(self.ppo_config.get('full_gravity_tolerance', 0.02))
         self.full_gravity_max_reset_rate = float(self.ppo_config.get('full_gravity_max_reset_rate', 0.003))
         self.full_gravity_eval_epochs = int(self.ppo_config.get('full_gravity_eval_epochs', 25))
+        self.full_gravity_min_target_angvel = float(
+            self.ppo_config.get('full_gravity_min_target_angvel', 0.50)
+        )
+        self.full_gravity_min_stable_rotation_rate = float(
+            self.ppo_config.get('full_gravity_min_stable_rotation_rate', 0.30)
+        )
+        if self.full_gravity_min_target_angvel < 0.0:
+            raise ValueError('full_gravity_min_target_angvel must be non-negative')
+        if not 0.0 <= self.full_gravity_min_stable_rotation_rate <= 1.0:
+            raise ValueError('full_gravity_min_stable_rotation_rate must be in [0, 1]')
         # ---- Tensorboard Logger ----
         self.extra_info = {}
         writer = SummaryWriter(self.tb_dif)
@@ -175,6 +195,11 @@ class PPO(object):
         if self.normalize_value:
             self.value_mean_std.train()
 
+    def _clamp_action_log_std(self):
+        """Keep exploration noise within the safe range for in-hand control."""
+        with torch.no_grad():
+            self.model.sigma.clamp_(self.min_log_std, self.max_log_std)
+
     def model_act(self, obs_dict):
         processed_obs = self.running_mean_std(obs_dict['obs'])
         input_dict = {
@@ -212,14 +237,22 @@ class PPO(object):
             self.writer.add_scalar('episode_lengths/step', mean_lengths, self.agent_steps)
             gravity_magnitude = float(self.extra_info.get('gravity_magnitude', 0.0))
             gravity_reset_rate = float(self.extra_info.get('gravity_reset_rate_window', 1.0))
-            at_full_gravity = (
+            target_angvel = float(self.extra_info.get('target_angvel', 0.0))
+            stable_rotation_rate = float(self.extra_info.get('stable_rotation_rate', 0.0))
+            gravity_qualified = (
                 gravity_magnitude >= self.full_gravity_magnitude - self.full_gravity_tolerance
                 and gravity_reset_rate <= self.full_gravity_max_reset_rate
             )
-            self.full_gravity_epochs = self.full_gravity_epochs + 1 if at_full_gravity else 0
+            rotation_qualified = (
+                target_angvel >= self.full_gravity_min_target_angvel
+                and stable_rotation_rate >= self.full_gravity_min_stable_rotation_rate
+            )
+            full_gravity_qualified = gravity_qualified and rotation_qualified
+            self.full_gravity_epochs = self.full_gravity_epochs + 1 if full_gravity_qualified else 0
             full_gravity_evaluated = self.full_gravity_epochs >= self.full_gravity_eval_epochs
             self.writer.add_scalar('gravity/full_eval_epochs', self.full_gravity_epochs, self.agent_steps)
             self.writer.add_scalar('gravity/full_eval_ready', float(full_gravity_evaluated), self.agent_steps)
+            self.writer.add_scalar('rotation/checkpoint_qualified', float(rotation_qualified), self.agent_steps)
 
             checkpoint_name = (
                 f'ep_{self.epoch_num}_step_{int(self.agent_steps // 1e6):04}M_'
@@ -249,7 +282,8 @@ class PPO(object):
             if full_gravity_evaluated and mean_rewards > self.best_rewards and self.epoch_num >= self.save_best_after:
                 print(
                     f'save full-gravity best reward: {mean_rewards:.2f} '
-                    f'(g={gravity_magnitude:.2f}, reset_rate={gravity_reset_rate:.5f})',
+                    f'(g={gravity_magnitude:.2f}, reset_rate={gravity_reset_rate:.5f}, '
+                    f'target_angvel={target_angvel:.3f}, stable_rotation={stable_rotation_rate:.1%})',
                     flush=True,
                 )
                 self.best_rewards = mean_rewards
@@ -263,6 +297,7 @@ class PPO(object):
         print('max steps achieved')
 
     def save(self, name):
+        base_env = getattr(self.env, '_base_env', self.env)
         weights = {
             'model': self.model.state_dict(),
             'optimizer': self.optimizer.state_dict(),
@@ -271,8 +306,8 @@ class PPO(object):
             'best_rewards': float(self.best_rewards),
             'best_curriculum_rewards': float(self.best_curriculum_rewards),
             'full_gravity_epochs': int(self.full_gravity_epochs),
-            'gravity_magnitude': float(getattr(self.env, '_gravity_magnitude', 0.0)),
-            'gravity_reset_rate_window': float(getattr(self.env, '_gravity_window_reset_rate', 1.0)),
+            'gravity_magnitude': float(getattr(base_env, '_gravity_magnitude', 0.0)),
+            'gravity_reset_rate_window': float(getattr(base_env, '_gravity_window_reset_rate', 1.0)),
             'priv_info_dim': int(self.priv_info_dim),
             'last_lr': float(self.last_lr),
         }
@@ -309,6 +344,7 @@ class PPO(object):
             )
 
         self.model.load_state_dict(checkpoint['model'], strict=True)
+        self._clamp_action_log_std()
         self.running_mean_std.load_state_dict(checkpoint['running_mean_std'])
         self.value_mean_std.load_state_dict(checkpoint['value_mean_std'])
         self.optimizer.load_state_dict(checkpoint['optimizer'])
@@ -318,15 +354,81 @@ class PPO(object):
         self.best_curriculum_rewards = float(checkpoint.get('best_curriculum_rewards', self.best_rewards))
         self.full_gravity_epochs = int(checkpoint.get('full_gravity_epochs', 0))
         self.last_lr = float(checkpoint['last_lr'])
-        if 'gravity_magnitude' in checkpoint and hasattr(self.env, 'set_gravity_magnitude'):
-            self.env.set_gravity_magnitude(float(checkpoint['gravity_magnitude']))
-        if 'gravity_reset_rate_window' in checkpoint and hasattr(self.env, '_gravity_window_reset_rate'):
-            self.env._gravity_window_reset_rate = float(checkpoint['gravity_reset_rate_window'])
+        base_env = getattr(self.env, '_base_env', self.env)
+        if 'gravity_magnitude' in checkpoint and hasattr(base_env, 'set_gravity_magnitude'):
+            base_env.set_gravity_magnitude(float(checkpoint['gravity_magnitude']))
+        if 'gravity_reset_rate_window' in checkpoint and hasattr(base_env, '_gravity_window_reset_rate'):
+            base_env._gravity_window_reset_rate = float(checkpoint['gravity_reset_rate_window'])
         for param_group in self.optimizer.param_groups:
             param_group['lr'] = self.last_lr
         print(
             f"[INFO] Restored train state: agent_steps={self.agent_steps}, "
             f"epoch_num={self.epoch_num}, best_rewards={self.best_rewards:.4f}, lr={self.last_lr:.6g}",
+            flush=True,
+        )
+
+    def restore_weights_only(self, fn):
+        """Warm-start the actor while resetting the critic, optimizer and counters.
+
+        Observation normalization is part of the actor input contract and is
+        therefore retained.  Value normalization and the value head describe
+        the old reward distribution, so both intentionally remain fresh.
+        """
+        if not fn:
+            return
+        checkpoint = torch.load(fn, map_location=self.device)
+        required_keys = ['model', 'running_mean_std']
+        missing = [key for key in required_keys if key not in checkpoint]
+        if missing:
+            raise RuntimeError(
+                f"Policy warm start failed: missing keys {missing} in checkpoint: {fn}"
+            )
+        checkpoint_priv_dim = checkpoint.get('priv_info_dim')
+        if checkpoint_priv_dim is not None and int(checkpoint_priv_dim) != self.priv_info_dim:
+            raise RuntimeError(
+                f"Stage1 checkpoint privileged-observation mismatch: checkpoint={checkpoint_priv_dim}, "
+                f"current={self.priv_info_dim}. Retrain Stage1 after changing privileged observations."
+            )
+
+        actor_state = {
+            key: value
+            for key, value in checkpoint['model'].items()
+            if key not in {'value.weight', 'value.bias'}
+        }
+        incompatible = self.model.load_state_dict(actor_state, strict=False)
+        expected_missing = {'value.weight', 'value.bias'}
+        if set(incompatible.missing_keys) != expected_missing or incompatible.unexpected_keys:
+            raise RuntimeError(
+                'Policy warm start model mismatch: '
+                f'missing={incompatible.missing_keys}, unexpected={incompatible.unexpected_keys}'
+            )
+        torch.nn.init.zeros_(self.model.value.weight)
+        torch.nn.init.zeros_(self.model.value.bias)
+        self._clamp_action_log_std()
+        self.running_mean_std.load_state_dict(checkpoint['running_mean_std'])
+        self.value_mean_std = RunningMeanStd((1,)).to(self.device)
+
+        self.last_lr = float(
+            self.ppo_config.get('warmstart_learning_rate', self.ppo_config['learning_rate'])
+        )
+        self.optimizer = torch.optim.Adam(
+            self.model.parameters(), self.last_lr, weight_decay=self.weight_decay
+        )
+        self.agent_steps = 0
+        self.epoch_num = 0
+        self.best_rewards = -10000
+        self.best_curriculum_rewards = -10000
+        self.full_gravity_epochs = 0
+        self.current_rewards.zero_()
+        self.current_raw_rewards.zero_()
+        self.current_lengths.zero_()
+        self.dones.fill_(1)
+        self.episode_rewards = AverageScalarMeter(100)
+        self.episode_raw_rewards = AverageScalarMeter(100)
+        self.episode_lengths = AverageScalarMeter(100)
+        print(
+            '[INFO] Warm-started Stage1 policy and observation RMS; reset value head, '
+            f'value RMS, optimizer, counters and best scores (lr={self.last_lr:.6g})',
             flush=True,
         )
 
@@ -350,6 +452,13 @@ class PPO(object):
         height_reset_count = 0.0
         timeout_count = 0.0
         tilt_sum = 0.0
+        axis_aligned_sum = 0.0
+        target_angvel_sum = 0.0
+        stable_rotation_sum = 0.0
+        xy_drift_sum = 0.0
+        z_drift_sum = 0.0
+        self_collision_rate_sum = 0.0
+        self_collision_force_sum = 0.0
         step_dt = float(getattr(self.env, 'step_dt', 0.0))
         while max_steps <= 0 or step < max_steps:
             step_start = time.time()
@@ -366,6 +475,13 @@ class PPO(object):
             height_reset_count += self._info_scalar(info, 'height_reset_upper') * self.num_actors
             timeout_count += self._info_scalar(info, 'time_out') * self.num_actors
             tilt_sum += self._info_scalar(info, 'object_axis_tilt_deg')
+            axis_aligned_sum += self._info_scalar(info, 'axis_aligned_rate')
+            target_angvel_sum += self._info_scalar(info, 'target_angvel')
+            stable_rotation_sum += self._info_scalar(info, 'stable_rotation_rate')
+            xy_drift_sum += self._info_scalar(info, 'xy_drift_mm')
+            z_drift_sum += self._info_scalar(info, 'z_drift_mm')
+            self_collision_rate_sum += self._info_scalar(info, 'self_collision_rate')
+            self_collision_force_sum += self._info_scalar(info, 'self_collision_force_mean_n')
             sleep_time = step_dt - (time.time() - step_start)
             if real_time and sleep_time > 0:
                 time.sleep(sleep_time)
@@ -378,7 +494,14 @@ class PPO(object):
                 f"  policy steps  : {max_steps}\n"
                 f"  transitions   : {transitions}\n"
                 f"  mean reward   : {reward_sum / max_steps:.6f}\n"
+                f"  target angvel : {target_angvel_sum / max_steps:.4f} rad/s\n"
+                f"  stable rotate : {stable_rotation_sum / max_steps:.2%}\n"
                 f"  mean tilt     : {tilt_sum / max_steps:.3f} deg\n"
+                f"  axis aligned  : {axis_aligned_sum / max_steps:.2%} (tilt <= tolerance)\n"
+                f"  XY/Z drift    : {xy_drift_sum / max_steps:.2f} / "
+                f"{z_drift_sum / max_steps:.2f} mm\n"
+                f"  self collision: {self_collision_rate_sum / max_steps:.2%}, "
+                f"mean max-force={self_collision_force_sum / max_steps:.3f} N\n"
                 f"  height resets : {height_reset_count:.0f} ({height_reset_count / transitions:.6%}/step)\n"
                 f"  timeouts      : {timeout_count:.0f}",
                 flush=True,
@@ -446,6 +569,7 @@ class PPO(object):
                 if self.truncate_grads:
                     torch.nn.utils.clip_grad_norm_(self.model.parameters(), self.grad_norm)
                 self.optimizer.step()
+                self._clamp_action_log_std()
 
                 with torch.no_grad():
                     kl_dist = policy_kl(mu.detach(), sigma.detach(), old_mu, old_sigma)
@@ -510,6 +634,7 @@ class PPO(object):
     def play_steps(self):
         extra_sums = {}
         extra_counts = {}
+        action_saturation_sum = 0.0
         for n in range(self.horizon_length):
             res_dict = self.model_act(self.obs)
             # collect o_t
@@ -518,7 +643,9 @@ class PPO(object):
             for k in ['actions', 'neglogpacs', 'values', 'mus', 'sigmas']:
                 self.storage.update_data(k, n, res_dict[k])
             # do env step
-            actions = torch.clamp(res_dict['actions'], -1.0, 1.0)
+            sampled_actions = res_dict['actions']
+            action_saturation_sum += float((sampled_actions.abs() > 1.0).float().mean().item())
+            actions = torch.clamp(sampled_actions, -1.0, 1.0)
             self.obs, rewards, self.dones, infos = self.env.step(actions)
             rewards = rewards.unsqueeze(1)
             # update dones and rewards after env step
@@ -559,6 +686,12 @@ class PPO(object):
             k: extra_sums[k] / extra_counts[k]
             for k in extra_sums
         }
+        self.extra_info['policy/action_saturation_rate'] = action_saturation_sum / self.horizon_length
+        with torch.no_grad():
+            action_std = self.model.sigma.exp()
+            self.extra_info['policy/action_std_mean'] = float(action_std.mean().item())
+            self.extra_info['policy/action_std_min'] = float(action_std.min().item())
+            self.extra_info['policy/action_std_max'] = float(action_std.max().item())
 
         res_dict = self.model_act(self.obs)
         last_values = res_dict['values']

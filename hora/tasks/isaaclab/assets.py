@@ -183,7 +183,6 @@ def _usd_object_cfg(spec: ObjectTaskSpec) -> RigidObjectCfg:
             rigid_props=_COMMON_RIGID,
             mass_props=_COMMON_MASS,
             collision_props=_COMMON_COLLISION,
-            semantic_tags=[("class", spec.name)],
         ),
         # training.usda recenters every scanned mesh around its rigid-body root,
         # so all objects share the same in-hand center as the reference cylinder.

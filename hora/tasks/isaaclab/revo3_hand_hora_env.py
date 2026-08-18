@@ -40,12 +40,13 @@ class Revo3HandHoraEnv(DirectRLEnv):
     Action (21 dims) — delta position control:
       action ∈ [-1,1] → target = prev_target + (1/24)*action → clamp(joint_limits)
       Torque control: torque = p_gain*(target - pos) - d_gain*vel
-      p_gain/d_gain from cfg (2.0/0.2), randomized per reset: ×[0.5, 2.0] per-DOF
+      p_gain/d_gain from cfg, randomized per reset: ×[0.8, 1.2] per-DOF
 
-    Reward (total ×0.01 for PPO): configured world-axis rotation; object-axis tilt and
-      off-axis angular-velocity penalties; independent smooth XY/Z drift
-      penalties; explicit drop penalty; sampled-cache posture, torque and work
-      regularization.
+    Reward (total ×0.01 for PPO): normalized directed rotation progress and a
+      stable-rotation bonus; reverse-rotation, object-axis tilt, off-axis angular
+      velocity and XY/Z drift penalties; explicit drop and hand self-collision
+      penalties; normalized torque and per-joint work regularization.  The
+      policy is not tied to the cached reset posture after an episode starts.
 
     Termination:
       height:    obj_z outside [init_z - 2cm, init_z + 2cm]
@@ -54,7 +55,7 @@ class Revo3HandHoraEnv(DirectRLEnv):
       advance/rollback by 0.10 m/s², and cap exactly at 9.81 m/s²
 
     Key design decisions:
-      - the sampled grasp-cache row is the per-environment posture reference
+      - the sampled grasp-cache row defines reset state only, not a reward reference
       - PD gains per-joint-type from cfg.pgain_dict/dgain_dict, not read from URDF/USD
       - torque/work penalty uses self.torques (our explicit PD command), not PhysX applied_torque
       - tactile Stage2 keeps real five-channel contacts in actor obs and proprio_hist
@@ -76,8 +77,8 @@ class Revo3HandHoraEnv(DirectRLEnv):
             for _name, _val in _cfg_pos.items():
                 if _name in self.hand.joint_names:
                     self.init_joint_pos[0, self.hand.joint_names.index(_name)] = float(_val)
-        # Per-environment posture reference.  This is updated to the actual
-        # sampled grasp-cache joint pose on every reset.
+        # Per-environment sampled reset pose.  It is not used as a posture
+        # reward target, so the learned finger gait may leave this pose freely.
         self.grasp_joint_pos = self.init_joint_pos.expand(self.num_envs, -1).clone()
 
         self._axes_visualizer = None
@@ -230,9 +231,10 @@ class Revo3HandHoraEnv(DirectRLEnv):
         self.object = RigidObject(self.cfg.object_cfg)
         # add ground plane
         spawn_ground_plane(prim_path="/World/ground", cfg=GroundPlaneCfg())
-        # clone and replicate (no need to filter for this environment)
+        # Clone heterogeneous environments, then explicitly filter cross-env
+        # collisions while keeping collisions with the shared ground plane.
         self.scene.clone_environments(copy_from_source=False)
-        self.scene.filter_collisions()
+        self.scene.filter_collisions(global_prim_paths=["/World/ground"])
         # add articulation to scene - we must register to scene to randomize with EventManager
         self.scene.articulations["hand"] = self.hand
         self.scene.rigid_objects["object"] = self.object
@@ -241,6 +243,13 @@ class Revo3HandHoraEnv(DirectRLEnv):
         for id in range(len(self.cfg.contact_sensor)):
             self._contact_sensor.append(ContactSensor(self.cfg.contact_sensor[id]))
             self.scene.sensors[f"contact_sensor_{id}"] = self._contact_sensor[id]
+        # Separate filtered sensors ensure that normal fingertip-object contact
+        # is never mistaken for hand self-collision.
+        self._self_collision_sensors = []
+        for sensor_id, sensor_cfg in enumerate(self.cfg.self_collision_sensor):
+            sensor = ContactSensor(sensor_cfg)
+            self._self_collision_sensors.append(sensor)
+            self.scene.sensors[f"self_collision_sensor_{sensor_id}"] = sensor
         # add lights
         light_cfg = sim_utils.DomeLightCfg(intensity=2000.0, color=(0.75, 0.75, 0.75))
         light_cfg.func("/World/Light", light_cfg)
@@ -298,10 +307,16 @@ class Revo3HandHoraEnv(DirectRLEnv):
         # PhysX reports angular velocity directly in the world frame.  The
         # task registry supplies the desired world-frame rotation axis.
         object_angvel = self.object_angvel
-        rotate_reward = saturate(
-            (object_angvel * self.target_rotation_axis_world).sum(-1),
-            torch.tensor(self.cfg.angvel_clip_min),
-            torch.tensor(self.cfg.angvel_clip_max),
+        target_axis_angvel = (
+            object_angvel * self.target_rotation_axis_world
+        ).sum(-1)
+        # Signed progress: positive rotation is rewarded and reverse rotation
+        # receives an equal-magnitude penalty.  Saturation at the target speed
+        # avoids rewarding unsafe angular velocity beyond the task objective.
+        rotate_reward = torch.clamp(
+            target_axis_angvel / self.cfg.target_angvel,
+            min=-1.0,
+            max=1.0,
         )
 
         # Rotate the task-specific local object axis into world coordinates and
@@ -324,42 +339,81 @@ class Revo3HandHoraEnv(DirectRLEnv):
             object_axis_tilt = torch.zeros_like(object_angvel[:, 0])
             object_axis_tilt_penalty = torch.zeros_like(object_angvel[:, 0])
 
-        target_angvel = (
-            (object_angvel * self.target_rotation_axis_world).sum(-1, keepdim=True)
+        target_angvel_vector = (
+            target_axis_angvel.unsqueeze(-1)
             * self.target_rotation_axis_world
         )
-        off_axis_angvel_penalty = ((object_angvel - target_angvel) ** 2).sum(-1)
+        off_axis_angvel_penalty = ((object_angvel - target_angvel_vector) ** 2).sum(-1)
 
         object_pos_delta = self.object_pos - self.object_default_pose[:, :3]
         xy_drift = torch.norm(object_pos_delta[:, :2], dim=-1)
         z_drift = torch.abs(object_pos_delta[:, 2])
-        xy_drift_penalty = smooth_l1_normalized(xy_drift, self.cfg.xy_drift_tolerance)
+        xy_drift_excess = torch.relu(xy_drift - self.cfg.xy_drift_deadzone)
+        xy_drift_penalty = smooth_l1_normalized(
+            xy_drift_excess, self.cfg.xy_drift_tolerance
+        )
         z_drift_penalty = smooth_l1_normalized(z_drift, self.cfg.z_drift_tolerance)
 
-        # The penalty reference must match the specific cache row sampled for
-        # each environment, not one canonical pose shared by the whole batch.
-        pos_diff_penalty = ((self.hand_dof_pos[:, self.actuated_dof_indices] - self.grasp_joint_pos[:, self.actuated_dof_indices]) ** 2).sum(-1)
-        torque_penalty = (self.torques[:, self.actuated_dof_indices] ** 2).sum(-1)
-        work_penalty = ((self.torques[:, self.actuated_dof_indices] * self.hand_dof_vel[:, self.actuated_dof_indices]).sum(-1)) ** 2
+        if self._self_collision_sensors:
+            self_collision_forces = torch.stack(
+                [
+                    torch.linalg.vector_norm(
+                        sensor.data.force_matrix_w[:, 0, :, :], dim=-1
+                    ).amax(dim=-1)
+                    for sensor in self._self_collision_sensors
+                ],
+                dim=-1,
+            )
+            self_collision_force_max = self_collision_forces.amax(dim=-1)
+        else:
+            self_collision_force_max = torch.zeros_like(xy_drift)
+        self_collision_force_excess = torch.relu(
+            self_collision_force_max - self.cfg.self_collision_force_threshold
+        )
+        self_collision_penalty = smooth_l1_normalized(
+            self_collision_force_excess,
+            self.cfg.self_collision_force_tolerance,
+        )
+        normalized_torque = (
+            self.torques[:, self.actuated_dof_indices]
+            / self.cfg.torque_normalization
+        )
+        torque_penalty = normalized_torque.square().mean(-1)
+        joint_power = normalized_torque * self.hand_dof_vel[:, self.actuated_dof_indices]
+        work_penalty = joint_power.abs().mean(-1)
         # Applied on the terminal transition, before DirectRLEnv resets it.
         drop_penalty = (
             (self.object_pos[:, 2] < self.reset_height_lower)
             | (self.object_pos[:, 2] > self.reset_height_upper)
         ).float()
+        alive_reward = 1.0 - drop_penalty
+        stable_rotation_bonus = (
+            (target_axis_angvel >= self.cfg.stable_rotation_min_angvel)
+            & (object_axis_tilt <= self.cfg.object_axis_tilt_tolerance)
+            & (xy_drift <= self.cfg.xy_drift_deadzone)
+            & (z_drift <= self.cfg.z_drift_tolerance)
+            & (drop_penalty == 0.0)
+        ).float()
 
         total_reward = compute_rewards(
             rotate_reward, self.cfg.rotate_reward_scale,
+            stable_rotation_bonus, self.cfg.stable_rotation_bonus_scale,
+            alive_reward, self.cfg.alive_reward_scale,
             object_axis_tilt_penalty, self.cfg.object_axis_tilt_penalty_scale,
             off_axis_angvel_penalty, self.cfg.off_axis_angvel_penalty_scale,
             xy_drift_penalty, self.cfg.xy_drift_penalty_scale,
             z_drift_penalty, self.cfg.z_drift_penalty_scale,
             drop_penalty, self.cfg.drop_penalty_scale,
-            pos_diff_penalty, self.cfg.pos_diff_penalty_scale,
+            self_collision_penalty, self.cfg.self_collision_penalty_scale,
             torque_penalty, self.cfg.torque_penalty_scale,
             work_penalty, self.cfg.work_penalty_scale,
         )
 
         self.extras["rew/rotate"] = (rotate_reward * self.cfg.rotate_reward_scale).mean()
+        self.extras["rew/stable_rotation"] = (
+            stable_rotation_bonus * self.cfg.stable_rotation_bonus_scale
+        ).mean()
+        self.extras["rew/alive"] = (alive_reward * self.cfg.alive_reward_scale).mean()
         self.extras["rew/object_axis_tilt"] = (
             object_axis_tilt_penalty * self.cfg.object_axis_tilt_penalty_scale
         ).mean()
@@ -367,15 +421,29 @@ class Revo3HandHoraEnv(DirectRLEnv):
         self.extras["rew/xy_drift"] = (xy_drift_penalty * self.cfg.xy_drift_penalty_scale).mean()
         self.extras["rew/z_drift"] = (z_drift_penalty * self.cfg.z_drift_penalty_scale).mean()
         self.extras["rew/drop"] = (drop_penalty * self.cfg.drop_penalty_scale).mean()
-        self.extras["rew/posture"] = (pos_diff_penalty * self.cfg.pos_diff_penalty_scale).mean()
+        self.extras["rew/self_collision"] = (
+            self_collision_penalty * self.cfg.self_collision_penalty_scale
+        ).mean()
         self.extras["rew/torque"] = (torque_penalty * self.cfg.torque_penalty_scale).mean()
         self.extras["rew/work"] = (work_penalty * self.cfg.work_penalty_scale).mean()
         self.extras['object_axis_tilt_deg'] = torch.rad2deg(object_axis_tilt).mean()
+        self.extras['axis_aligned_rate'] = (
+            object_axis_tilt <= self.cfg.object_axis_tilt_tolerance
+        ).float().mean()
         self.extras['xy_drift_mm'] = (xy_drift * 1000.0).mean()
         self.extras['z_drift_mm'] = (z_drift * 1000.0).mean()
+        self.extras['self_collision_rate'] = (
+            self_collision_force_max > self.cfg.self_collision_force_threshold
+        ).float().mean()
+        self.extras['self_collision_force_max_n'] = self_collision_force_max.max()
+        self.extras['self_collision_force_mean_n'] = self_collision_force_max.mean()
         self.extras['angvelX'] = object_angvel[:, 0].mean()
         self.extras['angvelY'] = object_angvel[:, 1].mean()
         self.extras['angvelZ'] = object_angvel[:, 2].mean()
+        self.extras['target_angvel'] = target_axis_angvel.mean()
+        self.extras['rotation_progress'] = rotate_reward.mean()
+        self.extras['stable_rotation_rate'] = stable_rotation_bonus.mean()
+        self.extras['reverse_rotation_rate'] = (target_axis_angvel < 0.0).float().mean()
         self.extras['total_reward'] = total_reward.mean()
         return total_reward
 
@@ -683,22 +751,26 @@ def unscale(x, lower, upper):
 @torch.jit.script
 def compute_rewards(
     rotate_reward: torch.Tensor, rotate_reward_scale: float,
+    stable_rotation_bonus: torch.Tensor, stable_rotation_bonus_scale: float,
+    alive_reward: torch.Tensor, alive_reward_scale: float,
     object_axis_tilt_penalty: torch.Tensor, object_axis_tilt_penalty_scale: float,
     off_axis_angvel_penalty: torch.Tensor, off_axis_angvel_penalty_scale: float,
     xy_drift_penalty: torch.Tensor, xy_drift_penalty_scale: float,
     z_drift_penalty: torch.Tensor, z_drift_penalty_scale: float,
     drop_penalty: torch.Tensor, drop_penalty_scale: float,
-    pos_diff_penalty: torch.Tensor, pos_diff_penalty_scale: float,
+    self_collision_penalty: torch.Tensor, self_collision_penalty_scale: float,
     torque_penalty: torch.Tensor, torque_penalty_scale: float,
     work_penalty: torch.Tensor, work_penalty_scale: float,
 ):
     reward = rotate_reward * rotate_reward_scale
+    reward += stable_rotation_bonus * stable_rotation_bonus_scale
+    reward += alive_reward * alive_reward_scale
     reward += object_axis_tilt_penalty * object_axis_tilt_penalty_scale
     reward += off_axis_angvel_penalty * off_axis_angvel_penalty_scale
     reward += xy_drift_penalty * xy_drift_penalty_scale
     reward += z_drift_penalty * z_drift_penalty_scale
     reward += drop_penalty * drop_penalty_scale
-    reward += pos_diff_penalty * pos_diff_penalty_scale
+    reward += self_collision_penalty * self_collision_penalty_scale
     reward += torque_penalty * torque_penalty_scale
     reward += work_penalty * work_penalty_scale
     return reward

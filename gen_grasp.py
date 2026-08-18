@@ -7,7 +7,9 @@ Grasp detection (reset_buf approach in _get_rewards):
   cond4: after settling, XY drift <=5mm and Z drift <=15mm
 
 Gravity testing defaults to fixed -Z gravity. Six-axis cycling is opt-in after the
-  fixed-gravity baseline produces stable grasps.
+fixed-gravity baseline produces stable grasps. In six-axis mode every direction
+gets a fresh settling/contact window and must pass a consecutive-stability gate.
+A candidate is cached only after all six directions have passed.
 
 Joint exploration: ±noise_scale (default 0.15) rad around init_joint_pos, clamped to
   joint limits. Noise scale is NOT zeroed for any task — cylinder benefits from
@@ -39,6 +41,12 @@ parser.add_argument("--cache_file", type=str, default="", help="Override output 
 parser.add_argument("--usd", type=str, default="", help="Override hand USD path.")
 parser.add_argument("--noise_scale", type=float, default=0.15, help="±noise added to init_joint_pos")
 parser.add_argument("--progress_interval", type=float, default=10.0, help="Seconds between progress updates.")
+parser.add_argument(
+    "--episode_length_s",
+    type=float,
+    default=None,
+    help="Validation episode length. Defaults to 5s for fixed gravity and seven gravity intervals for six_axis.",
+)
 parser.add_argument("--settle_steps", type=int, default=20, help="Steps allowed for contact establishment.")
 parser.add_argument("--contact_force_threshold", type=float, default=0.05, help="Per-fingertip object contact threshold in N.")
 parser.add_argument(
@@ -92,8 +100,20 @@ parser.add_argument(
 parser.add_argument(
     "--gravity_interval",
     type=int,
-    default=15,
-    help="Global steps per direction in six_axis mode; 15 visits all six axes within a 100-step episode.",
+    default=40,
+    help="Policy steps per direction in six_axis mode.",
+)
+parser.add_argument(
+    "--gravity_settle_steps",
+    type=int,
+    default=20,
+    help="Grace period after every gravity switch in six_axis mode.",
+)
+parser.add_argument(
+    "--axis_validation_steps",
+    type=int,
+    default=10,
+    help="Consecutive stable steps required to pass one gravity direction.",
 )
 AppLauncher.add_app_launcher_args(parser)
 args = parser.parse_args()
@@ -104,6 +124,8 @@ if args.target_count <= 0:
     parser.error("--target_count must be greater than 0")
 if args.progress_interval <= 0:
     parser.error("--progress_interval must be greater than 0")
+if args.episode_length_s is not None and args.episode_length_s <= 0.0:
+    parser.error("--episode_length_s must be greater than 0")
 if args.settle_steps < 0:
     parser.error("--settle_steps must be greater than or equal to 0")
 if args.contact_force_threshold < 0:
@@ -126,6 +148,22 @@ if args.max_height_drift_m <= 0.0:
     parser.error("--max_height_drift_m must be greater than 0")
 if args.gravity_interval <= 0:
     parser.error("--gravity_interval must be greater than 0")
+if args.gravity_settle_steps < 0:
+    parser.error("--gravity_settle_steps must be greater than or equal to 0")
+if args.axis_validation_steps <= 0:
+    parser.error("--axis_validation_steps must be greater than 0")
+if args.gravity_mode == "six_axis":
+    if args.gravity_settle_steps < args.contact_window_steps:
+        parser.error(
+            "six_axis requires --gravity_settle_steps >= --contact_window_steps "
+            "so the contact window can refill after each gravity switch"
+        )
+    minimum_interval = args.gravity_settle_steps + args.axis_validation_steps
+    if args.gravity_interval < minimum_interval:
+        parser.error(
+            "six_axis requires --gravity_interval >= --gravity_settle_steps + "
+            f"--axis_validation_steps ({minimum_interval})"
+        )
 
 app_launcher = AppLauncher(args)
 simulation_app = app_launcher.app
@@ -163,7 +201,9 @@ class GraspGenEnv(Revo3HandHoraEnv):
         fingertip_near_threshold_m: float = 0.10,
         check_axis_tilt: bool = True,
         gravity_mode: str = "fixed",
-        gravity_interval: int = 15,
+        gravity_interval: int = 40,
+        gravity_settle_steps: int = 20,
+        axis_validation_steps: int = 10,
         **kwargs,
     ):
         self._noise_scale = noise_scale
@@ -191,6 +231,8 @@ class GraspGenEnv(Revo3HandHoraEnv):
         self._check_axis_tilt = bool(check_axis_tilt)
         self._gravity_mode = gravity_mode
         self._gravity_interval = int(gravity_interval)
+        self._gravity_settle_steps = int(gravity_settle_steps)
+        self._axis_validation_steps = int(axis_validation_steps)
         self._contact_history = torch.zeros(
             (cfg.scene.num_envs, self._contact_window_steps, 5),
             dtype=torch.bool,
@@ -201,6 +243,7 @@ class GraspGenEnv(Revo3HandHoraEnv):
         )
         self._contact_history_index = 0
         self._gravity_id = 0
+        self._gravity_steps_in_direction = 0
         self._gravity_directions = [
             carb.Float3(0.0, 0.0, -9.81),
             carb.Float3(0.0, 0.0, 9.81),
@@ -209,6 +252,13 @@ class GraspGenEnv(Revo3HandHoraEnv):
             carb.Float3(0.0, 9.81, 0.0),
             carb.Float3(0.0, -9.81, 0.0),
         ]
+        self._required_axis_mask = (1 << len(self._gravity_directions)) - 1
+        self._axis_pass_mask = torch.zeros(
+            cfg.scene.num_envs, dtype=torch.int16, device=cfg.sim.device
+        )
+        self._axis_stable_steps = torch.zeros(
+            cfg.scene.num_envs, dtype=torch.int16, device=cfg.sim.device
+        )
         self._reset_condition_stats()
         super().__init__(cfg, render_mode, **kwargs)
         # The state that must be cached is the candidate at the start of its
@@ -220,8 +270,6 @@ class GraspGenEnv(Revo3HandHoraEnv):
         self._candidate_object_pos = torch.zeros((self.num_envs, 3), device=self.device)
         self._candidate_object_quat = torch.zeros((self.num_envs, 4), device=self.device)
         self.physics_sim_view.set_gravity(self._gravity_directions[0])
-        if self._gravity_mode == "six_axis":
-            self._gravity_id = 1
 
     def _reset_condition_stats(self):
         self._condition_samples = 0
@@ -325,6 +373,26 @@ class GraspGenEnv(Revo3HandHoraEnv):
                 )
             print(f"[FINGERS] {' | '.join(finger_stats)}", flush=True)
 
+        if self._gravity_mode == "six_axis":
+            axis_names = ("-Z", "+Z", "+X", "-X", "+Y", "-Y")
+            pass_rates = [
+                100.0
+                * float(((self._axis_pass_mask & (1 << axis_id)) != 0).float().mean().item())
+                for axis_id in range(len(axis_names))
+            ]
+            complete_rate = 100.0 * float(
+                (self._axis_pass_mask == self._required_axis_mask).float().mean().item()
+            )
+            formatted = " ".join(
+                f"{name}={rate:5.1f}%" for name, rate in zip(axis_names, pass_rates)
+            )
+            print(
+                f"[SIX_AXIS] current={axis_names[self._gravity_id]} "
+                f"step={self._gravity_steps_in_direction}/{self._gravity_interval}"
+                f" | {formatted} | all={complete_rate:5.1f}%",
+                flush=True,
+            )
+
         self._last_progress_time = now
         self._last_progress_total = completed
         self._reset_condition_stats()
@@ -401,6 +469,8 @@ class GraspGenEnv(Revo3HandHoraEnv):
 
     def _get_rewards(self) -> torch.Tensor:
         self._refresh_lab()
+        if self._gravity_mode == "six_axis":
+            self._gravity_steps_in_direction += 1
         # cond1: all 5 fingertips within 0.1m of object
         fingertip_distances = torch.norm(self.fingertip_pos - self.object_pos.unsqueeze(1), dim=-1)
         cond1 = (fingertip_distances < self._fingertip_near_threshold).all(-1)
@@ -466,14 +536,42 @@ class GraspGenEnv(Revo3HandHoraEnv):
         # contact floor, and (when enabled) tight object-axis alignment.
         settling = self.episode_length_buf <= self._settle_steps
         stable = contact_established & live_contact & cond3 & cond_height & cond_horizontal
-        cond = cond1 & (stable | settling)
+        if self._gravity_mode == "six_axis":
+            gravity_settling = self._gravity_steps_in_direction <= self._gravity_settle_steps
+            if gravity_settling:
+                self._axis_stable_steps.zero_()
+                cond = cond1
+            else:
+                eligible = stable & ~settling
+                self._axis_stable_steps = torch.where(
+                    eligible,
+                    self._axis_stable_steps + 1,
+                    torch.zeros_like(self._axis_stable_steps),
+                )
+                passed = self._axis_stable_steps >= self._axis_validation_steps
+                if passed.any():
+                    self._axis_pass_mask[passed] = (
+                        self._axis_pass_mask[passed] | (1 << self._gravity_id)
+                    )
+                cond = cond1 & (stable | settling)
+        else:
+            cond = cond1 & (stable | settling)
         self.reset_buf[~cond] = 1
 
-        # Six-axis testing is deliberately opt-in. Baseline cache generation
-        # uses fixed -Z gravity until stable candidates have been confirmed.
-        if self._gravity_mode == "six_axis" and self.common_step_counter % self._gravity_interval == 0:
-            self.physics_sim_view.set_gravity(self._gravity_directions[self._gravity_id])
+        # Switch only after evaluating the final state under the current
+        # direction. The next direction starts with fresh contact evidence and
+        # its own grace period, so load-bearing contacts cannot be inherited.
+        if (
+            self._gravity_mode == "six_axis"
+            and self._gravity_steps_in_direction >= self._gravity_interval
+        ):
             self._gravity_id = (self._gravity_id + 1) % len(self._gravity_directions)
+            self.physics_sim_view.set_gravity(self._gravity_directions[self._gravity_id])
+            self._gravity_steps_in_direction = 0
+            self._contact_history.zero_()
+            self._contact_window_counts.zero_()
+            self._contact_history_index = 0
+            self._axis_stable_steps.zero_()
 
         self._print_progress()
         return torch.zeros(self.num_envs, device=self.device)
@@ -488,6 +586,8 @@ class GraspGenEnv(Revo3HandHoraEnv):
 
         # collect states that survived full episode (successful grasps)
         success = self.episode_length_buf >= self.max_episode_length
+        if self._gravity_mode == "six_axis":
+            success &= self._axis_pass_mask == self._required_axis_mask
         n_success = success.sum().item()
         if n_success > 0:
             joint_pos = self._candidate_joint_pos[success].cpu().numpy()
@@ -514,8 +614,10 @@ class GraspGenEnv(Revo3HandHoraEnv):
         self.episode_length_buf[env_ids] = 0
         self._contact_history[env_ids] = False
         self._contact_window_counts[env_ids] = 0
+        self._axis_pass_mask[env_ids] = 0
+        self._axis_stable_steps[env_ids] = 0
 
-        # random joint exploration: ±0.15 rad around default
+        # Random joint exploration around the manifest/default grasp.
         ndof = self.num_hand_dofs
         rand_floats = 2.0 * torch.rand((len(env_ids), ndof), device=self.device) - 1.0
         dof_pos = self.init_joint_pos.expand(len(env_ids), -1) + self._noise_scale * rand_floats
@@ -592,7 +694,26 @@ env_cfg.gravity_curriculum = False
 env_cfg.scene.num_envs = args.num_envs
 if args.headless:
     env_cfg.sim.render_interval = env_cfg.decimation
-env_cfg.episode_length_s = 5.0
+policy_dt = float(env_cfg.decimation * env_cfg.sim.dt)
+minimum_six_axis_episode_s = 7.0 * args.gravity_interval * policy_dt
+if args.episode_length_s is not None:
+    if (
+        args.gravity_mode == "six_axis"
+        and args.episode_length_s + 1.0e-9 < minimum_six_axis_episode_s
+    ):
+        raise ValueError(
+            "--episode_length_s is too short for complete six-axis validation: "
+            f"need at least {minimum_six_axis_episode_s:g}s with "
+            f"--gravity_interval {args.gravity_interval}"
+        )
+    env_cfg.episode_length_s = float(args.episode_length_s)
+elif args.gravity_mode == "six_axis":
+    # Seven intervals guarantee that an asynchronously reset candidate sees a
+    # complete interval for all six directions, even if it starts immediately
+    # before a global gravity switch.
+    env_cfg.episode_length_s = minimum_six_axis_episode_s
+else:
+    env_cfg.episode_length_s = 5.0
 env_cfg.randomize_pd_gains = False
 env_cfg.randomize_com = False
 env_cfg.randomize_friction = False
@@ -620,6 +741,8 @@ env = GraspGenEnv(
     check_axis_tilt=env_cfg.enforce_object_axis_alignment,
     gravity_mode=args.gravity_mode,
     gravity_interval=args.gravity_interval,
+    gravity_settle_steps=args.gravity_settle_steps,
+    axis_validation_steps=args.axis_validation_steps,
 )
 env.reset()
 env.start_progress_tracking()
@@ -652,6 +775,12 @@ if env_cfg.enforce_object_axis_alignment:
 print(f"  XY drift    : <= {1000.0 * args.max_horizontal_drift_m:g}mm after settle")
 print(f"  height drift: <= {1000.0 * args.max_height_drift_m:g}mm after settle")
 print(f"  gravity     : {args.gravity_mode} (9.81m/s²)")
+if args.gravity_mode == "six_axis":
+    print(
+        f"  axis gate   : {args.gravity_interval} steps/direction, "
+        f"{args.gravity_settle_steps} settle + "
+        f"{args.axis_validation_steps} consecutive stable, all 6 required"
+    )
 print("  disturbance : random force off, friction randomization off")
 print(f"  output      : {cache_path}\n")
 if args.usd:
