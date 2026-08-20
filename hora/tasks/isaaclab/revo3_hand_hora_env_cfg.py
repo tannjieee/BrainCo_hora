@@ -164,7 +164,10 @@ class Revo3HandHoraEnvCfg(DirectRLEnvCfg):
     grasp_cache_path = 'cache/revo3_right_grasp_cylinder'
     grasp_cache_sequential = False
 
+    # Joint sensing model.  White noise is sampled every policy step, while the
+    # zero offset is sampled once per environment reset and held for the episode.
     joint_noise_scale = 0.02
+    joint_zero_offset_scale = 0.02
     enable_tactile = True
     enable_contact_in_obs = True   # Tactile Stage1/Stage2/deployment share the same contact channels.
     binary_contact = False
@@ -174,6 +177,10 @@ class Revo3HandHoraEnvCfg(DirectRLEnvCfg):
     # additional multi-step force window is applied in the training env.
     contact_threshold = 0.05
     contact_latency = 0.0
+    # Continuous tactile observation: max(0, scale * ||F_xyz|| + N(0, std^2)).
+    # contact_sensor_noise remains the dropout probability for binary_contact.
+    contact_force_scale = 0.1
+    contact_force_noise_std = 0.1
     contact_sensor_noise = 0.01
     dof_limits_scale = 0.9
 

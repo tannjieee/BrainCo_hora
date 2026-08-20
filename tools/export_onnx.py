@@ -70,6 +70,24 @@ RIGHT_HAND_JOINT_ORDER = [
     "right_thumb_DIP_joint",
 ]
 
+# Exact unscaled limits used by assets/urdf/urdf/revo3_right.urdf and the
+# revo3_right USD consumed by the training environment, in runtime joint order.
+# The environment multiplies both sides by DOF_LIMITS_SCALE before unscale(),
+# target integration, and clamp. Keep the numeric values in deploy metadata so
+# a runtime profile cannot silently change network input scaling.
+RIGHT_HAND_JOINT_LOWER_RAD = [
+    -0.2618, -0.2618, -0.2618, -0.2618, 0.0,
+    0.0, 0.0, 0.0, 0.0, 0.0,
+    0.0, 0.0, 0.0, 0.0, 0.0,
+    0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+]
+RIGHT_HAND_JOINT_UPPER_RAD = [
+    0.2618, 0.2618, 0.2618, 0.2618, 1.9199,
+    1.4835, 1.4835, 1.4835, 1.4835, 2.0071,
+    1.4835, 1.4835, 1.4835, 1.4835, 0.8727,
+    1.4835, 1.4835, 1.4835, 1.4835, 1.4835, 1.4835,
+]
+
 
 def _find_config_for_checkpoint(ckpt_path: Path) -> Path | None:
     # expected: run_dir/stage2_nn/model_best.ckpt
@@ -161,6 +179,7 @@ def _save_deploy_meta(
     policy_rate: float,
     chunk_size: int,
     n_action_steps: int,
+    contact_force_scale: float,
     runtime_reference: dict[str, Any],
 ) -> None:
     dof_count = int(action_dim)
@@ -208,6 +227,16 @@ def _save_deploy_meta(
                 "scaled_by": float(DOF_LIMITS_SCALE),
                 "lower": "hand_dof_lower_limits = runtime_lower_limits * 0.9",
                 "upper": "hand_dof_upper_limits = runtime_upper_limits * 0.9",
+                "unscaled_lower_rad": RIGHT_HAND_JOINT_LOWER_RAD,
+                "unscaled_upper_rad": RIGHT_HAND_JOINT_UPPER_RAD,
+                "scaled_lower_rad": [
+                    float(value * DOF_LIMITS_SCALE)
+                    for value in RIGHT_HAND_JOINT_LOWER_RAD
+                ],
+                "scaled_upper_rad": [
+                    float(value * DOF_LIMITS_SCALE)
+                    for value in RIGHT_HAND_JOINT_UPPER_RAD
+                ],
             },
             "single_frame_layout": [
                 {
@@ -216,7 +245,7 @@ def _save_deploy_meta(
                     "size": dof_count,
                     "units": "dimensionless",
                     "formula": "(2 * joint_pos_rad - joint_upper_rad - joint_lower_rad) / (joint_upper_rad - joint_lower_rad)",
-                    "training_noise": "Stage2 training inherited env joint noise before unscale; deploy should use measured joint_pos without adding noise.",
+                    "training_noise": "Stage2 training inherited per-step joint noise and a per-episode joint-zero offset before unscale; deploy should use measured joint_pos without adding synthetic noise or offsets.",
                 },
                 {
                     "name": "cur_targets",
@@ -230,8 +259,10 @@ def _save_deploy_meta(
                     "slice": [contact_start, contact_end],
                     "size": CONTACT_DIM,
                     "units": "newtons",
+                    "input_scale": float(contact_force_scale),
                     "order": ["thumb_DIP", "index_DIP", "middle_DIP", "ring_DIP", "little_DIP"],
-                    "sim_formula": "norm(current object-filtered fingertip contact force), sampled once per 20 Hz policy step, with optional latency hold",
+                    "sim_formula": "max(0, input_scale * norm(current object-filtered fingertip contact force) + Gaussian training noise), sampled once per 20 Hz policy step, with optional latency hold",
+                    "deploy_formula": "input_scale * measured fingertip force magnitude; do not add training noise",
                 },
             ],
             "obs": {
@@ -260,7 +291,7 @@ def _save_deploy_meta(
                 "construction_steps": [
                     "Maintain a 30-frame chronological history of raw 47-dim frames.",
                     "Each history frame uses joint_pos_unscaled[21] + cur_targets[21] + contact_forces[5].",
-                    "Populate contact_forces[42:47] from the five real fingertip tactile channels.",
+                    "Populate contact_forces[42:47] from the five real fingertip tactile channels after applying metadata input_scale.",
                 ],
                 "contact_rule": "Tactile contact values are required and must use the same order, units, calibration, and sampling rate as the actor observation.",
             },
@@ -475,6 +506,7 @@ def main() -> None:
 
     checkpoint = torch.load(str(ckpt_path), map_location="cpu")
     _require_stage2_checkpoint(checkpoint, ckpt_path)
+    checkpoint_observation_contract = checkpoint.get("observation_contract") or {}
     inferred_priv_dim = _infer_priv_info_dim_from_ckpt(checkpoint)
     priv_info_dim = int(
         inferred_priv_dim
@@ -615,6 +647,12 @@ def main() -> None:
         policy_rate=float(args.policy_rate),
         chunk_size=int(args.chunk_size),
         n_action_steps=int(args.n_action_steps),
+        contact_force_scale=float(
+            checkpoint_observation_contract.get(
+                "contact_force_scale",
+                _get_cfg_value(cfg, "env_runtime.contact_force_scale", 1.0),
+            )
+        ),
         runtime_reference={
             "scale_keys": scale_keys,
             "running_mean_std_obs_shape": rms_obs_shape if rms_obs_shape is not None else [obs_dim],

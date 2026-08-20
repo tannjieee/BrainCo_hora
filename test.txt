@@ -1,0 +1,3 @@
+python tools/export_onnx.py \
+  --checkpoint outputs/revo3_right/stage2_smoke2/stage2_nn/model_best_latent.ckpt \
+  --output outputs/revo3_right/onnx/cylinder_stage2.onnx

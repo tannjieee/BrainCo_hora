@@ -1,0 +1,57 @@
+io_contract:
+  inputs:
+    - {name: obs, shape: [B, 141], dtype: float32}
+    - {name: proprio_hist, shape: [B, 30, 47], dtype: float32}
+  outputs:
+    - {name: action, shape: [B, 21], dtype: float32}
+  action_semantics: delta
+  action_scale: 0.041666666666666664
+  action_clip: [-1.0, 1.0]
+  target_units: radians
+  policy_rate_hz: 20.0
+  chunk_size: 1
+  n_action_steps: 1
+deploy_observation_contract:
+  joint_order:
+    - right_index_MPR_joint
+    - right_little_MPR_joint
+    - right_middle_MPR_joint
+    - right_ring_MPR_joint
+    - right_thumb_CMP_joint
+    - right_index_MCP_joint
+    - right_little_MCP_joint
+    - right_middle_MCP_joint
+    - right_ring_MCP_joint
+    - right_thumb_CMR_joint
+    - right_index_PIP_joint
+    - right_little_PIP_joint
+    - right_middle_PIP_joint
+    - right_ring_PIP_joint
+    - right_thumb_MCP_joint
+    - right_index_DIP_joint
+    - right_little_DIP_joint
+    - right_middle_DIP_joint
+    - right_ring_DIP_joint
+    - right_thumb_PIP_joint
+    - right_thumb_DIP_joint
+  dof_limits:
+    scaled_by: 0.9
+    unscaled_lower_rad: [-0.2618, -0.2618, -0.2618, -0.2618, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+    unscaled_upper_rad: [0.2618, 0.2618, 0.2618, 0.2618, 1.9199, 1.4835, 1.4835, 1.4835, 1.4835, 2.0071, 1.4835, 1.4835, 1.4835, 1.4835, 0.8727, 1.4835, 1.4835, 1.4835, 1.4835, 1.4835, 1.4835]
+    scaled_lower_rad: [-0.23562, -0.23562, -0.23562, -0.23562, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+    scaled_upper_rad: [0.23562, 0.23562, 0.23562, 0.23562, 1.72791, 1.33515, 1.33515, 1.33515, 1.33515, 1.80639, 1.33515, 1.33515, 1.33515, 1.33515, 0.78543, 1.33515, 1.33515, 1.33515, 1.33515, 1.33515, 1.33515]
+  single_frame_layout:
+    - {name: joint_pos_unscaled, slice: [0, 21], size: 21, units: dimensionless}
+    - {name: cur_targets, slice: [21, 42], size: 21, units: radians}
+    - name: contact_forces
+      slice: [42, 47]
+      size: 5
+      units: newtons
+      input_scale: 0.1
+      order: [thumb_DIP, index_DIP, middle_DIP, ring_DIP, little_DIP]
+  obs:
+    window_frames: 3
+  proprio_hist:
+    window_frames: 30
+normalization:
+  baked_in_onnx: true

@@ -189,6 +189,14 @@ scripts/train_s2.sh outputs/revo3_right/run_cylinder/stage2_nn/model_last.ckpt \
 ~/IsaacLab/isaaclab.sh -p train.py \
   --task cylinder --algo ProprioAdapt --num_envs 32 --test \
   --checkpoint outputs/revo3_right/run_cylinder/stage2_nn/model_best.ckpt
+
+
+# cylinder: 单环境、实时节拍、三分之四近景，自动录制 20 秒 MP4
+~/IsaacLab/isaaclab.sh -p train.py \
+  --task cylinder --algo ProprioAdapt --num_envs 1 --test --real-time --video \
+  --video_seconds 20 \
+  --camera_eye 0.55 -0.55 1.85 --camera_lookat 0 0 1.50 \
+  --checkpoint outputs/revo3_right/stage2_smoke2/stage2_nn/model_best_latent.ckpt
 ```
 
 ### Tool
@@ -208,6 +216,38 @@ python tools/export_onnx.py \
   --checkpoint outputs/revo3_right/run_cylinder/stage2_nn/model_best.ckpt \
   --output outputs/revo3_right/onnx/cylinder_stage2.onnx
 ```
+
+#### Revo3 真机部署环境
+
+当前触觉 Stage2 ONNX 的 ROS-free Python 部署运行时位于
+[`deploy/revo3`](deploy/revo3/README.md)。它适配 `bc-revo3-sdk==1.5.1` 和
+`pyvitaisdk4bc==1.0.10`，支持 141/30×47 模型契约、Revo3UltraVisionTouch 五路
+Force6D（Pressure/Matrix 为兼容 fallback）、SDK/policy 关节映射、离线校验和默认不发
+电机命令的真机 dry-run。
+
+先在现有 `revo3` conda 环境中完成离线验证：
+
+```bash
+/home/tan/miniconda3/envs/revo3/bin/python \
+  deploy/revo3/scripts/validate_policy.py \
+  --onnx outputs/revo3_right/onnx/cylinder_stage2.onnx \
+  --metadata outputs/revo3_right/onnx/cylinder_stage2.deploy_meta.yaml \
+  --profile deploy/revo3/config/revo3_right.yaml \
+  --check-sdk \
+  --joint-pos-npy cache/revo3_right_grasp_cylinder.npy
+```
+
+当前右手已完成 VTS 采样链路与 ONNX 推理的无电机 dry-run，五个 SN 的物理手指映射也已
+通过逐指按压确认。offset 与 MIT 增益仍需真机标定；在 `calibration.status` 确认前，
+运行时会拒绝进入运动模式。完整步骤见部署 README。
+
+如需把该 checkpoint 的仿真绝对 target 短序列导出后，在真机上按单个 policy joint 慢放
+以核对 Pidx→SDK Midx、物理关节与方向，使用
+[`deploy/revo3` 的 trace replay 流程](deploy/revo3/README.md#导出策略目标并在真机做短时-replay)。
+replay 默认离线，真机写命令需要显式选轴和完整物理安全确认。
+需要自动选帧、逐轴留档和断点查看进度时，使用同一文档中的
+[`joint-order` session 流程](deploy/revo3/README.md#自动化关节顺序测试-session)；每次进程仍只
+允许一个关节动作。
 
 #### 导出单环境动作序列
 
@@ -235,6 +275,17 @@ python tools/export_onnx.py \
   --task cylinder --algo ProprioAdapt --episodes 1
 ```
 
+##### 复现 `sim_joint_order_latent_cache7942_20f.npz`
+
+该文件由 `scripts/sim2real.sh sim-trace` 调用 `tools/dump_runtime_actions.py` 生成。包含完整命令、
+参数解释、输出字段、成功判据、绘图和离线校验步骤的独立文档见
+[`docs/sim_trace/README.md`](docs/sim_trace/README.md)。
+
+##### 回放 `policy_pos_rad` 到 Revo3 真机
+
+21 轴关节映射、串口设置、软件测试、只读 preflight、预定位、20 Hz measured replay、
+零力释放和实测结果见 [`docs/replay_trace/README.md`](docs/replay_trace/README.md)。
+
 ### 监控训练
 
 ```bash
@@ -255,3 +306,6 @@ tmux ls
 tmux new -s train
 tmux attach -t train
 tmux kill-session -t train
+
+
+ 

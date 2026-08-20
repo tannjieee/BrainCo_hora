@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "brainco-hora-revo3-deploy"
+version = "0.1.0"
+description = "Tactile HORA Stage-2 ONNX runtime for the BrainCo Revo3 hand"
+readme = "README.md"
+requires-python = ">=3.10,<3.11"
+dependencies = [
+  "numpy>=1.26,<2.0",
+  "onnxruntime>=1.20,<2.0",
+  "PyYAML>=6.0",
+]
+
+[project.optional-dependencies]
+hardware = ["bc-revo3-sdk==1.5.1"]
+vision-touch = ["bc-revo3-sdk==1.5.1", "pyvitaisdk4bc==1.0.10"]
+
+[project.scripts]
+revo3-validate-policy = "revo3_deploy.cli.validate_policy:main"
+revo3-run-policy = "revo3_deploy.cli.run_policy:main"
+revo3-jog-joint = "revo3_deploy.cli.jog_joint:main"
+revo3-replay-trace = "revo3_deploy.cli.replay_trace:main"
+revo3-joint-order = "revo3_deploy.cli.joint_order:main"
+revo3-offset-calibration = "revo3_deploy.cli.offset_calibration:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["revo3_deploy*"]
+
+[tool.setuptools.package-data]
+revo3_deploy = ["py.typed"]
+
+[tool.setuptools.data-files]
+"share/brainco-hora-revo3-deploy/config" = ["config/revo3_right.yaml"]

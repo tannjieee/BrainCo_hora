@@ -274,6 +274,7 @@ class PPO(object):
             'gravity_magnitude': float(getattr(self.env, '_gravity_magnitude', 0.0)),
             'gravity_reset_rate_window': float(getattr(self.env, '_gravity_window_reset_rate', 1.0)),
             'priv_info_dim': int(self.priv_info_dim),
+            'observation_contract': self._observation_contract(),
             'last_lr': float(self.last_lr),
         }
         if self.running_mean_std:
@@ -294,6 +295,7 @@ class PPO(object):
             'agent_steps',
             'epoch_num',
             'best_rewards',
+            'observation_contract',
             'last_lr',
         ]
         missing = [k for k in required_keys if k not in checkpoint]
@@ -307,6 +309,7 @@ class PPO(object):
                 f"Stage1 checkpoint privileged-observation mismatch: checkpoint={checkpoint_priv_dim}, "
                 f"current={self.priv_info_dim}. Retrain Stage1 after changing privileged observations."
             )
+        self._validate_observation_contract(checkpoint, fn)
 
         self.model.load_state_dict(checkpoint['model'], strict=True)
         self.running_mean_std.load_state_dict(checkpoint['running_mean_std'])
@@ -332,9 +335,27 @@ class PPO(object):
 
     def restore_test(self, fn):
         checkpoint = torch.load(fn, map_location=self.device)
+        self._validate_observation_contract(checkpoint, fn)
         self.model.load_state_dict(checkpoint['model'], strict=True)
         if self.normalize_input:
             self.running_mean_std.load_state_dict(checkpoint['running_mean_std'])
+
+    def _observation_contract(self) -> dict[str, float]:
+        return {
+            'contact_force_scale': float(self.env.cfg.contact_force_scale),
+            'contact_force_noise_std': float(self.env.cfg.contact_force_noise_std),
+            'joint_noise_scale': float(self.env.cfg.joint_noise_scale),
+            'joint_zero_offset_scale': float(self.env.cfg.joint_zero_offset_scale),
+        }
+
+    def _validate_observation_contract(self, checkpoint, fn) -> None:
+        expected = self._observation_contract()
+        actual = checkpoint.get('observation_contract')
+        if actual != expected:
+            raise RuntimeError(
+                f"Stage1 checkpoint observation contract mismatch: checkpoint={actual}, "
+                f"current={expected}. Retrain Stage1 after changing input scaling or noise: {fn}"
+            )
 
     def test(self, max_steps: int = 0, real_time: bool = False):
         """Evaluate a checkpoint at the gravity configured by train.py.

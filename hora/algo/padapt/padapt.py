@@ -322,8 +322,15 @@ class ProprioAdapt(object):
         for k, v in self.direct_info.items():
             self.writer.add_scalar(f'{k}/frame', v, self.agent_steps)
 
-    @staticmethod
-    def _validate_stage2_tactile_abi(checkpoint, fn) -> None:
+    def _observation_contract(self) -> dict[str, float]:
+        return {
+            'contact_force_scale': float(self.env.cfg.contact_force_scale),
+            'contact_force_noise_std': float(self.env.cfg.contact_force_noise_std),
+            'joint_noise_scale': float(self.env.cfg.joint_noise_scale),
+            'joint_zero_offset_scale': float(self.env.cfg.joint_zero_offset_scale),
+        }
+
+    def _validate_stage2_tactile_abi(self, checkpoint, fn) -> None:
         if checkpoint.get('tactile_required') is False:
             raise RuntimeError(
                 f'Stage2 checkpoint uses the obsolete no-tactile ABI: {fn}'
@@ -332,6 +339,13 @@ class ProprioAdapt(object):
             print(
                 f'[WARN] Stage2 checkpoint has no tactile ABI metadata: {fn}',
                 flush=True,
+            )
+        expected = self._observation_contract()
+        actual = checkpoint.get('observation_contract')
+        if actual != expected:
+            raise RuntimeError(
+                f'Stage2 checkpoint observation contract mismatch: checkpoint={actual}, '
+                f'current={expected}. Retrain Stage1 and Stage2: {fn}'
             )
 
     def restore_train(self, fn):
@@ -368,6 +382,13 @@ class ProprioAdapt(object):
             return
 
         cprint('Warm-starting Stage2 adapter from Stage1 checkpoint', 'yellow', attrs=['bold'])
+        expected_contract = self._observation_contract()
+        if checkpoint.get('observation_contract') != expected_contract:
+            raise RuntimeError(
+                'Stage1 source checkpoint observation contract mismatch: '
+                f"checkpoint={checkpoint.get('observation_contract')}, current={expected_contract}. "
+                'Retrain Stage1 before Stage2.'
+            )
         incompatible = self.model.load_state_dict(checkpoint['model'], strict=False)
         expected_missing = {f'adapt_tconv.{name}' for name in self.model.adapt_tconv.state_dict()}
         actual_missing = set(incompatible.missing_keys)
@@ -415,6 +436,7 @@ class ProprioAdapt(object):
             'proprio_hist_len': int(self.proprio_hist_dim),
             'priv_info_dim': int(self.priv_info_dim),
             'tactile_required': bool(getattr(self.env.cfg, 'enable_contact_in_obs', True)),
+            'observation_contract': self._observation_contract(),
         }
         if self.running_mean_std:
             weights['running_mean_std'] = self.running_mean_std.state_dict()

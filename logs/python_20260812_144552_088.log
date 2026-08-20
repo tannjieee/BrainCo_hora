@@ -1,0 +1,43 @@
+2026-08-12T14:45:53.042462Z[INFO][src/stark/device_scanner.rs:370] Revo3 auto-detect: stop_on_first=true, port=any, protocol=any, slave_id=any, modbus_baudrate=any, broadcast=true
+2026-08-12T14:45:53.046516Z[INFO][src/stark/api/revo3_motor.rs:1108] Updated joint position limits cache for slave 127
+2026-08-12T14:45:53.046691Z[INFO][src/stark/device_scanner.rs:567] Found Revo3 Modbus device: port=/dev/ttyUSB0, slave_id=0x7F, baudrate=5M
+2026-08-12T14:45:53.161612Z[INFO][src/stark/api/device_info.rs:30] slave[127] get_device_info
+2026-08-12T14:45:53.164161Z[INFO][src/stark/api/revo3_motor.rs:1108] Updated joint position limits cache for slave 127
+2026-08-12T14:45:53.526011Z[WARNING][/home/tan/hora/BrainCo/reference/brainco-revo3-sdk/python/gui/vision_touch_widgets.py:34] pyqtgraph or its dependencies (e.g. PyOpenGL) not available: No module named 'OpenGL'. 3D visualization disabled.
+2026-08-12T14:45:53.536965Z[INFO][/home/tan/hora/BrainCo/reference/brainco-revo3-sdk/python/gui/main_window.py:347] Connected to Revo3 device: ID=127, Protocol=Modbus (RS485) @ 5.0M bps, Port=/dev/ttyUSB0
+2026-08-12T14:45:53.537093Z[INFO][/home/tan/hora/BrainCo/reference/brainco-revo3-sdk/python/gui/main_window.py:350] Touch-enabled device detected. Automatically enabling touch modules and setting default mode to Force...
+2026-08-12T14:45:53.541369Z[INFO][src/stark/data_collector.rs:147] data collector started: slave_id=127, motor_frequency=60Hz, touch_frequency=0Hz
+2026-08-12T14:45:53.545242Z[INFO][/home/tan/hora/BrainCo/reference/brainco-revo3-sdk/python/gui/touch_panel_revo3.py:1218] Touch vendor: 1 (0=Unknown, 1=Pressure, 2=Matrix)
+2026-08-12T14:45:53.883124Z[INFO][/home/tan/hora/BrainCo/reference/brainco-revo3-sdk/python/gui/touch_panel_revo3.py:1292] Pressure touch mode: forcing data type to 1 (Force Summary)
+2026-08-12T14:45:53.887687Z[INFO][/home/tan/hora/BrainCo/reference/brainco-revo3-sdk/python/gui/touch_panel_revo3.py:1314] Fetched touch modules enabled bitmask: 0b11111111111
+2026-08-12T14:45:57.887482Z[INFO][src/stark/data_collector.rs:113] Motor frequency updated: 60Hz -> 0Hz
+2026-08-12T14:45:57.887831Z[INFO][src/stark/data_collector.rs:124] Touch frequency updated: 0Hz -> 20Hz
+2026-08-12T14:45:58.212977Z[INFO][src/stark/data_collector.rs:113] Motor frequency updated: 0Hz -> 60Hz
+2026-08-12T14:45:58.215179Z[INFO][src/stark/data_collector.rs:124] Touch frequency updated: 20Hz -> 0Hz
+2026-08-12T14:45:59.183557Z[INFO][/home/tan/hora/BrainCo/reference/brainco-revo3-sdk/python/gui/vision_touch_window.py:807] Found VisionTouch device: WTUVL3194X26000EB
+2026-08-12T14:46:00.859338Z[INFO][/home/tan/hora/BrainCo/reference/brainco-revo3-sdk/python/gui/vision_touch_window.py:831] VisionTouch connected: WTUVL3194X26000EB
+2026-08-12T14:46:00.859433Z[INFO][/home/tan/hora/BrainCo/reference/brainco-revo3-sdk/python/gui/vision_touch_window.py:807] Found VisionTouch device: WTUVL2198X260001A
+2026-08-12T14:46:00.859952Z[INFO][/home/tan/hora/BrainCo/reference/brainco-revo3-sdk/python/gui/vision_touch_window.py:119] VisionTouch data collection started
+2026-08-12T14:46:02.273744Z[INFO][/home/tan/hora/BrainCo/reference/brainco-revo3-sdk/python/gui/vision_touch_window.py:831] VisionTouch connected: WTUVL2198X260001A
+2026-08-12T14:46:02.273860Z[INFO][/home/tan/hora/BrainCo/reference/brainco-revo3-sdk/python/gui/vision_touch_window.py:807] Found VisionTouch device: WTUVL3197X2600106
+2026-08-12T14:46:03.773935Z[INFO][/home/tan/hora/BrainCo/reference/brainco-revo3-sdk/python/gui/vision_touch_window.py:831] VisionTouch connected: WTUVL3197X2600106
+2026-08-12T14:46:03.774089Z[INFO][/home/tan/hora/BrainCo/reference/brainco-revo3-sdk/python/gui/vision_touch_window.py:807] Found VisionTouch device: WTUVL3195X26000EE
+2026-08-12T14:46:05.427791Z[INFO][/home/tan/hora/BrainCo/reference/brainco-revo3-sdk/python/gui/vision_touch_window.py:831] VisionTouch connected: WTUVL3195X26000EE
+2026-08-12T14:46:05.428975Z[INFO][/home/tan/hora/BrainCo/reference/brainco-revo3-sdk/python/gui/vision_touch_window.py:807] Found VisionTouch device: WTUVL3197X260010B
+2026-08-12T14:46:07.620027Z[INFO][/home/tan/hora/BrainCo/reference/brainco-revo3-sdk/python/gui/vision_touch_window.py:831] VisionTouch connected: WTUVL3197X260010B
+2026-08-12T14:46:22.808412Z[INFO][/home/tan/hora/BrainCo/reference/brainco-revo3-sdk/python/gui/vision_touch_window.py:126] VisionTouch data collection stopped
+2026-08-12T14:46:24.073246Z[INFO][/home/tan/hora/BrainCo/reference/brainco-revo3-sdk/python/gui/vision_touch_window.py:807] Found VisionTouch device: WTUVL3194X26000EB
+2026-08-12T14:46:25.484584Z[INFO][/home/tan/hora/BrainCo/reference/brainco-revo3-sdk/python/gui/vision_touch_window.py:831] VisionTouch connected: WTUVL3194X26000EB
+2026-08-12T14:46:25.484900Z[INFO][/home/tan/hora/BrainCo/reference/brainco-revo3-sdk/python/gui/vision_touch_window.py:807] Found VisionTouch device: WTUVL2198X260001A
+2026-08-12T14:46:25.485051Z[INFO][/home/tan/hora/BrainCo/reference/brainco-revo3-sdk/python/gui/vision_touch_window.py:119] VisionTouch data collection started
+2026-08-12T14:46:27.095716Z[INFO][/home/tan/hora/BrainCo/reference/brainco-revo3-sdk/python/gui/vision_touch_window.py:831] VisionTouch connected: WTUVL2198X260001A
+2026-08-12T14:46:27.095811Z[INFO][/home/tan/hora/BrainCo/reference/brainco-revo3-sdk/python/gui/vision_touch_window.py:807] Found VisionTouch device: WTUVL3197X2600106
+2026-08-12T14:46:28.579979Z[INFO][/home/tan/hora/BrainCo/reference/brainco-revo3-sdk/python/gui/vision_touch_window.py:831] VisionTouch connected: WTUVL3197X2600106
+2026-08-12T14:46:28.580234Z[INFO][/home/tan/hora/BrainCo/reference/brainco-revo3-sdk/python/gui/vision_touch_window.py:807] Found VisionTouch device: WTUVL3195X26000EE
+2026-08-12T14:46:30.281741Z[INFO][/home/tan/hora/BrainCo/reference/brainco-revo3-sdk/python/gui/vision_touch_window.py:831] VisionTouch connected: WTUVL3195X26000EE
+2026-08-12T14:46:30.281948Z[INFO][/home/tan/hora/BrainCo/reference/brainco-revo3-sdk/python/gui/vision_touch_window.py:807] Found VisionTouch device: WTUVL3197X260010B
+2026-08-12T14:46:31.777171Z[INFO][/home/tan/hora/BrainCo/reference/brainco-revo3-sdk/python/gui/vision_touch_window.py:831] VisionTouch connected: WTUVL3197X260010B
+2026-08-12T14:47:21.449164Z[INFO][src/stark/data_collector.rs:113] Motor frequency updated: 60Hz -> 0Hz
+2026-08-12T14:47:21.449488Z[INFO][src/stark/data_collector.rs:124] Touch frequency updated: 0Hz -> 20Hz
+2026-08-12T14:47:23.044325Z[INFO][src/stark/data_collector.rs:113] Motor frequency updated: 0Hz -> 60Hz
+2026-08-12T14:47:23.044704Z[INFO][src/stark/data_collector.rs:124] Touch frequency updated: 20Hz -> 0Hz

@@ -92,6 +92,8 @@ stage2:
 | 摩擦 | 手 metal_base=0.1, object_base=0.5, scale×U(0.5, 2.0) | init 一次 |
 | COM | U(-0.01, 0.01) m | init 一次 |
 | PD gains | per-joint-type base × [0.5, 2.0], 每 DOF 独立 | 每 reset |
+| 关节零位 | 每 DOF U(-0.02, 0.02) rad | 每 reset，episode 内固定 |
+| 连续触觉 | `max(0, 0.1×||F_xyz|| + N(0,0.01²))` | 每策略步 |
 | 随机外力 | force_scale=2.0, prob=0.25, decay=0.9 | 每步 |
 | 重力课程 | (0,0,-0.05) → 递增 0.05/step → 上限 10 m/s² | 自动 |
 
@@ -177,10 +179,12 @@ torque = p_gain × (target - joint_pos) - d_gain × joint_vel
 |---|---|---|
 | 0-20 | 21 | 关节位置 (归一化到 [-1,1]) |
 | 21-41 | 21 | 当前关节目标值 |
-| 42-46 | 5 | 5 指 DIP 对目标物体的过滤后合力（20Hz） |
+| 42-46 | 5 | 5 指 DIP 对目标物体的过滤后合力模长 ×0.1（20Hz） |
 
-- 关节位置加噪 ±0.02 rad
-- 接触力: 每 0.05s 从 `force_matrix_w` 读取一次，默认不额外保持旧采样值（`contact_latency=0`）
+- 关节位置白噪声: 每步 U(-0.02, 0.02) rad
+- 关节零位随机化: 每个环境、每个 DOF 在 reset 时采样 U(-0.02, 0.02) rad，episode 内保持不变
+- 连续接触力观测: `max(0, 0.1 × ||F_xyz|| + N(0, 0.01²))`
+- 接触力每 0.05s 从 `force_matrix_w` 读取一次，默认不额外保持旧采样值（`contact_latency=0`）
 - 整帧 clamp [-5, 5]
 - 观测归一化: RunningMeanStd (PPO 训练时在线更新)
 
@@ -223,7 +227,7 @@ Stage2 / ProprioAdapt 部署约定:
 
 - `history_length=3`: 传感器内部仍保留最近 3 个物理帧，训练观测不对它们做跨帧平均
 - `filter_prim_paths_expr=["/World/envs/env_.*/object"]`: 仅检测与物体的接触
-- 合力: 每个策略步从 `force_matrix_w` 读取一次当前“指尖—目标物体”过滤后合力并取模，频率 20Hz、周期 0.05s；不使用 1s 训练窗口
+- 合力: 每个策略步从 `force_matrix_w` 读取当前“指尖—目标物体”过滤后合力并取模，乘 0.1 后添加标准差 0.01 的高斯噪声并截断到非负，频率 20Hz、周期 0.05s
 - 延迟: 默认 `contact_latency=0`，每个策略步都更新；需要做 sim2real 延迟随机化时可单独调高
 - `enable_tactile=True`: 接触力写入观测
 - `enable_contact_in_obs=True` (Stage1/Stage2): actor 和 adapt_tconv 历史都保留真实触觉
@@ -232,7 +236,7 @@ Stage2 / ProprioAdapt 部署约定:
 
 观测中的 5 维接触力 = `[thumb_force, index_force, middle_force, ring_force, pinky_force]`。
 
-**Sim2real**: 仿真通过 PhysX 接触求解获取接触力，实机通过 5 路指尖触觉提供对应合力。部署前需要统一指尖顺序、牛顿单位、量程、偏置、采样周期和延迟，并用实机标定数据验证触觉分布。
+**Sim2real**: 仿真通过 PhysX 接触求解获取接触力，实机通过 5 路指尖触觉提供对应合力。实机先完成 N 单位标定，再由部署 input builder 按导出 metadata 确定性乘 0.1；部署不添加训练噪声。
 
 ---
 

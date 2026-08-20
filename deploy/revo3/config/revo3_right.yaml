@@ -1,0 +1,214 @@
+# Revo3 right-hand profile for the tactile HORA Stage-2 policy.
+#
+# Joint limits are the unscaled URDF/Isaac limits. The runtime applies the
+# policy_joint_limit_scale=0.9 required by the exported deploy metadata.
+# The SDK motor readings are absolute positions. sim2real_joint_offset below is
+# only a software coordinate transform; this runtime never writes or redefines
+# the motor's hardware zero position. Nonzero entries below are visual
+# cylinder-grasp alignment corrections in SDK M0..M20 order.
+
+robot: revo3
+hand: right
+
+action_scale: 0.041666666666666664
+default_rate_hz: 20.0
+policy_joint_limit_scale: 0.9
+
+calibration:
+  status: unverified
+
+sdk:
+  package: bc-revo3-sdk
+  version: 1.5.1
+  protocol: modbus
+  port: /dev/serial/by-id/usb-Prolific_Technology_Inc._USB-Serial_Controller_APACb111216-if00-port0
+  baudrate: 5000000
+  slave_id: 127
+  auto_detect: false
+  expected_hand: right
+  allowed_hardware_types:
+    - Revo3UltraTouch
+    - Revo3UltraVisionTouch
+  serial_allowlist: [BCUVR1205J2600002]
+
+mit:
+  kp: 1.0
+  kd: 0.1
+  effort_ma: 0.0
+  without_retry: true
+
+safety:
+  max_initial_command_delta_rad: 0.0872665
+  max_command_step_rad: 0.05
+  device_target_margin_rad: 0.000872665  # 0.05 deg inward from live device limits
+  max_tracking_error_rad: 0.4363323
+  max_tracking_error_samples: 20 #3
+  max_observation_age_s: 0.045
+  diagnostic_io_timeout_s: 2.0
+  # Absolute encoder positions may sit slightly beyond a reported lower bound;
+  # command targets remain strictly inside sdk_position_limits_deg.
+  measured_position_tolerance_rad:  0.05235988 #0.01745329  # 1.0 deg; measurements only, command limits remain strict
+  max_abs_current_ma: 10000.0  # Explicitly authorized 10 A threshold for the 200-step bench test.
+  jog_max_abs_current_ma: 500.0  # Keep the independent calibration jog at its original limit.
+  max_kp: 2.0
+  max_kd: 1.0
+  max_abs_effort_ma: 0.0
+  release_timeout_s: 0.25
+  close_timeout_s: 0.5
+  connection_timeout_s: 15.0
+
+tactile:
+  required: true
+  output_order: [thumb_DIP, index_DIP, middle_DIP, ring_DIP, little_DIP]
+  # Confirmed by pressing each physical fingertip on 2026-08-10. This list is
+  # in the policy order: thumb, index, middle, ring, little.
+  vision_touch:
+    enabled: true
+    model_dir: reference/brainco-revo3-sdk/checkpoints
+    sensor_order:
+      - WTUVL2198X260001A       # GFBCT; thumb
+      - WTUVL3197X260010B       # GFBCI; index
+      - WTUVL3194X26000EB       # GFBCI; middle
+      - WTUVL3195X26000EE       # GFBCI; ring
+      - WTUVL3197X2600106       # GFBCI; little
+    mapping_verified: true
+    calibrate_on_open: true
+    workers: 5
+    sample_period_s: 0.02
+    sample_timeout_s: 0.045
+    max_sample_age_s: 0.045
+  pressure:
+    # SDK force-summary indices for the three distal zones of each finger.
+    summary_tip_slices: [[1, 4], [10, 13], [18, 21], [26, 29], [34, 37]]
+    unit_scale_to_n: 0.001       # mN -> N
+  matrix:
+    # Physical module IDs: thumb/index/middle/ring/little fingertip.
+    tip_module_ids: [1, 3, 5, 7, 9]
+    unit_scale_to_n: 0.0001      # SDK force-mode raw unit -> N
+  calibration:
+    gain: [1.0, 1.0, 1.0, 1.0, 1.0]
+    bias_n: [0.0, 0.0, 0.0, 0.0, 0.0]
+    clip_n: [0.0, 100.0]
+
+sim2real_joint_offset:
+  order: sdk_joint_order
+  units: radians
+  values:
+    - 0.0                  # M00
+    - 0.0 #0.05235987755982989 # M01: -3 deg
+    - 0.0                  # M02
+    - 0.0 #0.23490658504                 # M03
+    - 0.0                  # M04
+    - 0.0 #0.05235987755982989 # M05: -3 deg
+    - 0.0                  # M06
+    - 0.0                  # M07
+    - 0.0                  # M08
+    - 0.0 #0.05235987755982989 # M09: -3 deg
+    - 0.0                  # M10
+    - 0.0                  # M11
+    - 0.0                  # M12
+    - 0.0 #0.05235987755982989 # M13: -3 deg
+    - 0.0                 # M14
+    - 0.0                # M15
+    - 0.0                  # M16
+    - 0.0                  # M17
+    - 0.0                  # M18
+    - 0.0                  # M19
+    - 0.226892802759 # M20: -7 deg
+
+policy_joint_order:
+  - right_index_MPR_joint
+  - right_little_MPR_joint
+  - right_middle_MPR_joint
+  - right_ring_MPR_joint
+  - right_thumb_CMP_joint
+  - right_index_MCP_joint
+  - right_little_MCP_joint
+  - right_middle_MCP_joint
+  - right_ring_MCP_joint
+  - right_thumb_CMR_joint
+  - right_index_PIP_joint
+  - right_little_PIP_joint
+  - right_middle_PIP_joint
+  - right_ring_PIP_joint
+  - right_thumb_MCP_joint
+  - right_index_DIP_joint
+  - right_little_DIP_joint
+  - right_middle_DIP_joint
+  - right_ring_DIP_joint
+  - right_thumb_PIP_joint
+  - right_thumb_DIP_joint
+
+# bc-revo3-sdk motor order M0..M20.
+sdk_joint_order:
+  - right_little_MPR_joint
+  - right_little_MCP_joint
+  - right_little_PIP_joint
+  - right_little_DIP_joint
+  - right_ring_MPR_joint
+  - right_ring_MCP_joint
+  - right_ring_PIP_joint
+  - right_ring_DIP_joint
+  - right_middle_MPR_joint
+  - right_middle_MCP_joint
+  - right_middle_PIP_joint
+  - right_middle_DIP_joint
+  - right_index_MPR_joint
+  - right_index_MCP_joint
+  - right_index_PIP_joint
+  - right_index_DIP_joint
+  - right_thumb_MCP_joint
+  - right_thumb_PIP_joint
+  - right_thumb_DIP_joint
+  - right_thumb_CMP_joint
+  - right_thumb_CMR_joint
+
+# Serial-bound motor-coordinate envelope. The four MPR ranges below match limits
+# reported live by BCUVR1205J2600002; M20 keeps the narrower product-map 75 deg cap.
+# These are checked after policy->SDK permutation and sim-to-real offset, then
+# intersected with limits read from the connected device.
+sdk_position_limits_deg:
+  right_little_MPR_joint: {lower: -30.0, upper:  10.0}
+  right_little_MCP_joint: {lower:   0.0, upper:  85.0}
+  right_little_PIP_joint: {lower:   0.0, upper:  85.0}
+  right_little_DIP_joint: {lower:   0.0, upper:  85.0}
+  right_ring_MPR_joint:   {lower: -25.0, upper:  20.0}
+  right_ring_MCP_joint:   {lower:   0.0, upper:  85.0}
+  right_ring_PIP_joint:   {lower:   0.0, upper:  85.0}
+  right_ring_DIP_joint:   {lower:   0.0, upper:  85.0}
+  right_middle_MPR_joint: {lower: -20.0, upper:  25.0}
+  right_middle_MCP_joint: {lower:   0.0, upper:  85.0}
+  right_middle_PIP_joint: {lower:   0.0, upper:  85.0}
+  right_middle_DIP_joint: {lower:   0.0, upper:  85.0}
+  right_index_MPR_joint:  {lower: -10.0, upper:  30.0}
+  right_index_MCP_joint:  {lower:   0.0, upper:  85.0}
+  right_index_PIP_joint:  {lower:   0.0, upper:  85.0}
+  right_index_DIP_joint:  {lower:   0.0, upper:  85.0}
+  right_thumb_MCP_joint:  {lower:   0.0, upper:  50.0}
+  right_thumb_PIP_joint:  {lower:   0.0, upper:  85.0}
+  right_thumb_DIP_joint:  {lower:   0.0, upper:  85.0}
+  right_thumb_CMP_joint:  {lower:   0.0, upper: 110.0}
+  right_thumb_CMR_joint:  {lower:   0.0, upper:  115.0}
+
+joint_limits:
+  right_index_MPR_joint:  {lower: -0.261800, upper:  0.261800}
+  right_little_MPR_joint: {lower: -0.261800, upper:  0.261800}
+  right_middle_MPR_joint: {lower: -0.261800, upper:  0.261800}
+  right_ring_MPR_joint:   {lower: -0.261800, upper:  0.261800}
+  right_thumb_CMP_joint:  {lower:  0.000000, upper:  1.919900}
+  right_index_MCP_joint:  {lower:  0.000000, upper:  1.483500}
+  right_little_MCP_joint: {lower:  0.000000, upper:  1.483500}
+  right_middle_MCP_joint: {lower:  0.000000, upper:  1.483500}
+  right_ring_MCP_joint:   {lower:  0.000000, upper:  1.483500}
+  right_thumb_CMR_joint:  {lower:  0.000000, upper:  2.007100}
+  right_index_PIP_joint:  {lower:  0.000000, upper:  1.483500}
+  right_little_PIP_joint: {lower:  0.000000, upper:  1.483500}
+  right_middle_PIP_joint: {lower:  0.000000, upper:  1.483500}
+  right_ring_PIP_joint:   {lower:  0.000000, upper:  1.483500}
+  right_thumb_MCP_joint:  {lower:  0.000000, upper:  0.872700}
+  right_index_DIP_joint:  {lower:  0.000000, upper:  1.483500}
+  right_little_DIP_joint: {lower:  0.000000, upper:  1.483500}
+  right_middle_DIP_joint: {lower:  0.000000, upper:  1.483500}
+  right_ring_DIP_joint:   {lower:  0.000000, upper:  1.483500}
+  right_thumb_PIP_joint:  {lower:  0.000000, upper:  1.483500}
+  right_thumb_DIP_joint:  {lower:  0.000000, upper:  1.483500}

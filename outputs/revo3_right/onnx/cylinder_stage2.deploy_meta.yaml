@@ -1,0 +1,196 @@
+export:
+  stage: stage2
+  policy_type: ProprioAdapt
+  checkpoint: /home/tan/hora/BrainCo/outputs/revo3_right/stage2_smoke2/stage2_nn/model_best_latent.ckpt
+  onnx: /home/tan/hora/BrainCo/outputs/revo3_right/onnx/cylinder_stage2.onnx
+  config_yaml: /home/tan/hora/BrainCo/outputs/revo3_right/stage2_smoke2/config_0810_115955.yaml
+  normalization_baked_in: true
+io_contract:
+  inputs:
+  - name: obs
+    shape:
+    - B
+    - 141
+    dtype: float32
+  - name: proprio_hist
+    shape:
+    - B
+    - 30
+    - 47
+    dtype: float32
+  not_inputs:
+  - name: priv_info
+    reason: Stage2 deploy does not receive privileged information. During training
+      only, env_mlp(priv_info) is used as the teacher latent target for adapt_tconv.
+  outputs:
+  - name: action
+    shape:
+    - B
+    - 21
+    dtype: float32
+  action_semantics: delta
+  action_formula: cur_targets = prev_targets + action_scale * action, then clamp to
+    scaled joint limits
+  action_scale: 0.041666666666666664
+  action_clip:
+  - -1.0
+  - 1.0
+  target_units: radians
+  policy_rate_hz: 20.0
+  chunk_size: 1
+  n_action_steps: 1
+  dynamic_batch: true
+deploy_observation_contract:
+  important: Feed raw observations with this layout. Do not apply RunningMeanStd outside
+    the ONNX graph.
+  stage2_summary: Stage2 keeps the Stage1 tactile actor observation ABI at 141 dims
+    and replaces env_mlp(priv_info) with adapt_tconv(proprio_hist). Both inputs require
+    the five measured fingertip contact-force channels.
+  joint_order:
+  - right_index_MPR_joint
+  - right_little_MPR_joint
+  - right_middle_MPR_joint
+  - right_ring_MPR_joint
+  - right_thumb_CMP_joint
+  - right_index_MCP_joint
+  - right_little_MCP_joint
+  - right_middle_MCP_joint
+  - right_ring_MCP_joint
+  - right_thumb_CMR_joint
+  - right_index_PIP_joint
+  - right_little_PIP_joint
+  - right_middle_PIP_joint
+  - right_ring_PIP_joint
+  - right_thumb_MCP_joint
+  - right_index_DIP_joint
+  - right_little_DIP_joint
+  - right_middle_DIP_joint
+  - right_ring_DIP_joint
+  - right_thumb_PIP_joint
+  - right_thumb_DIP_joint
+  joint_order_source: Isaac Lab runtime hand.data.joint_names; same order is used
+    by obs, proprio_hist, action, cur_targets, and joint limits.
+  dof_count: 21
+  dof_limits:
+    source: Isaac Lab hand.root_physx_view.get_dof_limits()
+    scaled_by: 0.9
+    lower: hand_dof_lower_limits = runtime_lower_limits * 0.9
+    upper: hand_dof_upper_limits = runtime_upper_limits * 0.9
+    unscaled_lower_rad: [-0.2618, -0.2618, -0.2618, -0.2618, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+    unscaled_upper_rad: [0.2618, 0.2618, 0.2618, 0.2618, 1.9199, 1.4835, 1.4835, 1.4835, 1.4835, 2.0071, 1.4835, 1.4835, 1.4835, 1.4835, 0.8727, 1.4835, 1.4835, 1.4835, 1.4835, 1.4835, 1.4835]
+    scaled_lower_rad: [-0.23562, -0.23562, -0.23562, -0.23562, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+    scaled_upper_rad: [0.23562, 0.23562, 0.23562, 0.23562, 1.72791, 1.33515, 1.33515, 1.33515, 1.33515, 1.80639, 1.33515, 1.33515, 1.33515, 1.33515, 0.78543, 1.33515, 1.33515, 1.33515, 1.33515, 1.33515, 1.33515]
+  single_frame_layout:
+  - name: joint_pos_unscaled
+    slice:
+    - 0
+    - 21
+    size: 21
+    units: dimensionless
+    formula: (2 * joint_pos_rad - joint_upper_rad - joint_lower_rad) / (joint_upper_rad
+      - joint_lower_rad)
+    training_noise: Stage2 training inherited env joint noise before unscale; deploy
+      should use measured joint_pos without adding noise.
+  - name: cur_targets
+    slice:
+    - 21
+    - 42
+    size: 21
+    units: radians
+    formula: previous cur_targets after delta integration and joint-limit clamp
+  - name: contact_forces
+    slice:
+    - 42
+    - 47
+    size: 5
+    units: newtons
+    order:
+    - thumb_DIP
+    - index_DIP
+    - middle_DIP
+    - ring_DIP
+    - little_DIP
+    sim_formula: norm(current object-filtered fingertip contact force), sampled once
+      per 20 Hz policy step, with optional latency hold
+  obs:
+    shape:
+    - B
+    - 141
+    window_frames: 3
+    frame_order:
+    - t-2
+    - t-1
+    - t
+    flattening: 'concat three 47-dim frames in chronological order: [frame(t-2), frame(t-1),
+      frame(t)]'
+    construction_steps:
+    - For each policy step, build one 47-dim raw frame as joint_pos_unscaled[21] +
+      cur_targets[21] + contact_forces[5].
+    - Append the frame to a 3-frame chronological obs window.
+    - Flatten the window to 141 dims.
+    - Preserve all five measured contact-force values in every frame.
+    stage2_contact_rule: 'contact_forces are required: Stage1, Stage2, and deployment
+      all use the same tactile channels.'
+    privileged_info_rule: Do not append or provide priv_info to obs. Stage2 ONNX has
+      no priv_info input.
+    contact_slices:
+    - - 42
+      - 47
+    - - 89
+      - 94
+    - - 136
+      - 141
+  proprio_hist:
+    shape:
+    - B
+    - 30
+    - 47
+    window_frames: 30
+    frame_order: oldest to newest, ending at current frame t
+    per_frame_layout: same 47-dim single_frame_layout as above
+    construction_steps:
+    - Maintain a 30-frame chronological history of raw 47-dim frames.
+    - Each history frame uses joint_pos_unscaled[21] + cur_targets[21] + contact_forces[5].
+    - Populate contact_forces[42:47] from the five real fingertip tactile channels.
+    contact_rule: Tactile contact values are required and must use the same order,
+      units, calibration, and sampling rate as the actor observation.
+  reset_initialization:
+    history_fill: On reset, fill all history frames with the current joint_pos_unscaled,
+      current cur_targets, and current contact values.
+    cur_targets_initial_value: initial joint position in radians, usually sampled
+      from grasp cache or assets.py init_joint_pos
+normalization:
+  baked_in_onnx: true
+  obs_normalizer: checkpoint['running_mean_std']
+  proprio_hist_normalizer: checkpoint['sa_mean_std']
+runtime_reference:
+  scale_keys: []
+  running_mean_std_obs_shape:
+  - 141
+  running_mean_std_hist_shape:
+  - 30
+  - 47
+  joint_order_source: Isaac Lab runtime hand.data.joint_names
+  joint_order_right_hand:
+  - right_index_MPR_joint
+  - right_little_MPR_joint
+  - right_middle_MPR_joint
+  - right_ring_MPR_joint
+  - right_thumb_CMP_joint
+  - right_index_MCP_joint
+  - right_little_MCP_joint
+  - right_middle_MCP_joint
+  - right_ring_MCP_joint
+  - right_thumb_CMR_joint
+  - right_index_PIP_joint
+  - right_little_PIP_joint
+  - right_middle_PIP_joint
+  - right_ring_PIP_joint
+  - right_thumb_MCP_joint
+  - right_index_DIP_joint
+  - right_little_DIP_joint
+  - right_middle_DIP_joint
+  - right_ring_DIP_joint
+  - right_thumb_PIP_joint
+  - right_thumb_DIP_joint
+  init_joint_pos: null

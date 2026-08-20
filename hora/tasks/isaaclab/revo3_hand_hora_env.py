@@ -29,9 +29,11 @@ class Revo3HandHoraEnv(DirectRLEnv):
     """DirectRLEnv for Revo3 right hand in-hand object rotation.
 
     Actor observation (141 dims) — 3-frame sliding window, 47 dims/frame:
-      [0:21]   joint positions, unscaled to [-1,1] via (2x - hi - lo)/(hi - lo), +-0.02 rad noise
+      [0:21]   joint positions, unscaled via (2x - hi - lo)/(hi - lo), with
+               per-step +-0.02 rad noise and per-episode +-0.02 rad zero offset
       [21:42]  current joint targets (delta-accumulated, clamped to joint limits)
-      [42:47]  object-filtered resultant forces on 5 DIP fingertips, sampled at 20 Hz
+      [42:47]  object-filtered resultant force magnitudes on 5 DIP fingertips,
+               sampled at 20 Hz, scaled by 0.1 and perturbed by Gaussian noise
 
     Privileged observation (18 dims): object position delta (3), friction (1),
       mass (1), COM (3), gravity magnitude (1), cylinder world axis (3),
@@ -62,12 +64,21 @@ class Revo3HandHoraEnv(DirectRLEnv):
     cfg: Revo3HandHoraEnvCfg
 
     def __init__(self, cfg: Revo3HandHoraEnvCfg, render_mode: str | None = None, **kwargs):
+        if cfg.contact_force_scale <= 0.0:
+            raise ValueError("contact_force_scale must be positive")
+        if cfg.contact_force_noise_std < 0.0:
+            raise ValueError("contact_force_noise_std must be non-negative")
+        if cfg.joint_noise_scale < 0.0 or cfg.joint_zero_offset_scale < 0.0:
+            raise ValueError("joint sensing noise scales must be non-negative")
         self.reset_height_lower = torch.zeros(cfg.scene.num_envs, device=cfg.sim.device)
         self.reset_height_upper = torch.zeros(cfg.scene.num_envs, device=cfg.sim.device)
 
         super().__init__(cfg, render_mode, **kwargs)
 
         self.num_hand_dofs = self.hand.num_joints
+        self.joint_zero_offsets = torch.zeros(
+            (self.num_envs, self.num_hand_dofs), dtype=torch.float, device=self.device
+        )
 
         # Canonical init joint pose from assets.py — used for cache-less reset.
         self.init_joint_pos = torch.zeros((1, self.num_hand_dofs), device=self.device)
@@ -447,6 +458,13 @@ class Revo3HandHoraEnv(DirectRLEnv):
             rand_scale = self._rand_pd_scales(self.cfg.randomize_d_gain_scale_lower, self.cfg.randomize_d_gain_scale_upper, len(env_ids), self.num_hand_dofs)
             self.d_gain[env_ids] = self._d_gain_base.unsqueeze(0) * rand_scale
 
+        # Model an encoder/calibration zero error.  Unlike joint_noise_scale,
+        # this bias is constant throughout the episode and changes only here.
+        zero_scale = float(self.cfg.joint_zero_offset_scale)
+        self.joint_zero_offsets[env_ids] = (
+            torch.rand((len(env_ids), self.num_hand_dofs), device=self.device) * 2.0 - 1.0
+        ) * zero_scale
+
         # pose cache
         ndof_cache = self.num_hand_dofs
         if self.saved_grasping_states is not None:
@@ -549,10 +567,12 @@ class Revo3HandHoraEnv(DirectRLEnv):
             [sensor.data.force_matrix_w[:, 0, 0, :] for sensor in self._contact_sensor],
             dim=1,
         )
-        contact_forces = torch.nan_to_num(torch.norm(object_contact_forces, dim=-1))
-        contact_forces[:, self._contact_body_ids_disable] = 0.0
+        # Keep contact detection in physical newtons.  Only the continuous
+        # network observation is scaled/noised below.
+        contact_forces_n = torch.nan_to_num(torch.norm(object_contact_forces, dim=-1))
+        contact_forces_n[:, self._contact_body_ids_disable] = 0.0
         if self.cfg.binary_contact:
-            binary_contacts = torch.where(contact_forces > self.cfg.contact_threshold, 1.0, 0.0)
+            binary_contacts = torch.where(contact_forces_n > self.cfg.contact_threshold, 1.0, 0.0)
             latency_samples = torch.rand_like(self.last_contacts)
             latency = torch.where(latency_samples < self.cfg.contact_latency, 1.0, 0.0)
             self.last_contacts = self.last_contacts * latency + binary_contacts * (1 - latency)
@@ -560,6 +580,11 @@ class Revo3HandHoraEnv(DirectRLEnv):
             mask = torch.where(mask < self.cfg.contact_sensor_noise, 0.0, 1.0)
             sensed_contacts = torch.where(self.last_contacts > 0.1, mask * self.last_contacts, self.last_contacts)
         else:
+            contact_forces = contact_forces_n * self.cfg.contact_force_scale
+            if self.cfg.contact_force_noise_std > 0.0:
+                contact_forces = contact_forces + torch.randn_like(contact_forces) * self.cfg.contact_force_noise_std
+            contact_forces = torch.clamp(contact_forces, min=0.0)
+            contact_forces[:, self._contact_body_ids_disable] = 0.0
             latency_samples = torch.rand_like(self.last_contacts)
             latency = torch.where(latency_samples < self.cfg.contact_latency, 1.0, 0.0)
             self.last_contacts = self.last_contacts * latency + contact_forces * (1 - latency)
@@ -579,14 +604,17 @@ class Revo3HandHoraEnv(DirectRLEnv):
 
         if not self.cfg.enable_tactile:
             sensed_contacts[:] = 0.0
-        self.extras['tactile/force_mean_n'] = sensed_contacts.mean()
-        self.extras['tactile/force_max_n'] = sensed_contacts.max()
-        self.extras['tactile/contact_rate'] = (sensed_contacts > self.cfg.contact_threshold).float().mean()
+        reported_contact_forces_n = contact_forces_n if self.cfg.enable_tactile else torch.zeros_like(contact_forces_n)
+        self.extras['tactile/force_mean_n'] = reported_contact_forces_n.mean()
+        self.extras['tactile/force_max_n'] = reported_contact_forces_n.max()
+        self.extras['tactile/contact_rate'] = (reported_contact_forces_n > self.cfg.contact_threshold).float().mean()
+        self.extras['tactile/obs_mean_scaled'] = sensed_contacts.mean()
 
         # Build the current frame and append it to a chronological ring buffer.
         joint_noise_matrix = (torch.rand(self.hand_dof_pos.shape, device=self.device) * 2.0 - 1.0) * self.cfg.joint_noise_scale
+        sensed_joint_pos = self.hand_dof_pos + self.joint_zero_offsets + joint_noise_matrix
         cur_obs_buf = unscale(
-            joint_noise_matrix + self.hand_dof_pos, 
+            sensed_joint_pos,
             self.hand_dof_lower_limits, 
             self.hand_dof_upper_limits
         ).unsqueeze(1)
@@ -599,7 +627,7 @@ class Revo3HandHoraEnv(DirectRLEnv):
         at_reset_env_ids = self.at_reset_buf.nonzero(as_tuple=False).squeeze(-1)
         ndof = self.num_hand_dofs
         self.obs_buf_lag_history[at_reset_env_ids, :, 0:ndof] = unscale(
-            self.hand_dof_pos[at_reset_env_ids],
+            self.hand_dof_pos[at_reset_env_ids] + self.joint_zero_offsets[at_reset_env_ids],
             self.hand_dof_lower_limits[at_reset_env_ids],
             self.hand_dof_upper_limits[at_reset_env_ids],
         ).clone().unsqueeze(1)
