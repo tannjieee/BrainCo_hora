@@ -74,49 +74,49 @@
       0.057255,
       0.049046
     ],
-    "cache_stem": "cache/revo3_right_grasp_perricone_eye_cream",
+    "cache_stem": "cache/revo3_right_grasp_perricone_eye_cream_corner_diagonal",
     "grasp_seed": {
       "hand_pose_profile": "custom",
       "hand_joint_pos_rad": {
         "right_thumb_CMP_joint": 1.62,
-        "right_thumb_CMR_joint": 1.12,
-        "right_thumb_MCP_joint": 0.36,
-        "right_thumb_PIP_joint": 0.21,
-        "right_thumb_DIP_joint": 0.16,
-        "right_index_MPR_joint": 0.21,
-        "right_index_MCP_joint": 1.19,
+        "right_thumb_CMR_joint": 0.95,
+        "right_thumb_MCP_joint": 0.38,
+        "right_thumb_PIP_joint": 0.24,
+        "right_thumb_DIP_joint": 0.15,
+        "right_index_MPR_joint": -0.06,
+        "right_index_MCP_joint": 1.14,
         "right_index_PIP_joint": 0.34,
-        "right_index_DIP_joint": 0.41,
-        "right_middle_MPR_joint": 0.1,
-        "right_middle_MCP_joint": 0.86,
+        "right_index_DIP_joint": 0.44,
+        "right_middle_MPR_joint": 0.01,
+        "right_middle_MCP_joint": 0.83,
         "right_middle_PIP_joint": 0.3,
         "right_middle_DIP_joint": 0.4,
         "right_ring_MPR_joint": -0.04,
-        "right_ring_MCP_joint": 0.82,
+        "right_ring_MCP_joint": 0.89,
         "right_ring_PIP_joint": 0.31,
         "right_ring_DIP_joint": 0.39,
-        "right_little_MPR_joint": -0.12,
-        "right_little_MCP_joint": 0.92,
-        "right_little_PIP_joint": 0.49,
+        "right_little_MPR_joint": -0.08,
+        "right_little_MCP_joint": 0.85,
+        "right_little_PIP_joint": 0.5,
         "right_little_DIP_joint": 0.62
       },
       "object_pos_m": [
         0.0,
         -0.08,
-        1.635
+        1.656
       ],
       "object_quat_wxyz": [
-        1.0,
-        0.0,
-        0.0,
+        0.871501126093,
+        0.347618611383,
+        -0.345900402195,
         0.0
       ]
     },
     "rotation": {
       "local_axis": [
-        0.0,
-        0.0,
-        1.0
+        0.602905180059,
+        0.605900022542,
+        0.519028425563
       ],
       "target_axis_world": [
         0.0,

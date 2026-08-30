@@ -136,6 +136,9 @@ REWARD_AND_LOSS.md              # 当前 Stage1 奖励公式、日志缩放与 P
 # 打开 21 关节实时编辑器（弧度）；滑块/数值框调整后立即更新手部姿态
 ~/IsaacLab/isaaclab.sh -p tools/view_init_pose.py \
   --task great_dinos_triceratops --num_envs 1 --edit_joints
+
+~/IsaacLab/isaaclab.sh -p tools/view_init_pose.py \
+  --task perricone_eye_cream --num_envs 1 --edit_joints
 ```
 
 `--edit_joints` 仅用于默认的冻结展示模式，不能和 `--physics` 或
