@@ -224,9 +224,8 @@ class Revo3HandHoraEnvCfg(DirectRLEnvCfg):
     randomize_friction = True
     randomize_friction_scale_lower = 0.8
     randomize_friction_scale_upper = 1.2
-    elastomer_base_friction = 0.8
-    metal_base_friction = 0.1
-    object_base_friction = 0.5
+    # Multiply USD-authored static/dynamic friction; preserve material ratios
+    # and restitution. Collection uses these same materials with scale=1.
     randomize_com = True
     randomize_com_lower = -0.003
     randomize_com_upper = 0.003

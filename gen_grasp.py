@@ -4,7 +4,8 @@ Grasp detection (reset_buf approach in _get_rewards):
   cond1: all 5 fingertips within 0.1m of object center
   cond2: >=4 fingertips each contact in >=70% of a 20-step rolling window
   cond3: after settling, >=2 live contacts and optional object-axis tilt <=10 deg
-  cond4: after settling, XY drift <=5mm and Z drift <=15mm
+  cond4: after settling, XY drift <=5mm; Z stays within initial height +/-15mm
+    throughout the episode, including settling.
 
 Gravity testing defaults to fixed -Z gravity. Six-axis cycling is opt-in after the
 fixed-gravity baseline produces stable grasps. In six-axis mode every direction
@@ -89,7 +90,7 @@ parser.add_argument(
     "--max_height_drift_m",
     type=float,
     default=0.015,
-    help="Maximum object Z drift after settling; stricter than the training reset window.",
+    help="Maximum object Z displacement from each candidate's initial height, including settling (default: 0.015m).",
 )
 parser.add_argument(
     "--gravity_mode",
@@ -637,10 +638,14 @@ class GraspGenEnv(Revo3HandHoraEnv):
         self.object.write_root_velocity_to_sim(obj_default[:, 7:], env_ids)
         self.rb_forces[env_ids, :] = 0.0
 
-        self.reset_height_lower[env_ids] = self.cfg.reset_height_lower
-        self.reset_height_upper[env_ids] = self.cfg.reset_height_upper
-
         self._refresh_lab()
+        # _get_dones compares environment-local object_pos, including during
+        # settling. Recenter its guard on this candidate instead of reusing the
+        # fixed cylinder-height defaults; use the same limit as cond_height.
+        initial_height = self.object_pos[env_ids, 2]
+        self.reset_height_lower[env_ids] = initial_height - self._max_height_drift
+        self.reset_height_upper[env_ids] = initial_height + self._max_height_drift
+
         # Record the exact initial state whose complete episode will be judged.
         # These buffers are allocated after the constructor's implicit reset,
         # so the hasattr guard only skips that one bootstrap reset.
@@ -774,6 +779,10 @@ if env_cfg.enforce_object_axis_alignment:
     print(f"  axis tilt   : <= {max_axis_tilt_deg:g}deg after settle ({direction})")
 print(f"  XY drift    : <= {1000.0 * args.max_horizontal_drift_m:g}mm after settle")
 print(f"  height drift: <= {1000.0 * args.max_height_drift_m:g}mm after settle")
+print(
+    f"  height guard: initial Z +/- {1000.0 * args.max_height_drift_m:g}mm, including settle; "
+    f"env_0=[{env.reset_height_lower[0].item():.4f}, {env.reset_height_upper[0].item():.4f}]m (env-local)"
+)
 print(f"  gravity     : {args.gravity_mode} (9.81m/s²)")
 if args.gravity_mode == "six_axis":
     print(

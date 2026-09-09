@@ -7,7 +7,7 @@ Value bootstrap: when episode truncates (timeout, not termination), the last
   value estimate bootstraps the return to avoid penalizing unfinished episodes.
 
 Gotcha — minibatch_size must divide batch_size (num_envs × horizon) exactly.
-  With the current 16-step horizon, train.py permits 2048, 4096, ... envs.
+  Defaults permit 2048, 4096, ... envs; --minibatch_size enables smaller tests.
 
 Gotcha — reward_scale: total reward × 0.01 before GAE. Env extras (scalar means)
   are logged to TensorBoard via extra_info dict.
@@ -33,6 +33,7 @@ class PPO(object):
         self.ppo_config = full_config.train.ppo
         # ---- build environment ----
         self.env = env
+        self.env_runtime = {}
         self.num_actors = self.ppo_config['num_actors']
         action_space = self.env.action_space
         self.actions_num = action_space.shape[0]
@@ -201,21 +202,46 @@ class PPO(object):
             self.model.sigma.clamp_(self.min_log_std, self.max_log_std)
 
     def model_act(self, obs_dict):
-        processed_obs = self.running_mean_std(obs_dict['obs'])
+        processed_obs = self.running_mean_std(obs_dict['obs']) if self.normalize_input else obs_dict['obs']
         input_dict = {
             'obs': processed_obs,
             'priv_info': obs_dict['priv_info'],
         }
         res_dict = self.model.act(input_dict)
-        res_dict['values'] = self.value_mean_std(res_dict['values'], True)
+        if self.normalize_value:
+            res_dict['values'] = self.value_mean_std(res_dict['values'], True)
         return res_dict
+
+    @torch.no_grad()
+    def model_value(self, obs_dict):
+        obs = obs_dict['obs']
+        if self.normalize_input:
+            obs = self.running_mean_std(obs, update_stats=False)
+        values = self.model.evaluate_value({'obs': obs, 'priv_info': obs_dict['priv_info']})
+        if self.normalize_value:
+            values = self.value_mean_std(values, unnorm=True)
+        return values
+
+    def _bootstrap_timeouts(self, rewards, infos):
+        """Only pure time limits bootstrap, using their pre-reset final state."""
+        shaped_rewards = self.reward_scale * rewards
+        if not self.value_bootstrap:
+            return shaped_rewards
+        timeouts = infos.get('time_outs')
+        terminal = infos.get('terminal_observation')
+        if terminal is not None:
+            ids = terminal['env_ids']
+            if timeouts is None or not torch.equal(ids, timeouts.nonzero(as_tuple=False).squeeze(-1)):
+                raise RuntimeError('Terminal observations do not match pure timeout environments')
+            shaped_rewards[ids] += self.gamma * self.model_value(terminal)
+        elif timeouts is not None and bool(timeouts.any()):
+            raise RuntimeError('Timeout bootstrap requires pre-reset terminal_observation from the environment')
+        return shaped_rewards
 
     def train(self):
         _t = time.time()
         _last_t = time.time()
         self.obs = self.env.reset()
-        if self.agent_steps == 0:
-            self.agent_steps = self.batch_size
         total_iters = max(1, math.ceil(self.max_agent_steps / self.batch_size))
 
         while self.agent_steps < self.max_agent_steps:
@@ -299,6 +325,8 @@ class PPO(object):
     def save(self, name):
         base_env = getattr(self.env, '_base_env', self.env)
         weights = {
+            'training_semantics_version': 2,
+            'env_runtime': self.env_runtime,
             'model': self.model.state_dict(),
             'optimizer': self.optimizer.state_dict(),
             'agent_steps': int(self.agent_steps),
@@ -321,6 +349,15 @@ class PPO(object):
         if not fn:
             return
         checkpoint = torch.load(fn, map_location=self.device)
+        previous_runtime = checkpoint.get('env_runtime', {})
+        if previous_runtime and self.env_runtime:
+            old_object = previous_runtime.get('object', {})
+            new_object = self.env_runtime.get('object', {})
+            keys = ('task', 'scale', 'object_init_pos_m', 'object_init_quat_wxyz',
+                    'rotation_axis_local', 'target_axis_world', 'hand_joint_pos_rad')
+            if (any(old_object.get(key) != new_object.get(key) for key in keys)
+                    or previous_runtime.get('grasp_cache_sha256') != self.env_runtime.get('grasp_cache_sha256')):
+                raise RuntimeError('Strict Stage1 resume task/pose/cache mismatch; use a new run or explicit --weights_only transfer')
         required_keys = [
             'model',
             'running_mean_std',
@@ -353,6 +390,12 @@ class PPO(object):
         self.best_rewards = float(checkpoint['best_rewards'])
         self.best_curriculum_rewards = float(checkpoint.get('best_curriculum_rewards', self.best_rewards))
         self.full_gravity_epochs = int(checkpoint.get('full_gravity_epochs', 0))
+        if checkpoint.get('training_semantics_version', 1) < 2:
+            # Old scores contain bootstrap estimates and cannot be compared
+            # with the corrected real-reward-only checkpoint ranking.
+            self.best_rewards = self.best_curriculum_rewards = -10000
+            self.full_gravity_epochs = 0
+            print('[WARN] Legacy PPO checkpoint: reset best-score gates for corrected timeout/value/friction semantics; --weights_only is recommended.', flush=True)
         self.last_lr = float(checkpoint['last_lr'])
         base_env = getattr(self.env, '_base_env', self.env)
         if 'gravity_magnitude' in checkpoint and hasattr(base_env, 'set_gravity_magnitude'):
@@ -531,7 +574,8 @@ class PPO(object):
                 value_preds, old_action_log_probs, advantage, old_mu, old_sigma, \
                     returns, actions, obs, priv_info = self.storage[i]
 
-                obs = self.running_mean_std(obs)
+                if self.normalize_input:
+                    obs = self.running_mean_std(obs)
                 batch_dict = {
                     'prev_actions': actions,
                     'obs': obs,
@@ -650,12 +694,11 @@ class PPO(object):
             rewards = rewards.unsqueeze(1)
             # update dones and rewards after env step
             self.storage.update_data('dones', n, self.dones)
-            shaped_rewards = self.reward_scale * rewards.clone()
-            if self.value_bootstrap and 'time_outs' in infos:
-                shaped_rewards += self.gamma * res_dict['values'] * infos['time_outs'].unsqueeze(1).float()
+            shaped_rewards = self._bootstrap_timeouts(rewards, infos)
             self.storage.update_data('rewards', n, shaped_rewards)
 
-            self.current_rewards += shaped_rewards
+            # Scores/checkpoint ranking measure real rewards, not critic estimates.
+            self.current_rewards += self.reward_scale * rewards
             self.current_raw_rewards += rewards
             self.current_lengths += 1
             done_indices = self.dones.nonzero(as_tuple=False)
@@ -693,8 +736,7 @@ class PPO(object):
             self.extra_info['policy/action_std_min'] = float(action_std.min().item())
             self.extra_info['policy/action_std_max'] = float(action_std.max().item())
 
-        res_dict = self.model_act(self.obs)
-        last_values = res_dict['values']
+        last_values = self.model_value(self.obs)
 
         self.agent_steps += self.batch_size
         self.storage.computer_return(last_values, self.gamma, self.tau)
@@ -703,9 +745,11 @@ class PPO(object):
         returns = self.storage.data_dict['returns']
         values = self.storage.data_dict['values']
         if self.normalize_value:
-            self.value_mean_std.train()
-            values = self.value_mean_std(values)
-            returns = self.value_mean_std(returns)
+            # Fit the return distribution ONCE; both tensors must use exactly
+            # the same affine transform for critic fitting and value clipping.
+            self.value_mean_std.update(returns)
+            values = self.value_mean_std(values, update_stats=False)
+            returns = self.value_mean_std(returns, update_stats=False)
             self.value_mean_std.eval()
         self.storage.data_dict['values'] = values
         self.storage.data_dict['returns'] = returns

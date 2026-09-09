@@ -3,7 +3,7 @@
 Modes:
   --physics off (default): render only, freeze sim. Check visual pose.
   --physics on: step zero actions, print obj_z/hand_z every 20 steps. Test passive stability.
-  --edit_joints: show a live editor for all hand joints in frozen mode.
+  --edit_pose / --edit_joints: edit hand joints, object pose and scale in frozen mode.
 
 Task selection uses the same object registry as grasp collection and training.
 
@@ -17,6 +17,7 @@ import argparse
 import asyncio
 import copy
 import json
+import math
 import os
 import sys
 from pathlib import Path
@@ -26,7 +27,7 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from isaaclab.app import AppLauncher
-from hora.object_registry import OBJECT_MANIFEST_PATH, OBJECT_TASK_NAMES
+from hora.object_registry import OBJECT_TASK_NAMES
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
@@ -51,9 +52,9 @@ parser.add_argument(
     help="Step physics with zero actions, useful for checking if assets.py init pose is stable.",
 )
 parser.add_argument(
-    "--edit_joints",
+    "--edit_joints", "--edit_pose",
     action="store_true",
-    help="Open a live 21-joint editor. Available in the default frozen mode.",
+    help="Edit hand joints, object position/rotation and uniform scale in frozen mode.",
 )
 parser.add_argument(
     "--joint_step",
@@ -61,7 +62,10 @@ parser.add_argument(
     default=0.01,
     help="Fine adjustment step for the joint editor, in radians (default: 0.01).",
 )
-parser.add_argument("--steps", type=int, default=0, help="Stop after this many physics steps; 0 runs until closed.")
+parser.add_argument("--position_step", type=float, default=0.001, help="Object translation drag step in meters (default: 0.001, displayed as 1 mm).")
+parser.add_argument("--rotation_step", type=float, default=1.0, help="Object rotation step in degrees (default: 1).")
+parser.add_argument("--scale_step", type=float, default=0.01, help="Uniform scale drag step (default: 0.01).")
+parser.add_argument("--steps", type=int, default=0, help="Stop after this many physics steps or frozen render frames; 0 runs until closed.")
 parser.add_argument("--gravity", type=float, default=None, help="Override downward gravity magnitude in m/s².")
 parser.add_argument("--settle_steps", type=int, default=20, help="Steps excluded from stable-phase tilt reporting.")
 parser.add_argument(
@@ -84,12 +88,14 @@ if args.gravity is not None and args.gravity < 0:
     parser.error("--gravity must be greater than or equal to 0")
 if args.settle_steps < 0:
     parser.error("--settle_steps must be greater than or equal to 0")
-if args.joint_step <= 0:
-    parser.error("--joint_step must be greater than zero")
+for step_name in ("joint_step", "position_step", "rotation_step", "scale_step"):
+    step_value = getattr(args, step_name)
+    if not math.isfinite(step_value) or step_value <= 0:
+        parser.error(f"--{step_name} must be finite and greater than zero")
 if args.edit_joints and args.physics:
-    parser.error("--edit_joints is for frozen pose editing and cannot be combined with --physics")
+    parser.error("--edit_pose/--edit_joints is for frozen pose editing and cannot be combined with --physics")
 if args.edit_joints and args.headless:
-    parser.error("--edit_joints requires a GUI; remove --headless")
+    parser.error("--edit_pose/--edit_joints requires a GUI; remove --headless")
 
 app_launcher = AppLauncher(args)
 simulation_app = app_launcher.app
@@ -100,6 +106,7 @@ from pxr import Usd, UsdGeom
 
 from hora.tasks.isaaclab import Revo3HandHoraEnv, Revo3HandHoraEnvCfg
 from hora.tasks.isaaclab.assets import configure_env_for_object_task
+from tools.initial_pose_editor import InitialPoseEditor, joint_values_dict
 
 env_cfg = Revo3HandHoraEnvCfg()
 
@@ -216,185 +223,21 @@ print(
 )
 
 
-joint_editor = None
-editor_values = None
-editor_initial_values = None
-editor_dirty = False
-
-# Human-readable order used for terminal output and manifest serialization.
-# The articulation's internal DOF order is interleaved by joint level, which is
-# efficient for simulation but awkward when hand-editing a grasp pose.
-JOINT_OUTPUT_ORDER = (
-    "right_thumb_CMP_joint",
-    "right_thumb_CMR_joint",
-    "right_thumb_MCP_joint",
-    "right_thumb_PIP_joint",
-    "right_thumb_DIP_joint",
-    "right_index_MPR_joint",
-    "right_index_MCP_joint",
-    "right_index_PIP_joint",
-    "right_index_DIP_joint",
-    "right_middle_MPR_joint",
-    "right_middle_MCP_joint",
-    "right_middle_PIP_joint",
-    "right_middle_DIP_joint",
-    "right_ring_MPR_joint",
-    "right_ring_MCP_joint",
-    "right_ring_PIP_joint",
-    "right_ring_DIP_joint",
-    "right_little_MPR_joint",
-    "right_little_MCP_joint",
-    "right_little_PIP_joint",
-    "right_little_DIP_joint",
-)
-
-
-def _joint_values_dict(values) -> dict[str, float]:
-    """Return a manifest mapping grouped by finger without changing values."""
-    values_by_name = {
-        name: round(float(value), 6) for name, value in zip(joint_names, values)
-    }
-    missing = set(values_by_name).difference(JOINT_OUTPUT_ORDER)
-    if missing:
-        raise RuntimeError(f"JOINT_OUTPUT_ORDER is missing joints: {sorted(missing)}")
-    return {name: values_by_name[name] for name in JOINT_OUTPUT_ORDER}
-
-
-def _print_edited_joint_values() -> None:
-    print(
-        "\n[JOINT EDITOR] Current manifest hand_joint_pos_rad:\n"
-        + json.dumps(_joint_values_dict(editor_values), indent=2),
-        flush=True,
-    )
-
-
-def _save_edited_joint_values() -> None:
-    """Update only this task's joint seed, re-reading the manifest at click time."""
-    if object_spec.kind != "usd":
-        message = "Built-in ball/cylinder tasks have no manifest entry to save."
-        print(f"[JOINT EDITOR] {message}", flush=True)
-        if joint_editor is not None:
-            joint_editor["status"].text = message
-        return
-
-    try:
-        manifest = json.loads(OBJECT_MANIFEST_PATH.read_text(encoding="utf-8"))
-        grasp_seed = manifest[args.task]["grasp_seed"]
-        grasp_seed["hand_pose_profile"] = "custom"
-        grasp_seed["hand_joint_pos_rad"] = _joint_values_dict(editor_values)
-        temporary_path = OBJECT_MANIFEST_PATH.with_suffix(".json.tmp")
-        temporary_path.write_text(
-            json.dumps(manifest, indent=2, ensure_ascii=False) + "\n",
-            encoding="utf-8",
-        )
-        os.replace(temporary_path, OBJECT_MANIFEST_PATH)
-    except (KeyError, OSError, TypeError, ValueError) as error:
-        message = f"Save failed: {error}"
-        print(f"[JOINT EDITOR] {message}", flush=True)
-        if joint_editor is not None:
-            joint_editor["status"].text = message
-        return
-
-
-    message = f"Saved {args.task}.grasp_seed.hand_joint_pos_rad"
-    print(f"[JOINT EDITOR] {message} -> {OBJECT_MANIFEST_PATH}", flush=True)
-    if joint_editor is not None:
-        joint_editor["status"].text = message
-
-
-def _build_joint_editor():
-    """Build an omni.ui panel whose models feed the frozen render loop."""
-    import omni.ui as ui
-
-    global editor_values, editor_initial_values, editor_dirty
-    editor_values = [float(value) for value in joint_pos]
-    editor_initial_values = list(editor_values)
-    editor_dirty = False
-
-    lower_limits = env.hand_dof_lower_limits[0].detach().cpu().tolist()
-    upper_limits = env.hand_dof_upper_limits[0].detach().cpu().tolist()
-    models = [None] * len(joint_names)
-
-    def set_joint_value(index: int, model) -> None:
-        global editor_dirty
-        # omni.ui.AbstractValueModel exposes ``as_float`` as a property in
-        # Isaac Sim 5.1 (calling it raises: TypeError: 'float' object is not callable).
-        editor_values[index] = float(model.as_float)
-        editor_dirty = True
-
-    def reset_values() -> None:
-        global editor_dirty
-        for model, value in zip(models, editor_initial_values):
-            model.set_value(value)
-        editor_dirty = True
-        editor["status"].text = "Reset to the pose loaded when the editor opened."
-
-    window = ui.Window("Revo3 initial joint pose", width=660, height=860)
-    editor = {"window": window, "models": models, "status": None}
-    with window.frame:
-        with ui.VStack(spacing=5):
-            ui.Label(
-                f"Task: {args.task}    |    values: rad    |    all {env.num_envs} envs",
-                height=24,
-            )
-            ui.Label(
-                "Drag a slider or type a value. The frozen hand updates immediately.",
-                height=22,
-            )
-            with ui.HStack(height=32, spacing=5):
-                ui.Button("Reset", clicked_fn=reset_values)
-                ui.Button("Print JSON", clicked_fn=_print_edited_joint_values)
-                ui.Button("Save to manifest.json", clicked_fn=_save_edited_joint_values)
-            status = ui.Label("Not saved. Closing Isaac Sim prints the final JSON.", height=24)
-            editor["status"] = status
-            with ui.ScrollingFrame():
-                with ui.VStack(spacing=3):
-                    for finger in ("thumb", "index", "middle", "ring", "little"):
-                        ui.Separator(height=5)
-                        ui.Label(finger.capitalize(), height=22)
-                        for index, name in enumerate(joint_names):
-                            if f"right_{finger}_" not in name:
-                                continue
-
-                            lower = float(lower_limits[index])
-                            upper = float(upper_limits[index])
-                            model = ui.SimpleFloatModel(editor_values[index])
-                            models[index] = model
-                            model.add_value_changed_fn(
-                                lambda changed_model, joint_index=index: set_joint_value(
-                                    joint_index, changed_model
-                                )
-                            )
-                            short_name = name.removeprefix("right_").removesuffix("_joint")
-                            with ui.HStack(height=26, spacing=5):
-                                ui.Label(short_name, width=150)
-                                ui.FloatSlider(
-                                    model=model,
-                                    min=lower,
-                                    max=upper,
-                                    step=args.joint_step,
-                                )
-                                ui.FloatDrag(
-                                    model=model,
-                                    min=lower,
-                                    max=upper,
-                                    step=args.joint_step,
-                                    width=90,
-                                )
-                                ui.Label(f"[{lower:+.2f}, {upper:+.2f}]", width=105)
-    return editor
-
-
+pose_editor = None
 if args.edit_joints:
-    joint_editor = _build_joint_editor()
+    pose_editor = InitialPoseEditor(
+        env, object_spec, joint_pos,
+        joint_step=args.joint_step, position_step=args.position_step,
+        rotation_step=args.rotation_step, scale_step=args.scale_step,
+    )
     print(
-        "[JOINT EDITOR] Opened. Adjust values in the panel; "
-        "use 'Save to manifest.json' to persist this task only.",
+        "[POSE EDITOR] Opened: hand joints, object position (mm), rotation (deg), scale. "
+        "Use 'Save to manifest.json' to persist this task only.",
         flush=True,
     )
 print(
     "[VIEW] Manifest hand_joint_pos_rad template:\n"
-    + json.dumps(_joint_values_dict(joint_pos), indent=2),
+    + json.dumps(joint_values_dict(joint_names, joint_pos), indent=2),
     flush=True,
 )
 
@@ -417,7 +260,9 @@ if args.screenshot is not None:
 
     capture_task = asyncio.ensure_future(capture_viewport())
     while simulation_app.is_running() and not capture_task.done():
-        simulation_app.update()
+        if pose_editor is not None:
+            pose_editor.apply()
+        env.sim.render()
     if not capture_task.done() or not capture_task.result():
         raise RuntimeError(f"Failed to capture viewport to {screenshot_path}")
     omni.kit.renderer_capture.acquire_renderer_capture_interface().wait_async_capture()
@@ -446,21 +291,19 @@ def object_axis_tilt_deg() -> torch.Tensor:
 if not args.physics:
     print("\n[VIEW] Frozen render mode.")
     print("  Showing assets.py hand init pose + assets.py object init pos.")
-    if args.edit_joints:
-        print("  Joint editor is live; adjustments are applied to every displayed environment.")
+    if pose_editor is not None:
+        print("  Hand/object editor is live; adjustments are applied to every displayed environment.")
     print("  Add --physics to step zero actions and test passive stability.\n")
     env.sim._physics_context.enabled = False  # freeze physics, render only
+    render_frames = 0
     while simulation_app.is_running():
-        if editor_dirty:
-            edited_pos = torch.tensor(
-                editor_values,
-                dtype=env.hand.data.joint_pos.dtype,
-                device=env.device,
-            ).unsqueeze(0).repeat(env.num_envs, 1)
-            env.hand.write_joint_state_to_sim(edited_pos, torch.zeros_like(edited_pos))
-            env.hand.set_joint_position_target(edited_pos)
-            editor_dirty = False
+        if pose_editor is not None:
+            pose_editor.apply()
         env.sim.render()
+        render_frames += 1
+        if args.steps and render_frames >= args.steps:
+            print(f"[RESULT] render_frames={render_frames}", flush=True)
+            break
 else:
     print("\n[PHYSICS] Stepping with zero actions.", flush=True)
     print("  Testing whether the selected initial pose can hold the object without policy action.", flush=True)
@@ -521,8 +364,8 @@ else:
             )
             break
 
-if args.edit_joints:
-    _print_edited_joint_values()
+if pose_editor is not None:
+    pose_editor.print_values()
 
 env.close()
 simulation_app.close()

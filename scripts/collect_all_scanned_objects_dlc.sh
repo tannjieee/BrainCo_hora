@@ -13,7 +13,9 @@ TASKS=(
     great_dinos_triceratops
     perricone_eye_cream
     qabsorb_coq10
+    rubber_duck
     sapota_planter
+    strawberry
     toys_r_us_foobler
     wilton_sprinkles
 )

@@ -157,7 +157,7 @@ r_work   = -0.1 * mean(abs(τ_norm * q_dot))
 
 - `rew/rotate`、`rew/xy_drift` 等显示的是 PPO 缩放后的单步分量。
 - `total_reward` 是环境原始单步奖励，没有乘 0.01。
-- `episode_rewards/step` 是缩放后的 episode return。
+- `episode_rewards/step` 是缩放后的真实 episode return，不包含超时价值补偿；best 模型也按此分数排序。
 - `episode_rewards_raw/step` 是未缩放的 episode return。
 
 ## 4. GAE 与回报
@@ -167,6 +167,10 @@ r_work   = -0.1 * mean(abs(τ_norm * q_dot))
 A_t = δ_t + γ λ (1-d_t) A_{t+1}
 R_t = A_t + V(s_t)
 ```
+
+`d_t` 包含物理终止与超时。仅纯超时（`truncated & ~terminated`）会在
+GAE 前向 `r_t` 加上 `γ V(s_final)`；`s_final` 是 reset 前末帧状态，
+不是动作前状态，也不是 reset 后的新回合状态。该补偿只进入学习目标，不计入 episode 分数。
 
 当前参数：
 
@@ -212,6 +216,9 @@ a_raw ~ Normal(mu(s), sigma)
 V_clip = V_old + clip(V_new - V_old, -0.2, 0.2)
 L_value = mean(max((V_new - R)^2, (V_clip - R)^2))
 ```
+
+每次 rollout 仅用 returns 更新一次 value RMS，再用同一份统计归一化
+旧 values 与 returns；逆归一化和末帧价值计算不更新统计量。
 
 Actor 和 critic 当前共享 `actor_mlp` 主干，末端分别使用 `mu` 和 `value` 线性层。
 

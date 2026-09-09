@@ -7,7 +7,7 @@ from the shared object registry.  This includes ball/cylinder and packaged USD o
 Cache path: {grasp_cache_path}.npy under cache/. Override with --cache_file.
 
 Gotcha — num_envs × horizon_length must be >= minibatch_size and exactly
-  divisible by it.  The current 16-step horizon permits 2048, 4096, ... envs.
+  divisible by it. Override --minibatch_size for smaller diagnostic runs.
 
 Gotcha — tactile deployment: Stage1, Stage2 actor obs, and Stage2
   proprio_hist all retain the same five fingertip contact-force channels.
@@ -16,6 +16,8 @@ Gotcha — tactile deployment: Stage1, Stage2 actor obs, and Stage2
 import argparse
 import copy
 import datetime
+import hashlib
+import math
 import os
 import subprocess
 import traceback
@@ -42,13 +44,15 @@ parser.add_argument(
 )
 parser.add_argument('--cache_file', type=str, default='', help='Override grasp cache filename under cache/.')
 parser.add_argument('--usd', type=str, default='', help='Override hand USD path.')
-parser.add_argument('--num_envs', type=int, default=16384)
+parser.add_argument('--num_envs', type=int, default=None, help='Default: 2048 for PPO, 16384 for Stage2.')
+parser.add_argument('--minibatch_size', type=int, default=None, help='PPO minibatch override; must divide num_envs * horizon_length.')
 parser.add_argument('--seed', type=int, default=42)
 parser.add_argument(
     '--max_agent_steps', type=int, default=None,
     help='Override train.ppo.max_agent_steps (useful when resuming beyond the original training budget).',
 )
-parser.add_argument(
+gravity_args = parser.add_mutually_exclusive_group()
+gravity_args.add_argument(
     '--fixed_train_gravity',
     type=float,
     default=None,
@@ -57,6 +61,10 @@ parser.add_argument(
         'Lock PPO training to this downward gravity magnitude. The value is reapplied after '
         'checkpoint restore so a saved curriculum gravity cannot override it.'
     ),
+)
+gravity_args.add_argument(
+    '--initial_train_gravity', type=float, default=None, metavar='M_S2',
+    help='Explicit PPO curriculum starting gravity for fresh/weights-only runs; overrides the strawberry full-gravity default.',
 )
 parser.add_argument('--test', action='store_true')
 parser.add_argument(
@@ -88,9 +96,24 @@ parser.add_argument('--force_overwrite', action='store_true')
 AppLauncher.add_app_launcher_args(parser)
 args = parser.parse_args()
 
+if args.num_envs is None:
+    args.num_envs = 2048 if args.algo == 'PPO' else 16384
+if args.num_envs <= 0:
+    parser.error('--num_envs must be positive')
+if args.minibatch_size is not None and args.minibatch_size <= 0:
+    parser.error('--minibatch_size must be positive')
+if args.initial_train_gravity is not None:
+    if not math.isfinite(args.initial_train_gravity) or not 0.0 < args.initial_train_gravity <= 9.81:
+        parser.error('--initial_train_gravity must be finite and in (0, 9.81]')
+    if args.test or args.algo != 'PPO' or (args.checkpoint and not args.weights_only):
+        parser.error('--initial_train_gravity is only for fresh/weights-only PPO training')
+if args.task == 'strawberry' and args.algo == 'PPO' and not args.test:
+    if args.fixed_train_gravity is None and args.initial_train_gravity is None:
+        args.fixed_train_gravity = 9.81
+        print('[INFO] Strawberry Stage1 defaults to fixed 9.81 m/s^2, matching grasp collection.', flush=True)
 if args.fixed_train_gravity is not None:
-    if args.fixed_train_gravity <= 0.0:
-        parser.error('--fixed_train_gravity must be greater than 0')
+    if not math.isfinite(args.fixed_train_gravity) or args.fixed_train_gravity <= 0.0:
+        parser.error('--fixed_train_gravity must be finite and greater than 0')
     if args.test:
         parser.error('--fixed_train_gravity is for training; --test already evaluates at 9.81 m/s^2')
     if args.algo != 'PPO':
@@ -153,8 +176,10 @@ def _build_full_config(seed: int):
     train_cfg.load_path = os.path.abspath(args.checkpoint) if args.checkpoint else ''
     train_cfg.resume_mode = 'weights_only' if args.weights_only else 'strict'
     train_cfg.ppo.output_name = args.output_name
+    if args.minibatch_size is not None:
+        train_cfg.ppo.minibatch_size = args.minibatch_size
     minibatch = train_cfg.ppo.minibatch_size
-    min_envs = minibatch // train_cfg.ppo.horizon_length
+    min_envs = math.ceil(minibatch / train_cfg.ppo.horizon_length)
     if (
         not args.test
         and args.algo == 'PPO'
@@ -162,7 +187,7 @@ def _build_full_config(seed: int):
     ):
         raise ValueError(
             f"num_envs ({args.num_envs}) must be >= {min_envs} and num_envs*horizon must be divisible "
-            f"by minibatch_size ({minibatch}). Valid num_envs: {', '.join(str(i) for i in range(min_envs, 20000, min_envs))}..."
+            f"by minibatch_size ({minibatch}); use --minibatch_size for smaller runs."
         )
     train_cfg.ppo.num_actors = args.num_envs
     if args.max_agent_steps is not None:
@@ -196,6 +221,10 @@ def _build_env_cfg(seed: int):
         env_cfg.robot_cfg.spawn.usd_path = usd_path
 
     env_cfg.scene.num_envs = args.num_envs
+    if args.algo == 'PPO':
+        env_cfg.prop_hist_len = 3  # Only Stage2 needs the 30-frame adaptation history.
+    if not args.test and not os.path.isfile(f'{env_cfg.grasp_cache_path}.npy'):
+        raise FileNotFoundError(f'Training requires grasp cache: {env_cfg.grasp_cache_path}.npy')
     if args.headless:
         env_cfg.sim.render_interval = env_cfg.decimation
 
@@ -227,10 +256,13 @@ def _save_run_metadata(output_dif: str, full_config) -> None:
 
 def _attach_env_runtime_to_config(full_config, env_cfg) -> None:
     object_spec = get_object_task_spec(env_cfg.object_task)
+    with open(f'{env_cfg.grasp_cache_path}.npy', 'rb') as cache_file:
+        cache_sha256 = hashlib.file_digest(cache_file, 'sha256').hexdigest()
     full_config.env_runtime = OmegaConf.create(
         {
             'object': object_spec.metadata(),
             'grasp_cache_path': str(env_cfg.grasp_cache_path),
+            'grasp_cache_sha256': cache_sha256,
             'enable_tactile': bool(env_cfg.enable_tactile),
             'enable_contact_in_obs': bool(env_cfg.enable_contact_in_obs),
             'contact_order': ['thumb_DIP', 'index_DIP', 'middle_DIP', 'ring_DIP', 'little_DIP'],
@@ -254,6 +286,7 @@ def _attach_env_runtime_to_config(full_config, env_cfg) -> None:
                 'work': float(env_cfg.work_penalty_scale),
             },
             'domain_randomization': {
+                'friction_mode': 'multiply_authored_static_dynamic',
                 'pd_gain_scale': (
                     float(env_cfg.randomize_p_gain_scale_lower),
                     float(env_cfg.randomize_p_gain_scale_upper),
@@ -285,6 +318,8 @@ def main():
 
     cprint('Start Building the Environment', 'green', attrs=['bold'])
     env_cfg = _build_env_cfg(seed)
+    if args.initial_train_gravity is not None:
+        env_cfg.sim.gravity = (0.0, 0.0, -float(args.initial_train_gravity))
     if args.camera_eye is not None:
         env_cfg.viewer.eye = tuple(args.camera_eye)
     if args.camera_lookat is not None:
@@ -387,6 +422,7 @@ def main():
             print(f"[INFO] Resuming Stage2 in existing run directory: {output_dif}", flush=True)
 
         _attach_env_runtime_to_config(full_config, env_cfg)
+        agent.env_runtime = OmegaConf.to_container(full_config.env_runtime, resolve=True)
         _save_run_metadata(output_dif, full_config)
         if args.weights_only:
             agent.restore_weights_only(full_config.train.load_path)
@@ -409,6 +445,20 @@ def main():
                 '(checkpoint gravity overridden; curriculum metrics retained)',
                 flush=True,
             )
+        if args.algo == 'PPO' and env_cfg.gravity_curriculum:
+            # Lower bound only: assume every curriculum window succeeds, and
+            # account for full-gravity qualification. Warn, but allow bounded
+            # smoke runs that intentionally cannot produce a best checkpoint.
+            base_env = env._base_env
+            target = max(env_cfg.gravity_curriculum_target, agent.full_gravity_magnitude - agent.full_gravity_tolerance)
+            if env_cfg.gravity_curriculum_target < agent.full_gravity_magnitude - agent.full_gravity_tolerance:
+                print('[WARN] Configured gravity target is below the full-gravity best-checkpoint gate.', flush=True)
+            gravity_windows = math.ceil(max(0.0, target - base_env._gravity_magnitude) / env_cfg.gravity_curriculum_step)
+            policy_steps = env_cfg.gravity_curriculum_warmup_steps + max(1, gravity_windows) * env_cfg.gravity_curriculum_window
+            policy_steps += agent.full_gravity_eval_epochs * agent.horizon_length
+            required_steps = policy_steps * env.num_envs
+            if agent.max_agent_steps - agent.agent_steps < required_steps:
+                print(f'[WARN] Remaining budget is below the optimistic full-gravity qualification bound ({required_steps:,} agent steps); best.pth may not be produced.', flush=True)
         agent.train()
 
 

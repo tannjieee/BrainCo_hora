@@ -15,7 +15,7 @@ ppo:
   normalize_input: True
   normalize_value: True
   value_bootstrap: True
-  num_actors: 16384          # overridden at runtime from env.num_envs
+  num_actors: 2048           # PPO CLI default; overridden at runtime from env.num_envs
   normalize_advantage: True
   reward_scale: 0.01
   gamma: 0.99

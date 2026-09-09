@@ -1,0 +1,26 @@
+#usda 1.0
+(
+    defaultPrim = "Object"
+    metersPerUnit = 1
+    upAxis = "Z"
+)
+
+def Xform "Object" (
+    prepend apiSchemas = ["PhysicsMassAPI", "PhysicsRigidBodyAPI"]
+    customData = {
+        string sourceAsset = "geometry-dex/contactdb_objects/rubber_duck.stl"
+        string sourceRevision = "0c629316258ef560b360c6103d83d5cb828e3ccd"
+    }
+)
+{
+    float physics:mass = 0.1
+    bool physics:rigidBodyEnabled = 1
+
+    def Xform "Geometry" (
+        prepend references = @./model.usd@
+    )
+    {
+        double3 xformOp:translate = (0.012762464583, 0.000000569969, 0.001811886206)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+    }
+}

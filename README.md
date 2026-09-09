@@ -79,7 +79,7 @@ REWARD_AND_LOSS.md              # 当前 Stage1 奖励公式、日志缩放与 P
 - **Checkpoint 路径**: `outputs/revo3_right/run_<task>/stage1_nn/best.pth`（Stage1）和 `outputs/revo3_right/run_<task>/stage2_nn/model_best.ckpt`（Stage2）
 - **初始姿态**: `env.init_joint_pos` 从 `assets.py` 构建，用于无 cache 时的 reset；有 cache 时每个环境从 cache 独立采样 reset 姿态，但奖励不再约束策略回到该姿态
 - **PD 控制**: 7 组 per-joint-type 基础值（thumb_CMP:16.4/0.23, thumb_CMR:0.7/0.02, thumb_flexion:1.2/0.09, DIP:8.0/0.10, MPR:0.7/0.04, MCP:0.6/0.014, PIP:0.8/0.027）。每 reset 随机化 ×[0.8,1.2] per-DOF
-- **最低 env 数**: 2048（batch_size = num_envs × 16 ≥ minibatch_size=32768 且可整除）
+- **Stage1 默认 env 数**: 2048；默认 minibatch=32768 时这是最小值。小规模验证可用 `--minibatch_size` 调整，仍需满足 `num_envs × 16` 可整除 minibatch。
 - **满重力 checkpoint**: `best.pth` 只在 9.81m/s²、低 reset、目标轴角速度 ≥0.5rad/s 且稳定旋转率 ≥30% 连续保持 25 个 PPO epoch 后更新；课程阶段最优另存为 `best_curriculum.pth`
 
 ### 扫描物体资产
@@ -94,7 +94,9 @@ REWARD_AND_LOSS.md              # 当前 Stage1 奖励公式、日志缩放与 P
 | `great_dinos_triceratops` | Great_Dinos_Triceratops_Toy | 1.7 | 118.1×77.9×134.6 |
 | `perricone_eye_cream` | Perricone_MD_Hypoallergenic_Firming_Eye_Cream_05_oz | 1.0 | 57.0×57.3×49.0 |
 | `qabsorb_coq10` | QAbsorb_CoQ10_53iUqjWjW3O | 1.0 | 57.0×57.3×99.3 |
+| `rubber_duck` | geometry-dex ContactDB rubber duck | 0.8 | 71.0×52.0×74.6 |
 | `sapota_planter` | Sapota_Threshold_4_Ceramic_Round_Planter_Red | 0.7 | 74.2×76.7×68.0 |
+| `strawberry` | Blender 3.5 Cozy Kitchen Strawberry (Wikimedia Commons, CC BY-SA 4.0) | 1.0 | 52.7×54.7×52.1 |
 | `toys_r_us_foobler` | Toys_R_Us_Treat_Dispenser_Smart_Puzzle_Foobler | 0.5 | 77.4×77.0×76.7 |
 | `wilton_sprinkles` | Wilton_Pearlized_Sugar_Sprinkles_525_oz_Gold | 1.3 | 59.5×59.3×174.8 |
 
@@ -113,7 +115,7 @@ REWARD_AND_LOSS.md              # 当前 Stage1 奖励公式、日志缩放与 P
 奖励会先把 `local_axis` 按物体四元数变换到世界系，再与
 `target_axis_world` 比较；旋转奖励直接使用物体世界角速度在
 `target_axis_world` 上的投影。抓握采集和训练读取完全相同的配置。
-六个扫描物体的 21 关节种子相互独立；当前数值是按物体尺寸生成的
+八个扫描物体的 21 关节种子相互独立；当前数值是按物体尺寸生成的
 待校准初值，开始抓握采集前应使用 `view_init_pose.py` 逐个检查穿模与接触。
 
 ### 初始位姿验证
@@ -139,16 +141,42 @@ REWARD_AND_LOSS.md              # 当前 Stage1 奖励公式、日志缩放与 P
 
 ~/IsaacLab/isaaclab.sh -p tools/view_init_pose.py \
   --task perricone_eye_cream --num_envs 1 --edit_joints
+
+# 同时调节手部关节、物体位置/旋转和大小（--edit_joints 仍兼容）
+~/IsaacLab/isaaclab.sh -p tools/view_init_pose.py \
+  --task strawberry --num_envs 1 --edit_pose
 ```
 
-`--edit_joints` 仅用于默认的冻结展示模式，不能和 `--physics` 或
-`--headless` 同时使用。面板按手指分组显示所有关节及其 USD 限位：
-`Reset` 恢复打开面板时的姿态，`Print JSON` 输出当前配置，
-`Save to manifest.json` 只保存当前扫描物体的
-`grasp_seed.hand_joint_pos_rad`。关闭 Isaac Sim 时也会在终端输出最终 JSON。
-可通过 `--joint_step 0.005` 修改数值框的微调步长。
+`--edit_pose`（别名 `--edit_joints`）仅用于默认的冻结展示模式，不能和
+`--physics` 或 `--headless` 同时使用。面板上方调节物体，下方按手指分组
+显示全部 21 个关节及其 USD 限位：
+
+- 位置 X/Y/Z 使用毫米，参考各环境的原点；旋转 Roll/Pitch/Yaw 使用度，
+  按固定 XYZ 轴旋转，保存为 `wxyz` 四元数。
+- `Uniform scale` 是相对源资产的统一缩放倍数；可直接输入或拖动，
+  `Smaller / 1.1`、`Larger x 1.1` 按钮逐次缩小/放大，并显示缩放后的局部尺寸。
+- `Reset all` 恢复打开面板时的手部、物体位姿和大小；
+  `Reset object pose and size` 只恢复物体。重置不会自动保存。
+- `Save to manifest.json` 一起保存当前扫描物体的 `scale`、
+  `grasp_seed.hand_joint_pos_rad`、`object_pos_m` 和 `object_quat_wxyz`；
+  其他任务和当前任务的旋转目标等配置保持不变。`Print JSON` 或正常关闭窗口
+  可输出这些配置。内置 ball/cylinder 支持预览和打印，没有 manifest 条目可保存。
+
+手部和物体位姿调整会同步到所有显示环境，位置会加上各自环境的原点，
+RGB 物体坐标轴随位姿更新。使用 `--cache` 时以环境 0 的加载值作为编辑起点；
+编辑不会改写已有抓握缓存。冻结预览通过临时几何层变换实现实时缩放，
+保留源资产的居中效果，不会改写 USD 文件。
+保存后重新启动采集/训练即会按新缩放创建物体及其碰撞形状。
+
+可通过 `--joint_step 0.005`（弧度）、`--position_step 0.0005`（米，即 0.5 mm）、
+`--rotation_step 0.5`（度）、`--scale_step 0.01` 调整微调步长。
+`--steps N` 也可限制冻结模式的渲染帧数，便于自动检查。
 
 ### 生成抓握缓存
+
+采集器在每次 reset 时，以该候选物体的初始高度为中心设置 **±15 mm**
+高度保护范围（`--max_height_drift_m 0.015`），稳定期内也生效。
+在位姿编辑器中改变物体高度后，保护范围会随新的初始高度更新。
 
 ```bash
 # ball -> cache/revo3_right_grasp_ball.npy
@@ -165,9 +193,9 @@ REWARD_AND_LOSS.md              # 当前 Stage1 奖励公式、日志缩放与 P
 ~/IsaacLab/isaaclab.sh -p gen_grasp.py \
   --task great_dinos_triceratops --num_envs 8192 --target_count 8192 --headless
 
-# 依次采集全部六种扫描物体
+# 依次采集全部八种扫描物体
 for task in great_dinos_triceratops perricone_eye_cream qabsorb_coq10 \
-            sapota_planter toys_r_us_foobler wilton_sprinkles; do
+            rubber_duck sapota_planter strawberry toys_r_us_foobler wilton_sprinkles; do
   ~/IsaacLab/isaaclab.sh -p gen_grasp.py \
     --task "$task" --num_envs 8192 --target_count 8192 --headless
 done
@@ -179,12 +207,15 @@ done
 conda activate env_isaaclab
 cd BrainCo_hora
 
-# Stage 1 (默认 num_envs=16384, max_agent_steps=300M)
-scripts/train_s1.sh --task ball --num_envs 16384 --headless
-scripts/train_s1.sh --task cylinder --num_envs 16384 --headless
+# Stage 1 (默认 num_envs=2048, max_agent_steps=300M)
+scripts/train_s1.sh --task ball --num_envs 2048 --headless
+scripts/train_s1.sh --task cylinder --num_envs 2048 --headless
+
+# 草莓：默认固定 9.81 m/s²，和抓握缓存采集时一致；建议新建输出目录
+scripts/train_s1.sh run_strawberry_s1_v2 --task strawberry --num_envs 2048 --headless
 
 # 扫描物体 Stage 1；默认输出 outputs/revo3_right/run_great_dinos_triceratops/
-scripts/train_s1.sh --task great_dinos_triceratops --num_envs 16384 --headless
+scripts/train_s1.sh --task great_dinos_triceratops --num_envs 2048 --headless
 
 # 本次 18 维特权观测版本建议使用新输出目录（示例为 4096 环境）
 scripts/train_s1.sh run_cylinder_v2 --task cylinder --num_envs 4096 --headless
@@ -256,6 +287,21 @@ env_mlp、动作标准差和 observation RMS，以 `warmstart_learning_rate=1e-4
 新的 `best.pth` / `best_full_gravity.pth` 必须连续 25 个 epoch 同时满足：
 满重力、窗口 reset rate 不高于 0.3%、目标轴平均角速度至少 0.50 rad/s，且
 稳定旋转帧比例至少 30%。`best_curriculum.pth` 仍只是诊断用，不应直接进入 Stage 2。
+
+Stage1 优化后的行为：
+
+- 草莓默认固定正常重力，恢复 checkpoint 后仍会重新应用；可显式指定 `--initial_train_gravity 0.5` 在新训练/`--weights_only` 训练中启用低重力课程。其他任务的重力默认不变。
+- 摩擦按 USD 原有静/动摩擦系数共同乘以 `[0.8, 1.2]`，不再把所有手部碰撞体覆盖成金属摩擦。恢复旧模型建议使用新目录及 `--weights_only`。
+- Stage1 只维护 3 帧历史；Stage2 保留 30 帧。训练仍为初始高度 ±20 mm，采集器仍为 ±15 mm。
+- 训练缺少缓存时直接报错；加载时检查形状、有限值、单位四元数和关节限位。运行配置及新 Stage1 checkpoint 记录当前物体配置和缓存 SHA-256；严格续训拒绝这些信息不匹配的新版 checkpoint。旧缓存本身没有采集配置元数据，不能据此追溯其采集时的资产/缩放。
+- 训练预算不够完成重力课程及满重力筛选时会警告；短程验证允许继续，但不会保证生成 `best.pth`。默认课程下，16384 环境到达正常重力至少需要约 337.5M 环境步。
+
+回归验证（不写真实缓存或正式训练输出）：
+
+```bash
+python -m unittest discover -s tests -p test_stage1_core.py -v
+~/IsaacLab/isaaclab.sh -p tests/check_stage1_integration.py
+```
 
 ### 推理可视化
 

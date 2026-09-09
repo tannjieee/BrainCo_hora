@@ -194,6 +194,71 @@
     },
     "fingertip_near_threshold_m": 0.1
   },
+  "rubber_duck": {
+    "display_name": "Rubber duck",
+    "usd": "rubber_duck/training.usda",
+    "source_usd": "rubber_duck/model.usd",
+    "scale": 0.8800000000000001,
+    "source_size_m": [
+      0.088739969,
+      0.064999998,
+      0.093310829
+    ],
+    "cache_stem": "cache/revo3_right_grasp_rubber_duck",
+    "grasp_seed": {
+      "hand_pose_profile": "custom",
+      "hand_joint_pos_rad": {
+        "right_thumb_CMP_joint": 1.63,
+        "right_thumb_CMR_joint": 1.16,
+        "right_thumb_MCP_joint": 0.36,
+        "right_thumb_PIP_joint": 0.17,
+        "right_thumb_DIP_joint": 0.14,
+        "right_index_MPR_joint": 0.19,
+        "right_index_MCP_joint": 1.1,
+        "right_index_PIP_joint": 0.27,
+        "right_index_DIP_joint": 0.17,
+        "right_middle_MPR_joint": 0.1,
+        "right_middle_MCP_joint": 0.98,
+        "right_middle_PIP_joint": 0.31,
+        "right_middle_DIP_joint": 0.17,
+        "right_ring_MPR_joint": -0.05,
+        "right_ring_MCP_joint": 0.95,
+        "right_ring_PIP_joint": 0.25,
+        "right_ring_DIP_joint": 0.25,
+        "right_little_MPR_joint": -0.16,
+        "right_little_MCP_joint": 1.07,
+        "right_little_PIP_joint": 0.21,
+        "right_little_DIP_joint": 0.25
+      },
+      "object_pos_m": [
+        -0.003,
+        -0.077,
+        1.67
+      ],
+      "object_quat_wxyz": [
+        1.0,
+        -0.0,
+        0.0,
+        0.0
+      ]
+    },
+    "rotation": {
+      "local_axis": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "target_axis_world": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "axis_bidirectional": false,
+      "enforce_axis_alignment": true,
+      "tilt_tolerance_deg": 10.0
+    },
+    "fingertip_near_threshold_m": 0.1
+  },
   "sapota_planter": {
     "display_name": "Sapota_Threshold_4_Ceramic_Round_Planter_Red",
     "usd": "sapota_planter/training.usda",
@@ -388,5 +453,70 @@
       "tilt_tolerance_deg": 10.0
     },
     "fingertip_near_threshold_m": 0.12
+  },
+  "strawberry": {
+    "display_name": "Strawberry",
+    "usd": "strawberry/training.usda",
+    "source_usd": "strawberry/model.usd",
+    "scale": 1.4641000000000006,
+    "source_size_m": [
+      0.052744567,
+      0.054721743,
+      0.052101374
+    ],
+    "cache_stem": "cache/revo3_right_grasp_strawberry",
+    "grasp_seed": {
+      "hand_pose_profile": "custom",
+      "hand_joint_pos_rad": {
+        "right_thumb_CMP_joint": 1.62,
+        "right_thumb_CMR_joint": 0.95,
+        "right_thumb_MCP_joint": 0.34,
+        "right_thumb_PIP_joint": 0.24,
+        "right_thumb_DIP_joint": 0.15,
+        "right_index_MPR_joint": -0.05,
+        "right_index_MCP_joint": 1.23,
+        "right_index_PIP_joint": 0.22,
+        "right_index_DIP_joint": 0.36,
+        "right_middle_MPR_joint": 0.01,
+        "right_middle_MCP_joint": 0.94,
+        "right_middle_PIP_joint": 0.24,
+        "right_middle_DIP_joint": 0.38,
+        "right_ring_MPR_joint": -0.04,
+        "right_ring_MCP_joint": 0.84,
+        "right_ring_PIP_joint": 0.41,
+        "right_ring_DIP_joint": 0.25,
+        "right_little_MPR_joint": -0.1,
+        "right_little_MCP_joint": 1.01,
+        "right_little_PIP_joint": 0.34,
+        "right_little_DIP_joint": 0.36
+      },
+      "object_pos_m": [
+        0.005,
+        -0.074,
+        1.663
+      ],
+      "object_quat_wxyz": [
+        0.9145187862775208,
+        0.27959645173537345,
+        -0.27959645173537345,
+        0.08548121372247917
+      ]
+    },
+    "rotation": {
+      "local_axis": [
+        0.5591929034707469,
+        0.46359192728339377,
+        0.687303296707956
+      ],
+      "target_axis_world": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "axis_bidirectional": false,
+      "enforce_axis_alignment": true,
+      "tilt_tolerance_deg": 10.0
+    },
+    "fingertip_near_threshold_m": 0.1
   }
 }

@@ -7,7 +7,6 @@
 from __future__ import annotations
 import os
 
-import numpy as np
 import torch
 from collections.abc import Sequence
 from typing import TYPE_CHECKING
@@ -20,6 +19,7 @@ from isaaclab.envs import DirectRLEnv
 from isaaclab.sim.spawners.from_files import GroundPlaneCfg, spawn_ground_plane
 from isaaclab.sensors import ContactSensor
 from isaaclab.utils.math import quat_conjugate, quat_mul, saturate
+from hora.utils.grasp_cache import load_grasp_cache
 
 if TYPE_CHECKING:
     from .revo3_hand_hora_env_cfg import Revo3HandHoraEnvCfg
@@ -176,7 +176,10 @@ class Revo3HandHoraEnv(DirectRLEnv):
         self.scale_ids = torch.zeros(self.num_envs, 1, device=self.device, dtype=torch.int32)
         cache_path = f"{self.cfg.grasp_cache_path}.npy"
         if os.path.exists(cache_path):
-            self.saved_grasping_states = torch.from_numpy(np.load(cache_path)).float().to(self.device)
+            self.saved_grasping_states = torch.from_numpy(load_grasp_cache(cache_path, self.num_hand_dofs)).to(self.device)
+            joints = self.saved_grasping_states[:, :self.num_hand_dofs]
+            if bool(((joints < self.hand_dof_lower_limits[0] - 1e-4) | (joints > self.hand_dof_upper_limits[0] + 1e-4)).any()):
+                raise ValueError(f'{cache_path}: cached joints exceed current control limits; check hand USD/joint ordering')
             self.bucket_grasp = self.saved_grasping_states.shape[0]
             self.bucket_env = self.num_envs
         else:
@@ -196,24 +199,26 @@ class Revo3HandHoraEnv(DirectRLEnv):
         self.last_contacts = torch.zeros((self.num_envs, len(self._contact_body_ids)), dtype=torch.float, device=self.device)
         self.elastomer_ids = [self.hand.body_names.index(body_name) for body_name in self.cfg.elastomer_body_names]
 
-        # randomize
+        # Scale authored materials instead of replacing every hand collider
+        # (including fingertips) with the metal coefficient. Scale=1 must
+        # reproduce the same friction as grasp collection.
+        self.priv_info_buf[:, 3] = 1.0
         if self.cfg.randomize_friction:
             rand_friction = torch.empty(self.num_envs).uniform_(self.cfg.randomize_friction_scale_lower, self.cfg.randomize_friction_scale_upper)
             rand_friction = rand_friction.reshape(self.num_envs, 1)
-            rand_friction_object = rand_friction.clone() * self.cfg.object_base_friction
-            self.set_friction(self.object, rand_friction_object, self.num_envs)
-            n_hand_mats = self.hand.root_physx_view.get_material_properties().shape[1]
-            rand_friction_hand = rand_friction.clone().repeat(1, n_hand_mats) * self.cfg.metal_base_friction
-            self.set_friction(self.hand, rand_friction_hand, self.num_envs)
+            for asset in (self.hand, self.object):
+                materials = asset.root_physx_view.get_material_properties().clone()
+                materials[..., :2] *= rand_friction.unsqueeze(-1)
+                asset.root_physx_view.set_material_properties(materials, torch.arange(self.num_envs, device='cpu'))
             self.priv_info_buf[:, 3] = rand_friction.squeeze()
         if self.cfg.randomize_com:
             rand_com = torch.empty([self.num_envs, 3]).uniform_(self.cfg.randomize_com_lower, self.cfg.randomize_com_upper)
             self.set_com(self.object, rand_com, self.num_envs)
-            self.priv_info_buf[:, 5:8] = self.object.root_physx_view.get_coms().reshape(self.num_envs, -1)[:, :3]
         if self.cfg.randomize_mass:
             rand_mass = torch.empty(self.num_envs).uniform_(self.cfg.randomize_mass_lower, self.cfg.randomize_mass_upper)
             self.set_mass(self.object, rand_mass, self.num_envs)
-            self.priv_info_buf[:, 4] = self.object.root_physx_view.get_masses().reshape(self.num_envs)
+        self.priv_info_buf[:, 5:8] = self.object.root_physx_view.get_coms().reshape(self.num_envs, -1)[:, :3]
+        self.priv_info_buf[:, 4] = self.object.root_physx_view.get_masses().reshape(self.num_envs)
 
         # physics_sim_view
         self.physics_sim_view: physx.SimulationView = sim_utils.SimulationContext.instance().physics_sim_view
@@ -445,6 +450,7 @@ class Revo3HandHoraEnv(DirectRLEnv):
         self.extras['stable_rotation_rate'] = stable_rotation_bonus.mean()
         self.extras['reverse_rotation_rate'] = (target_axis_angvel < 0.0).float().mean()
         self.extras['total_reward'] = total_reward.mean()
+        self._capture_timeout_observations()
         return total_reward
 
     def _get_dones(self) -> tuple[torch.Tensor, torch.Tensor]:
@@ -585,8 +591,10 @@ class Revo3HandHoraEnv(DirectRLEnv):
         self.object_default_pose[env_ids, 3:7] = object_default_state[:, 3:7]
         self.rb_forces[env_ids, :] = 0.0
 
-        self.reset_height_lower[env_ids] = object_default_state[:, 2] - (self.cfg.reset_height_upper - self.cfg.reset_height_lower) / 2
-        self.reset_height_upper[env_ids] = object_default_state[:, 2] + (self.cfg.reset_height_upper - self.cfg.reset_height_lower) / 2
+        # Height checks use env-local positions, including on nonzero-Z origins.
+        initial_height = object_default_state[:, 2] - self.scene.env_origins[env_ids, 2]
+        self.reset_height_lower[env_ids] = initial_height - (self.cfg.reset_height_upper - self.cfg.reset_height_lower) / 2
+        self.reset_height_upper[env_ids] = initial_height + (self.cfg.reset_height_upper - self.cfg.reset_height_lower) / 2
 
         # reset hand
         hand_default_state = self.hand.data.default_root_state.clone()[env_ids]
@@ -638,57 +646,81 @@ class Revo3HandHoraEnv(DirectRLEnv):
             except Exception:
                 pass
 
-    def compute_observations(self):
+    def _sample_contacts(self, env_ids=slice(None)):
         # Object-filtered resultant force for each fingertip, sampled exactly
         # once per policy step (20 Hz / 0.05 s).  force_matrix_w excludes
         # self-collision and contacts with anything except the target object.
         object_contact_forces = torch.stack(
-            [sensor.data.force_matrix_w[:, 0, 0, :] for sensor in self._contact_sensor],
+            [sensor.data.force_matrix_w[env_ids, 0, 0, :] for sensor in self._contact_sensor],
             dim=1,
         )
         contact_forces = torch.nan_to_num(torch.norm(object_contact_forces, dim=-1))
         contact_forces[:, self._contact_body_ids_disable] = 0.0
-        if self.cfg.binary_contact:
-            binary_contacts = torch.where(contact_forces > self.cfg.contact_threshold, 1.0, 0.0)
-            latency_samples = torch.rand_like(self.last_contacts)
-            latency = torch.where(latency_samples < self.cfg.contact_latency, 1.0, 0.0)
-            self.last_contacts = self.last_contacts * latency + binary_contacts * (1 - latency)
-            mask = torch.rand_like(self.last_contacts)
-            mask = torch.where(mask < self.cfg.contact_sensor_noise, 0.0, 1.0)
-            sensed_contacts = torch.where(self.last_contacts > 0.1, mask * self.last_contacts, self.last_contacts)
-        else:
-            latency_samples = torch.rand_like(self.last_contacts)
-            latency = torch.where(latency_samples < self.cfg.contact_latency, 1.0, 0.0)
-            self.last_contacts = self.last_contacts * latency + contact_forces * (1 - latency)
-            sensed_contacts = self.last_contacts.clone()
-
-        # contact_pos computation retained for future reference (always zeroed: enable_contact_pos=False)
-        # not_contact_mask = sensed_contacts < 1.0e-6
-        # not_contact_mask[:, self._contact_body_ids_disable] = True
-        # contact_mask = ~not_contact_mask
-        # contact_pos = torch.cat([self._contact_sensor[id].data.contact_pos_w[:, 0, 0, :].unsqueeze(1) for id in self._contact_body_ids], dim=1)
-        # contact_pos = torch.nan_to_num(contact_pos, nan=0.0)
-        # contact_pos[contact_mask, :] = transform_between_frames(contact_pos[contact_mask, :] - tactile_frame_pos[contact_mask, :], world_quat[contact_mask, :], tactile_frame_quat[contact_mask, :])
-        # contact_pos[not_contact_mask, :] = 0.0
-        # contact_pos = contact_pos.reshape(self.num_envs, -1)
-        # if not self.cfg.enable_contact_pos:
-        #     contact_pos[:] = 0.0
-
+        readings = (contact_forces > self.cfg.contact_threshold).float() if self.cfg.binary_contact else contact_forces
+        if self.cfg.contact_latency > 0.0:
+            delayed = torch.rand_like(readings) < self.cfg.contact_latency
+            readings = torch.where(delayed, self.last_contacts[env_ids], readings)
+        self.last_contacts[env_ids] = readings
+        sensed_contacts = readings.clone()
+        if self.cfg.binary_contact and self.cfg.contact_sensor_noise > 0.0:
+            sensed_contacts *= (torch.rand_like(readings) >= self.cfg.contact_sensor_noise).float()
         if not self.cfg.enable_tactile:
             sensed_contacts[:] = 0.0
+        return sensed_contacts
+
+    def _observation_frame(self, sensed_contacts, env_ids=slice(None)):
+        positions = self.hand_dof_pos[env_ids]
+        joint_noise = (torch.rand_like(positions) * 2.0 - 1.0) * self.cfg.joint_noise_scale
+        normalized_positions = unscale(
+            positions + joint_noise,
+            self.hand_dof_lower_limits[env_ids], self.hand_dof_upper_limits[env_ids],
+        )
+        return torch.cat([normalized_positions, self.cur_targets[env_ids], sensed_contacts], dim=-1)
+
+    def _privileged_observations(self, env_ids=slice(None)):
+        priv = self.priv_info_buf[env_ids].clone()
+        priv[:, 0:3] = self.object_pos[env_ids] - self.object_default_pose[env_ids, :3]
+        priv[:, 8] = self._gravity_magnitude
+        priv[:, 9:12] = rotate_axis_by_quat(self.object_rotation_axis_local[env_ids], self.object_rot[env_ids])
+        priv[:, 12:15] = self.object_angvel[env_ids]
+        priv[:, 15:18] = self.object_linvel[env_ids]
+        return priv
+
+    def _capture_timeout_observations(self):
+        """Snapshot s_(t+1) before DirectRLEnv resets pure time limits.
+
+        Assemble only the selected rows: do not advance the shared history
+        index or resample contacts for ongoing environments. Reset will clear
+        the sampled contact state for the timed-out rows afterwards.
+        """
+        ids = (self.reset_time_outs & ~self.reset_terminated).nonzero(as_tuple=False).squeeze(-1)
+        self.extras['terminal_observation'] = None
+        if ids.numel() == 0:
+            return
+        contacts = self._sample_contacts(ids)
+        frame = self._observation_frame(contacts, ids)
+        indices = torch.tensor(
+            [(self._obs_history_index - 1) % self._obs_history_len, self._obs_history_index],
+            device=self.device,
+        )
+        previous = self.obs_buf_lag_history[ids].index_select(1, indices)
+        history = torch.cat([previous, frame.unsqueeze(1)], dim=1)
+        if not self.cfg.enable_contact_in_obs:
+            history[:, :, self.num_hand_dofs * 2:] = 0.0
+        self.extras['terminal_observation'] = {
+            'env_ids': ids,
+            'obs': history.reshape(len(ids), -1),
+            'priv_info': self._privileged_observations(ids),
+        }
+
+    def compute_observations(self):
+        sensed_contacts = self._sample_contacts()
         self.extras['tactile/force_mean_n'] = sensed_contacts.mean()
         self.extras['tactile/force_max_n'] = sensed_contacts.max()
         self.extras['tactile/contact_rate'] = (sensed_contacts > self.cfg.contact_threshold).float().mean()
 
         # Build the current frame and append it to a chronological ring buffer.
-        joint_noise_matrix = (torch.rand(self.hand_dof_pos.shape, device=self.device) * 2.0 - 1.0) * self.cfg.joint_noise_scale
-        cur_obs_buf = unscale(
-            joint_noise_matrix + self.hand_dof_pos, 
-            self.hand_dof_lower_limits, 
-            self.hand_dof_upper_limits
-        ).unsqueeze(1)
-        cur_tar_buf = self.cur_targets[:, None]
-        cur_frame = torch.cat([cur_obs_buf, cur_tar_buf, sensed_contacts.unsqueeze(1)], dim=-1).squeeze(1)
+        cur_frame = self._observation_frame(sensed_contacts)
         self._obs_history_index = (self._obs_history_index + 1) % self._obs_history_len
         self.obs_buf_lag_history[:, self._obs_history_index] = cur_frame
 
@@ -715,14 +747,7 @@ class Revo3HandHoraEnv(DirectRLEnv):
                 obs_buf[:, f * obs_single + ndof * 2:f * obs_single + ndof * 2 + 5] = 0.0
 
         self.proprio_hist_buf = chronological_history[:, -self.cfg.prop_hist_len:]
-        self.priv_info_buf[:, 0:3] = self.object_pos - self.object_default_pose[:, :3]
-        object_axis_world = rotate_axis_by_quat(
-            self.object_rotation_axis_local, self.object_rot
-        )
-        self.priv_info_buf[:, 8] = self._gravity_magnitude
-        self.priv_info_buf[:, 9:12] = object_axis_world
-        self.priv_info_buf[:, 12:15] = self.object_angvel
-        self.priv_info_buf[:, 15:18] = self.object_linvel
+        self.priv_info_buf[:] = self._privileged_observations()
 
         return obs_buf
     

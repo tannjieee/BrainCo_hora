@@ -1,0 +1,28 @@
+#usda 1.0
+(
+    defaultPrim = "Object"
+    metersPerUnit = 1
+    upAxis = "Z"
+)
+
+def Xform "Object" (
+    prepend apiSchemas = ["PhysicsMassAPI", "PhysicsRigidBodyAPI"]
+    customData = {
+        string sourceAsset = "Wikimedia Commons: Splashscreen Blender 3.5 – Cozy Kitchen Strawberry.stl"
+        string sourceUrl = "https://commons.wikimedia.org/wiki/File:Splashscreen_Blender_3.5_%E2%80%93_Cozy_Kitchen_Strawberry.stl"
+        string sourceLicense = "CC BY-SA 4.0"
+        string processing = "Quadric decimation: 1196032 -> 79999 triangles"
+    }
+)
+{
+    float physics:mass = 0.1
+    bool physics:rigidBodyEnabled = 1
+
+    def Xform "Geometry" (
+        prepend references = @./model.usd@
+    )
+    {
+        double3 xformOp:translate = (-0.628559261560, -0.353618487716, -1.754831671715)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+    }
+}

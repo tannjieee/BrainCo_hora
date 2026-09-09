@@ -39,12 +39,24 @@ class RunningMeanStd(nn.Module):
         new_count = tot_count
         return new_mean, new_var, new_count
 
-    def forward(self, input, unnorm=False):
-        if self.training:
-            mean = input.mean(self.axis) # along channel axis
-            var = input.var(self.axis)
-            self.running_mean, self.running_var, self.count = self._update_mean_var_count_from_moments(self.running_mean, self.running_var, self.count, 
-                                                    mean, var, input.size()[0] )
+    @torch.no_grad()
+    def update(self, input):
+        """Update population moments once; singleton batches remain finite."""
+        mean = input.mean(self.axis)
+        var = input.var(self.axis, unbiased=False)
+        batch_count = input.numel() // mean.numel()
+        mean, var, count = self._update_mean_var_count_from_moments(
+            self.running_mean, self.running_var, self.count, mean, var, batch_count
+        )
+        self.running_mean.copy_(mean)
+        self.running_var.copy_(var)
+        self.count.copy_(count)
+
+    def forward(self, input, unnorm=False, update_stats=None):
+        # Inverse normalization must never learn moments of normalized values.
+        should_update = self.training if update_stats is None else update_stats
+        if should_update and not unnorm:
+            self.update(input)
 
         # change shape
         if self.per_channel:

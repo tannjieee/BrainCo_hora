@@ -1,0 +1,10 @@
+Strawberry mesh
+
+Source: Splashscreen Blender 3.5 – Cozy Kitchen Strawberry.stl
+https://commons.wikimedia.org/wiki/File:Splashscreen_Blender_3.5_%E2%80%93_Cozy_Kitchen_Strawberry.stl
+
+Original license: Creative Commons Attribution-ShareAlike 4.0 International
+https://creativecommons.org/licenses/by-sa/4.0/
+
+Local processing: quadric decimation from 1,196,032 to 79,999 triangles,
+then imported to USD with Isaac Lab MeshConverter and convex decomposition.

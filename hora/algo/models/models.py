@@ -97,6 +97,11 @@ class ActorCritic(nn.Module):
         return result
 
     @torch.no_grad()
+    def evaluate_value(self, obs_dict):
+        """Evaluate the critic without sampling an unused action."""
+        return self._actor_critic(obs_dict)[2]
+
+    @torch.no_grad()
     def act_inference(self, obs_dict):
         # inference: deterministic μ, no sampling
         mu, logstd, value, _, _ = self._actor_critic(obs_dict)

@@ -63,7 +63,8 @@ class HoraCompatWrapper:
         for k, v in getattr(self._base_env, "extras", {}).items():
             if isinstance(v, torch.Tensor):
                 infos[k] = v.float().mean()
-        infos["time_outs"] = truncated
+        # A physical failure on the last frame is still a true termination.
+        infos["time_outs"] = truncated & ~terminated
         return obs_dict, rewards, dones, infos
 
     def __getattr__(self, name: str):
