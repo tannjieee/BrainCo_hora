@@ -1,0 +1,58 @@
+#usda 1.0
+(
+    defaultPrim = "Object"
+    metersPerUnit = 1
+    upAxis = "Z"
+)
+def Xform "Object" (
+    prepend apiSchemas = ["PhysicsMassAPI", "PhysicsRigidBodyAPI"]
+)
+{
+    float physics:mass = 0.1
+    bool physics:rigidBodyEnabled = true
+    def Xform "Geometry"
+    {
+        float3 xformOp:scale = (1, 1, 1)
+        uniform token[] xformOpOrder = ["xformOp:scale"]
+        def Mesh "Mesh" (
+            prepend apiSchemas = ["PhysicsCollisionAPI", "PhysicsMeshCollisionAPI", "MaterialBindingAPI"]
+        )
+        {
+            bool physics:collisionEnabled = true
+            uniform token physics:approximation = "convexDecomposition"
+            uniform token subdivisionScheme = "none"
+            uniform token orientation = "rightHanded"
+            point3f[] points = [(0.03, 0, -0.035), (0.02121320344, 0.02121320344, -0.035), (0, 0.03, -0.035), (-0.02121320344, 0.02121320344, -0.035), (-0.03, 0, -0.035), (-0.02121320344, -0.02121320344, -0.035), (0, -0.03, -0.035), (0.02121320344, -0.02121320344, -0.035), (0.03, 0, 0.035), (0.02121320344, 0.02121320344, 0.035), (0, 0.03, 0.035), (-0.02121320344, 0.02121320344, 0.035), (-0.03, 0, 0.035), (-0.02121320344, -0.02121320344, 0.035), (0, -0.03, 0.035), (0.02121320344, -0.02121320344, 0.035)]
+            int[] faceVertexCounts = [8, 8, 4, 4, 4, 4, 4, 4, 4, 4]
+            int[] faceVertexIndices = [7, 6, 5, 4, 3, 2, 1, 0, 8, 9, 10, 11, 12, 13, 14, 15, 0, 1, 9, 8, 1, 2, 10, 9, 2, 3, 11, 10, 3, 4, 12, 11, 4, 5, 13, 12, 5, 6, 14, 13, 6, 7, 15, 14, 7, 0, 8, 15]
+            normal3f[] normals = [(0, 0, -1), (0, 0, -1), (0, 0, -1), (0, 0, -1), (0, 0, -1), (0, 0, -1), (0, 0, -1), (0, 0, -1), (0, 0, 1), (0, 0, 1), (0, 0, 1), (0, 0, 1), (0, 0, 1), (0, 0, 1), (0, 0, 1), (0, 0, 1), (0.9238795325, 0.3826834324, 0), (0.9238795325, 0.3826834324, 0), (0.9238795325, 0.3826834324, 0), (0.9238795325, 0.3826834324, 0), (0.3826834324, 0.9238795325, 0), (0.3826834324, 0.9238795325, 0), (0.3826834324, 0.9238795325, 0), (0.3826834324, 0.9238795325, 0), (-0.3826834324, 0.9238795325, 0), (-0.3826834324, 0.9238795325, 0), (-0.3826834324, 0.9238795325, 0), (-0.3826834324, 0.9238795325, 0), (-0.9238795325, 0.3826834324, 0), (-0.9238795325, 0.3826834324, 0), (-0.9238795325, 0.3826834324, 0), (-0.9238795325, 0.3826834324, 0), (-0.9238795325, -0.3826834324, 0), (-0.9238795325, -0.3826834324, 0), (-0.9238795325, -0.3826834324, 0), (-0.9238795325, -0.3826834324, 0), (-0.3826834324, -0.9238795325, 0), (-0.3826834324, -0.9238795325, 0), (-0.3826834324, -0.9238795325, 0), (-0.3826834324, -0.9238795325, 0), (0.3826834324, -0.9238795325, 0), (0.3826834324, -0.9238795325, 0), (0.3826834324, -0.9238795325, 0), (0.3826834324, -0.9238795325, 0), (0.9238795325, -0.3826834324, 0), (0.9238795325, -0.3826834324, 0), (0.9238795325, -0.3826834324, 0), (0.9238795325, -0.3826834324, 0)] (
+                interpolation = "faceVarying"
+            )
+            float3[] extent = [(-0.03, -0.03, -0.035), (0.03, 0.03, 0.035)]
+            rel material:binding = </Object/Looks/Blue>
+            rel material:binding:physics = </Object/Looks/Contact>
+        }
+    }
+    def Scope "Looks"
+    {
+        def Material "Blue"
+        {
+            token outputs:surface.connect = </Object/Looks/Blue/Shader.outputs:surface>
+            def Shader "Shader"
+            {
+                uniform token info:id = "UsdPreviewSurface"
+                color3f inputs:diffuseColor = (0.12, 0.4, 0.8)
+                float inputs:roughness = 0.55
+                token outputs:surface
+            }
+        }
+        def Material "Contact" (
+            prepend apiSchemas = ["PhysicsMaterialAPI"]
+        )
+        {
+            float physics:staticFriction = 1
+            float physics:dynamicFriction = 1
+            float physics:restitution = 0
+        }
+    }
+}

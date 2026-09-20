@@ -510,7 +510,7 @@ class PPO(object):
         if self.normalize_input:
             self.running_mean_std.load_state_dict(checkpoint['running_mean_std'])
 
-    def test(self, max_steps: int = 0, real_time: bool = False):
+    def test(self, max_steps: int = 0, real_time: bool = False, should_continue=None):
         """Evaluate a checkpoint at the gravity configured by train.py.
 
         ``max_steps=0`` retains interactive/infinite play.  A positive value
@@ -537,6 +537,9 @@ class PPO(object):
         completed_net_turns = 0.0
         recontacts = blocked_push_sum = 0.0
         while max_steps <= 0 or step < max_steps:
+            if should_continue is not None and not should_continue():
+                print(f'[INFO] Playback closed after {step} policy steps.', flush=True)
+                return
             step_start = time.time()
             input_dict = {
                 'obs': self.running_mean_std(obs_dict['obs']),

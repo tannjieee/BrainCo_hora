@@ -46,6 +46,8 @@ class InitialPoseEditor:
     ):
         self.env = env
         self.spec = object_spec
+        # STOP invalidates PhysX views before the final pose is printed on exit.
+        self._joint_names = list(env.hand.joint_names)
         self.manifest_path = Path(manifest_path)
         self.joint_values = [float(value) for value in joint_values]
         self._initial_joints = list(self.joint_values)
@@ -224,7 +226,7 @@ class InitialPoseEditor:
             "scale": self.scale,
             "grasp_seed": {
                 "hand_pose_profile": "custom",
-                "hand_joint_pos_rad": joint_values_dict(self.env.hand.joint_names, self.joint_values),
+                "hand_joint_pos_rad": joint_values_dict(self._joint_names, self.joint_values),
                 "object_pos_m": [round(value, 6) for value in self.position_m],
                 "object_quat_wxyz": list(self.quaternion),
             },

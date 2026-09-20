@@ -1,0 +1,3792 @@
+Local log mirror: /home/tan/hora2/BrainCo_hora/outputs/remote_monitor/octagonal_train_h16_p120_20260920_182743
+[2026-09-20T18:28:38+08:00] training
+	Physics step-size     : 0.008333333333333333
+	Rendering step-size   : 0.05
+	Environment step-size : 0.05
+GPU index, memory used, utilization:
+0, 27289 MiB, 51 %
+1, 9647 MiB, 68 %
+2, 2815 MiB, 87 %
+3, 3046 MiB, 89 %
+4, 21052 MiB, 44 %
+5, 9647 MiB, 89 %
+6, 21759 MiB, 93 %
+7, 2309 MiB, 80 %
+[2026-09-20T18:29:09+08:00] training
+GPU index, memory used, utilization:
+0, 27289 MiB, 40 %
+1, 8622 MiB, 24 %
+2, 2815 MiB, 88 %
+3, 5850 MiB, 89 %
+4, 21727 MiB, 84 %
+5, 9647 MiB, 90 %
+6, 21084 MiB, 40 %
+7, 1538 MiB, 22 %
+[2026-09-20T18:29:39+08:00] training
+GPU index, memory used, utilization:
+0, 27289 MiB, 37 %
+1, 8622 MiB, 34 %
+2, 2411 MiB, 83 %
+3, 20004 MiB, 87 %
+4, 21052 MiB, 72 %
+5, 9647 MiB, 92 %
+6, 21759 MiB, 79 %
+7, 2601 MiB, 71 %
+[2026-09-20T18:30:09+08:00] training
+GPU index, memory used, utilization:
+0, 27331 MiB, 97 %
+1, 8218 MiB, 10 %
+2, 2431 MiB, 83 %
+3, 28364 MiB, 76 %
+4, 21743 MiB, 81 %
+5, 9647 MiB, 23 %
+6, 21759 MiB, 93 %
+7, 2229 MiB, 85 %
+[2026-09-20T18:30:39+08:00] training
+	Global prim paths     : ['/World/ground']
+	Replicate physics     : False
+[INFO]: Starting the simulation. This may take a few seconds. Please wait...
+GPU index, memory used, utilization:
+0, 27331 MiB, 26 %
+1, 8242 MiB, 13 %
+2, 2837 MiB, 89 %
+3, 28666 MiB, 94 %
+4, 21743 MiB, 77 %
+5, 8975 MiB, 14 %
+6, 21779 MiB, 81 %
+7, 1538 MiB, 23 %
+[2026-09-20T18:31:10+08:00] training
+GPU index, memory used, utilization:
+0, 27331 MiB, 36 %
+1, 8260 MiB, 14 %
+2, 3248 MiB, 32 %
+3, 26567 MiB, 29 %
+4, 21357 MiB, 34 %
+5, 9243 MiB, 89 %
+6, 21084 MiB, 52 %
+7, 1540 MiB, 18 %
+[2026-09-20T18:31:40+08:00] training
+GPU index, memory used, utilization:
+0, 27331 MiB, 98 %
+1, 8238 MiB, 14 %
+2, 4323 MiB, 88 %
+3, 26567 MiB, 65 %
+4, 23679 MiB, 93 %
+5, 8571 MiB, 23 %
+6, 21775 MiB, 15 %
+7, 2211 MiB, 89 %
+[2026-09-20T18:32:10+08:00] training
+GPU index, memory used, utilization:
+0, 27331 MiB, 30 %
+1, 9097 MiB, 24 %
+2, 4323 MiB, 86 %
+3, 26567 MiB, 26 %
+4, 32041 MiB, 2 %
+5, 9263 MiB, 85 %
+6, 21775 MiB, 81 %
+7, 2065 MiB, 17 %
+[2026-09-20T18:32:40+08:00] training
+GPU index, memory used, utilization:
+0, 27331 MiB, 52 %
+1, 9267 MiB, 75 %
+2, 4323 MiB, 88 %
+3, 27161 MiB, 26 %
+4, 21765 MiB, 87 %
+5, 9267 MiB, 91 %
+6, 21835 MiB, 70 %
+7, 1540 MiB, 24 %
+[2026-09-20T18:33:11+08:00] training
+GPU index, memory used, utilization:
+0, 27333 MiB, 99 %
+1, 8572 MiB, 23 %
+2, 10569 MiB, 86 %
+3, 27163 MiB, 5 %
+4, 21767 MiB, 85 %
+5, 7546 MiB, 0 %
+6, 21757 MiB, 90 %
+7, 5859 MiB, 94 %
+[2026-09-20T18:33:41+08:00] training
+GPU index, memory used, utilization:
+0, 27333 MiB, 37 %
+1, 8572 MiB, 18 %
+2, 10639 MiB, 30 %
+3, 1787 MiB, 47 %
+4, 21054 MiB, 82 %
+5, 8587 MiB, 51 %
+6, 21693 MiB, 83 %
+7, 2231 MiB, 17 %
+[2026-09-20T18:34:11+08:00] training
+GPU index, memory used, utilization:
+0, 27333 MiB, 38 %
+1, 9343 MiB, 23 %
+2, 10547 MiB, 93 %
+3, 4152 MiB, 90 %
+4, 22051 MiB, 93 %
+5, 7546 MiB, 0 %
+6, 21799 MiB, 84 %
+7, 1542 MiB, 23 %
+[2026-09-20T18:34:41+08:00] training
+GPU index, memory used, utilization:
+0, 27333 MiB, 99 %
+1, 8572 MiB, 24 %
+2, 9676 MiB, 35 %
+3, 12954 MiB, 94 %
+4, 30753 MiB, 96 %
+5, 7546 MiB, 0 %
+6, 21086 MiB, 1 %
+7, 1542 MiB, 21 %
+[2026-09-20T18:35:11+08:00] training
+GPU index, memory used, utilization:
+0, 27333 MiB, 44 %
+1, 8572 MiB, 19 %
+2, 9740 MiB, 5 %
+3, 12954 MiB, 94 %
+4, 30063 MiB, 96 %
+5, 7546 MiB, 0 %
+6, 21781 MiB, 83 %
+7, 1562 MiB, 3 %
+[2026-09-20T18:35:42+08:00] training
+GPU index, memory used, utilization:
+0, 27333 MiB, 97 %
+1, 8572 MiB, 23 %
+2, 9790 MiB, 28 %
+3, 12956 MiB, 94 %
+4, 30119 MiB, 88 %
+5, 7546 MiB, 0 %
+6, 21086 MiB, 50 %
+7, 517 MiB, 1 %
+[2026-09-20T18:36:12+08:00] training
+GPU index, memory used, utilization:
+0, 27333 MiB, 38 %
+1, 8572 MiB, 23 %
+2, 9862 MiB, 25 %
+3, 13012 MiB, 94 %
+4, 30119 MiB, 93 %
+5, 7546 MiB, 0 %
+6, 21086 MiB, 1 %
+7, 517 MiB, 0 %
+[2026-09-20T18:36:42+08:00] training
+GPU index, memory used, utilization:
+0, 27333 MiB, 45 %
+1, 8572 MiB, 23 %
+2, 9932 MiB, 20 %
+3, 13012 MiB, 93 %
+4, 30185 MiB, 98 %
+5, 9735 MiB, 70 %
+6, 21757 MiB, 81 %
+7, 2449 MiB, 86 %
+[2026-09-20T18:37:12+08:00] training
+Iteration: 1/4000
+Computation: 35972 steps/s (collection: 6.983s, learning: 0.304s)
+Mean reward: -0.9076
+Mean episode length: 9.9030
+gait/blocked_push: 0.001426
+gait/completed_mean_net_turns: 0.012261
+gait/completed_mean_turns: 0.000000
+gait/completed_one_turn_rate: 0.000000
+gait/support_gate: 0.452005
+stable_rotation_rate: 0.061749
+Total timesteps: 262144
+ETA (recent FPS): 0d 08:05:42
+GPU index, memory used, utilization:
+0, 27333 MiB, 99 %
+1, 9263 MiB, 83 %
+2, 13128 MiB, 89 %
+3, 13014 MiB, 94 %
+4, 30185 MiB, 90 %
+5, 10405 MiB, 88 %
+6, 21086 MiB, 78 %
+7, 2329 MiB, 87 %
+[2026-09-20T18:37:43+08:00] training
+Iteration: 7/4000
+Computation: 49937 steps/s (collection: 5.057s, learning: 0.193s)
+Mean reward: -1.8649
+Mean episode length: 51.4846
+gait/blocked_push: 0.019417
+gait/completed_mean_net_turns: 0.093247
+gait/completed_mean_turns: 0.000000
+gait/completed_one_turn_rate: 0.000000
+gait/support_gate: 0.416476
+stable_rotation_rate: 0.032108
+Total timesteps: 1835008
+ETA (recent FPS): 0d 05:49:21
+GPU index, memory used, utilization:
+0, 27333 MiB, 37 %
+1, 9201 MiB, 24 %
+2, 13819 MiB, 82 %
+3, 13014 MiB, 94 %
+4, 30185 MiB, 94 %
+5, 10385 MiB, 73 %
+6, 21086 MiB, 1 %
+7, 2291 MiB, 87 %
+[2026-09-20T18:38:13+08:00] training
+Iteration: 13/4000
+Computation: 47825 steps/s (collection: 5.292s, learning: 0.189s)
+Mean reward: -1.7509
+Mean episode length: 57.9020
+gait/blocked_push: 0.027346
+gait/completed_mean_net_turns: 0.147989
+gait/completed_mean_turns: 0.000000
+gait/completed_one_turn_rate: 0.000000
+gait/support_gate: 0.467369
+stable_rotation_rate: 0.034882
+Total timesteps: 3407872
+ETA (recent FPS): 0d 06:04:14
+GPU index, memory used, utilization:
+0, 27333 MiB, 49 %
+1, 8572 MiB, 18 %
+2, 13128 MiB, 92 %
+3, 13080 MiB, 92 %
+4, 30185 MiB, 85 %
+5, 9735 MiB, 71 %
+6, 21086 MiB, 63 %
+7, 2223 MiB, 89 %
+[2026-09-20T18:38:43+08:00] training
+Iteration: 19/4000
+Computation: 51691 steps/s (collection: 4.893s, learning: 0.179s)
+Mean reward: -3.6059
+Mean episode length: 83.1656
+gait/blocked_push: 0.044731
+gait/completed_mean_net_turns: 0.173795
+gait/completed_mean_turns: 0.000000
+gait/completed_one_turn_rate: 0.000000
+gait/support_gate: 0.519994
+stable_rotation_rate: 0.027794
+Total timesteps: 4980736
+ETA (recent FPS): 0d 05:36:29
+GPU index, memory used, utilization:
+0, 27333 MiB, 99 %
+1, 8572 MiB, 23 %
+2, 13128 MiB, 93 %
+3, 13080 MiB, 94 %
+4, 30185 MiB, 89 %
+5, 10387 MiB, 72 %
+6, 21757 MiB, 85 %
+7, 1338 MiB, 20 %
+[2026-09-20T18:39:13+08:00] training
+Iteration: 25/4000
+Computation: 53152 steps/s (collection: 4.755s, learning: 0.177s)
+Mean reward: -2.5846
+Mean episode length: 106.1359
+gait/blocked_push: 0.053053
+gait/completed_mean_net_turns: 0.183224
+gait/completed_mean_turns: 0.000000
+gait/completed_one_turn_rate: 0.000000
+gait/support_gate: 0.585236
+stable_rotation_rate: 0.024639
+Total timesteps: 6553600
+ETA (recent FPS): 0d 05:26:44
+GPU index, memory used, utilization:
+0, 27333 MiB, 38 %
+1, 8572 MiB, 2 %
+2, 13164 MiB, 88 %
+3, 13152 MiB, 94 %
+4, 21054 MiB, 50 %
+5, 9735 MiB, 70 %
+6, 21799 MiB, 92 %
+7, 1352 MiB, 13 %
+[2026-09-20T18:39:44+08:00] training
+Iteration: 31/4000
+Computation: 52699 steps/s (collection: 4.794s, learning: 0.181s)
+Mean reward: -3.5182
+Mean episode length: 133.9264
+gait/blocked_push: 0.070708
+gait/completed_mean_net_turns: 0.155170
+gait/completed_mean_turns: 0.000000
+gait/completed_one_turn_rate: 0.000000
+gait/support_gate: 0.650217
+stable_rotation_rate: 0.020481
+Total timesteps: 8126464
+ETA (recent FPS): 0d 05:29:03
+GPU index, memory used, utilization:
+0, 27333 MiB, 39 %
+1, 8572 MiB, 13 %
+2, 13164 MiB, 89 %
+3, 4023 MiB, 93 %
+4, 21054 MiB, 1 %
+5, 10467 MiB, 94 %
+6, 21799 MiB, 85 %
+7, 3545 MiB, 45 %
+[2026-09-20T18:40:14+08:00] training
+Iteration: 37/4000
+Computation: 52706 steps/s (collection: 4.794s, learning: 0.180s)
+Mean reward: -6.3843
+Mean episode length: 166.7644
+gait/blocked_push: 0.081349
+gait/completed_mean_net_turns: 0.130324
+gait/completed_mean_turns: 0.000000
+gait/completed_one_turn_rate: 0.000000
+gait/support_gate: 0.680533
+stable_rotation_rate: 0.017742
+Total timesteps: 9699328
+ETA (recent FPS): 0d 05:28:30
+GPU index, memory used, utilization:
+0, 27333 MiB, 49 %
+1, 8572 MiB, 25 %
+2, 13164 MiB, 94 %
+3, 4023 MiB, 92 %
+4, 21749 MiB, 92 %
+5, 8237 MiB, 0 %
+6, 21799 MiB, 78 %
+7, 3625 MiB, 34 %
+[2026-09-20T18:40:44+08:00] training
+Iteration: 43/4000
+Computation: 52674 steps/s (collection: 4.796s, learning: 0.181s)
+Mean reward: -7.1129
+Mean episode length: 198.2752
+gait/blocked_push: 0.074925
+gait/completed_mean_net_turns: 0.120895
+gait/completed_mean_turns: 0.000000
+gait/completed_one_turn_rate: 0.000000
+gait/support_gate: 0.681181
+stable_rotation_rate: 0.012283
+Total timesteps: 11272192
+ETA (recent FPS): 0d 05:28:12
+GPU index, memory used, utilization:
+0, 27333 MiB, 34 %
+1, 9241 MiB, 24 %
+2, 13164 MiB, 92 %
+3, 4111 MiB, 91 %
+4, 21054 MiB, 77 %
+5, 8611 MiB, 0 %
+6, 21757 MiB, 91 %
+7, 3625 MiB, 87 %
+[2026-09-20T18:41:15+08:00] training
+Iteration: 49/4000
+Computation: 53990 steps/s (collection: 4.671s, learning: 0.184s)
+Mean reward: -6.9464
+Mean episode length: 226.5875
+gait/blocked_push: 0.058482
+gait/completed_mean_net_turns: 0.136074
+gait/completed_mean_turns: 0.000000
+gait/completed_one_turn_rate: 0.000000
+gait/support_gate: 0.656044
+stable_rotation_rate: 0.016571
+Total timesteps: 12845056
+ETA (recent FPS): 0d 05:19:43
+GPU index, memory used, utilization:
+0, 27333 MiB, 50 %
+1, 8572 MiB, 23 %
+2, 13164 MiB, 92 %
+3, 4501 MiB, 91 %
+4, 21054 MiB, 78 %
+5, 7546 MiB, 0 %
+6, 21086 MiB, 68 %
+7, 1352 MiB, 16 %
+[2026-09-20T18:41:45+08:00] training
+Iteration: 55/4000
+Computation: 53773 steps/s (collection: 4.670s, learning: 0.205s)
+Mean reward: -5.7220
+Mean episode length: 212.6102
+gait/blocked_push: 0.045603
+gait/completed_mean_net_turns: 0.122904
+gait/completed_mean_turns: 0.000000
+gait/completed_one_turn_rate: 0.000000
+gait/support_gate: 0.641143
+stable_rotation_rate: 0.023735
+Total timesteps: 14417920
+ETA (recent FPS): 0d 05:20:31
+GPU index, memory used, utilization:
+0, 27333 MiB, 49 %
+1, 8572 MiB, 21 %
+2, 13164 MiB, 90 %
+3, 4501 MiB, 92 %
+4, 21805 MiB, 59 %
+5, 11519 MiB, 29 %
+6, 21799 MiB, 74 %
+7, 4675 MiB, 91 %
+[2026-09-20T18:42:15+08:00] training
+Iteration: 61/4000
+Computation: 54788 steps/s (collection: 4.609s, learning: 0.176s)
+Mean reward: -2.1235
+Mean episode length: 179.1615
+gait/blocked_push: 0.032491
+gait/completed_mean_net_turns: 0.134329
+gait/completed_mean_turns: 0.000000
+gait/completed_one_turn_rate: 0.000000
+gait/support_gate: 0.632062
+stable_rotation_rate: 0.041122
+Total timesteps: 15990784
+ETA (recent FPS): 0d 05:14:06
+GPU index, memory used, utilization:
+0, 27333 MiB, 38 %
+1, 9241 MiB, 91 %
+2, 13164 MiB, 93 %
+3, 4501 MiB, 92 %
+4, 21054 MiB, 78 %
+5, 11769 MiB, 91 %
+6, 21086 MiB, 57 %
+7, 4158 MiB, 81 %
+[2026-09-20T18:42:45+08:00] training
+Iteration: 67/4000
+Computation: 54035 steps/s (collection: 4.678s, learning: 0.173s)
+Mean reward: -1.1095
+Mean episode length: 95.7479
+gait/blocked_push: 0.023965
+gait/completed_mean_net_turns: 0.154115
+gait/completed_mean_turns: 0.000000
+gait/completed_one_turn_rate: 0.000000
+gait/support_gate: 0.609552
+stable_rotation_rate: 0.056908
+Total timesteps: 17563648
+ETA (recent FPS): 0d 05:18:00
+GPU index, memory used, utilization:
+0, 27333 MiB, 39 %
+1, 9223 MiB, 22 %
+2, 13164 MiB, 90 %
+3, 4501 MiB, 92 %
+4, 21054 MiB, 1 %
+5, 11769 MiB, 95 %
+6, 21799 MiB, 92 %
+7, 4977 MiB, 92 %
+[2026-09-20T18:43:16+08:00] training
+Iteration: 73/4000
+Computation: 52418 steps/s (collection: 4.819s, learning: 0.182s)
+Mean reward: -0.9929
+Mean episode length: 85.3071
+gait/blocked_push: 0.019832
+gait/completed_mean_net_turns: 0.171270
+gait/completed_mean_turns: 0.000000
+gait/completed_one_turn_rate: 0.000000
+gait/support_gate: 0.606550
+stable_rotation_rate: 0.063915
+Total timesteps: 19136512
+ETA (recent FPS): 0d 05:27:19
+GPU index, memory used, utilization:
+0, 27333 MiB, 41 %
+1, 8572 MiB, 22 %
+2, 13164 MiB, 85 %
+3, 2433 MiB, 43 %
+4, 21054 MiB, 44 %
+5, 11777 MiB, 91 %
+6, 21086 MiB, 48 %
+7, 4979 MiB, 93 %
+[2026-09-20T18:43:46+08:00] training
+Iteration: 79/4000
+Computation: 52902 steps/s (collection: 4.779s, learning: 0.176s)
+Mean reward: -0.4947
+Mean episode length: 72.8483
+gait/blocked_push: 0.018868
+gait/completed_mean_net_turns: 0.181912
+gait/completed_mean_turns: 0.000000
+gait/completed_one_turn_rate: 0.000000
+gait/support_gate: 0.598728
+stable_rotation_rate: 0.064861
+Total timesteps: 20709376
+ETA (recent FPS): 0d 05:23:49
+GPU index, memory used, utilization:
+0, 27333 MiB, 41 %
+1, 8572 MiB, 22 %
+2, 13164 MiB, 92 %
+3, 3267 MiB, 91 %
+4, 21054 MiB, 56 %
+5, 12074 MiB, 92 %
+6, 21086 MiB, 68 %
+7, 5285 MiB, 93 %
+[2026-09-20T18:44:16+08:00] training
+Iteration: 84/4000
+Computation: 50052 steps/s (collection: 5.068s, learning: 0.169s)
+Mean reward: -0.2264
+Mean episode length: 70.1279
+gait/blocked_push: 0.017488
+gait/completed_mean_net_turns: 0.187719
+gait/completed_mean_turns: 0.000000
+gait/completed_one_turn_rate: 0.000000
+gait/support_gate: 0.612633
+stable_rotation_rate: 0.066406
+Total timesteps: 22020096
+ETA (recent FPS): 0d 05:41:49
+GPU index, memory used, utilization:
+0, 27333 MiB, 61 %
+1, 9263 MiB, 90 %
+2, 13164 MiB, 89 %
+3, 3269 MiB, 84 %
+4, 21054 MiB, 52 %
+5, 19429 MiB, 52 %
+6, 21086 MiB, 54 %
+7, 15049 MiB, 92 %
+[2026-09-20T18:44:46+08:00] training
+Iteration: 90/4000
+Computation: 48893 steps/s (collection: 5.155s, learning: 0.207s)
+Mean reward: -0.2138
+Mean episode length: 74.8000
+gait/blocked_push: 0.018776
+gait/completed_mean_net_turns: 0.203016
+gait/completed_mean_turns: 0.000000
+gait/completed_one_turn_rate: 0.000000
+gait/support_gate: 0.631960
+stable_rotation_rate: 0.057922
+Total timesteps: 23592960
+ETA (recent FPS): 0d 05:49:23
+GPU index, memory used, utilization:
+0, 27333 MiB, 46 %
+1, 8572 MiB, 22 %
+2, 13164 MiB, 90 %
+3, 3269 MiB, 68 %
+4, 21054 MiB, 49 %
+5, 22077 MiB, 45 %
+6, 21086 MiB, 63 %
+7, 18689 MiB, 96 %
+[2026-09-20T18:45:17+08:00] training
+Iteration: 96/4000
+Computation: 53082 steps/s (collection: 4.761s, learning: 0.177s)
+Mean reward: -0.7489
+Mean episode length: 91.0783
+gait/blocked_push: 0.018542
+gait/completed_mean_net_turns: 0.209649
+gait/completed_mean_turns: 0.000000
+gait/completed_one_turn_rate: 0.000000
+gait/support_gate: 0.646393
+stable_rotation_rate: 0.055450
+Total timesteps: 25165824
+ETA (recent FPS): 0d 05:21:19
+GPU index, memory used, utilization:
+0, 27333 MiB, 28 %
+1, 8572 MiB, 22 %
+2, 13164 MiB, 92 %
+3, 3269 MiB, 88 %
+4, 21054 MiB, 76 %
+5, 22905 MiB, 71 %
+6, 21737 MiB, 63 %
+7, 18691 MiB, 96 %
+[2026-09-20T18:45:47+08:00] training
+Iteration: 102/4000
+Computation: 48282 steps/s (collection: 5.242s, learning: 0.188s)
+Mean reward: 0.2644
+Mean episode length: 95.0739
+gait/blocked_push: 0.020142
+gait/completed_mean_net_turns: 0.206210
+gait/completed_mean_turns: 0.000000
+gait/completed_one_turn_rate: 0.000000
+gait/support_gate: 0.660234
+stable_rotation_rate: 0.058426
+Total timesteps: 26738688
+ETA (recent FPS): 0d 05:52:43
+GPU index, memory used, utilization:
+0, 27333 MiB, 36 %
+1, 10831 MiB, 95 %
+2, 13164 MiB, 92 %
+3, 3269 MiB, 87 %
+4, 23313 MiB, 86 %
+5, 22863 MiB, 87 %
+6, 21086 MiB, 29 %
+7, 18691 MiB, 94 %
+[2026-09-20T18:46:17+08:00] training
+Iteration: 108/4000
+Computation: 51383 steps/s (collection: 4.926s, learning: 0.175s)
+Mean reward: -0.6647
+Mean episode length: 102.7500
+gait/blocked_push: 0.023551
+gait/completed_mean_net_turns: 0.206351
+gait/completed_mean_turns: 0.000000
+gait/completed_one_turn_rate: 0.000000
+gait/support_gate: 0.681203
+stable_rotation_rate: 0.061432
+Total timesteps: 28311552
+ETA (recent FPS): 0d 05:30:56
+GPU index, memory used, utilization:
+0, 27333 MiB, 99 %
+1, 11544 MiB, 94 %
+2, 13164 MiB, 88 %
+3, 3269 MiB, 88 %
+4, 23313 MiB, 93 %
+5, 22947 MiB, 79 %
+6, 21086 MiB, 47 %
+7, 18805 MiB, 96 %
+[2026-09-20T18:46:48+08:00] training
+Iteration: 114/4000
+Computation: 55156 steps/s (collection: 4.594s, learning: 0.159s)
+Mean reward: -1.2912
+Mean episode length: 106.1382
+gait/blocked_push: 0.024512
+gait/completed_mean_net_turns: 0.208384
+gait/completed_mean_turns: 0.000000
+gait/completed_one_turn_rate: 0.000000
+gait/support_gate: 0.721982
+stable_rotation_rate: 0.064510
+Total timesteps: 29884416
+ETA (recent FPS): 0d 05:07:49
+GPU index, memory used, utilization:
+0, 27333 MiB, 47 %
+1, 11544 MiB, 94 %
+2, 13164 MiB, 92 %
+3, 3083 MiB, 44 %
+4, 23313 MiB, 80 %
+5, 22567 MiB, 67 %
+6, 21591 MiB, 42 %
+7, 18805 MiB, 96 %
+[2026-09-20T18:47:18+08:00] training
+Iteration: 121/4000
+Computation: 69514 steps/s (collection: 3.589s, learning: 0.182s)
+Mean reward: 0.5774
+Mean episode length: 103.5705
+gait/blocked_push: 0.022432
+gait/completed_mean_net_turns: 0.210481
+gait/completed_mean_turns: 0.000000
+gait/completed_one_turn_rate: 0.000000
+gait/support_gate: 0.728922
+stable_rotation_rate: 0.079521
+Total timesteps: 31719424
+ETA (recent FPS): 0d 04:03:48
+GPU index, memory used, utilization:
+0, 27333 MiB, 39 %
+1, 10831 MiB, 93 %
+2, 12089 MiB, 44 %
+3, 4473 MiB, 90 %
+4, 23313 MiB, 79 %
+5, 22567 MiB, 67 %
+6, 21086 MiB, 68 %
+7, 18871 MiB, 96 %
+[2026-09-20T18:47:49+08:00] training
+Iteration: 128/4000
+Computation: 59534 steps/s (collection: 4.147s, learning: 0.256s)
+Mean reward: 0.3949
+Mean episode length: 92.5058
+gait/blocked_push: 0.023559
+gait/completed_mean_net_turns: 0.208399
+gait/completed_mean_turns: 0.000000
+gait/completed_one_turn_rate: 0.000000
+gait/support_gate: 0.712422
+stable_rotation_rate: 0.079044
+Total timesteps: 33554432
+ETA (recent FPS): 0d 04:44:09
+GPU index, memory used, utilization:
+0, 27333 MiB, 99 %
+1, 10831 MiB, 88 %
+2, 16145 MiB, 93 %
+3, 4473 MiB, 91 %
+4, 23313 MiB, 76 %
+5, 22567 MiB, 65 %
+6, 21757 MiB, 11 %
+7, 19183 MiB, 93 %
+[2026-09-20T18:48:19+08:00] training
+Iteration: 132/4000
+Computation: 55890 steps/s (collection: 4.392s, learning: 0.298s)
+Mean reward: -0.4741
+Mean episode length: 84.4879
+gait/blocked_push: 0.023820
+gait/completed_mean_net_turns: 0.209393
+gait/completed_mean_turns: 0.000000
+gait/completed_one_turn_rate: 0.000000
+gait/support_gate: 0.699902
+stable_rotation_rate: 0.092606
+Total timesteps: 34603008
+ETA (recent FPS): 0d 05:02:22
+GPU index, memory used, utilization:
+0, 27333 MiB, 49 %
+1, 11526 MiB, 94 %
+2, 15670 MiB, 94 %
+3, 4561 MiB, 92 %
+4, 23313 MiB, 93 %
+5, 22567 MiB, 28 %
+6, 21086 MiB, 74 %
+7, 19489 MiB, 97 %
+[2026-09-20T18:48:50+08:00] training
+Iteration: 136/4000
+Computation: 27429 steps/s (collection: 9.202s, learning: 0.355s)
+Mean reward: 0.8143
+Mean episode length: 76.3896
+gait/blocked_push: 0.022558
+gait/completed_mean_net_turns: 0.217732
+gait/completed_mean_turns: 0.000000
+gait/completed_one_turn_rate: 0.000000
+gait/support_gate: 0.672256
+stable_rotation_rate: 0.093048
+Total timesteps: 35651584
+ETA (recent FPS): 0d 10:15:28
+GPU index, memory used, utilization:
+0, 27333 MiB, 50 %
+1, 11526 MiB, 94 %
+2, 15670 MiB, 92 %
+3, 4563 MiB, 89 %
+4, 23313 MiB, 91 %
+5, 22567 MiB, 80 %
+6, 21611 MiB, 80 %
+7, 15542 MiB, 49 %
+[2026-09-20T18:49:21+08:00] training
+Iteration: 139/4000
+Computation: 29179 steps/s (collection: 8.698s, learning: 0.285s)
+Mean reward: 0.8131
+Mean episode length: 68.4093
+gait/blocked_push: 0.021679
+gait/completed_mean_net_turns: 0.219654
+gait/completed_mean_turns: 0.000000
+gait/completed_one_turn_rate: 0.000000
+gait/support_gate: 0.673060
+stable_rotation_rate: 0.093826
+Total timesteps: 36438016
+ETA (recent FPS): 0d 09:38:07
+GPU index, memory used, utilization:
+0, 27333 MiB, 99 %
+1, 9806 MiB, 84 %
+2, 15670 MiB, 95 %
+3, 3375 MiB, 88 %
+4, 23313 MiB, 84 %
+5, 22567 MiB, 43 %
+6, 21086 MiB, 44 %
+7, 16921 MiB, 80 %
+[2026-09-20T18:49:52+08:00] training
+Iteration: 142/4000
+Computation: 28753 steps/s (collection: 8.844s, learning: 0.273s)
+Mean reward: 0.5008
+Mean episode length: 68.5458
+gait/blocked_push: 0.023157
+gait/completed_mean_net_turns: 0.223607
+gait/completed_mean_turns: 0.000000
+gait/completed_one_turn_rate: 0.000000
+gait/support_gate: 0.664590
+stable_rotation_rate: 0.093285
+Total timesteps: 37224448
+ETA (recent FPS): 0d 09:46:13
+GPU index, memory used, utilization:
+0, 27333 MiB, 44 %
+1, 11689 MiB, 93 %
+2, 15670 MiB, 95 %
+3, 2321 MiB, 30 %
+4, 23313 MiB, 84 %
+5, 22567 MiB, 49 %
+6, 21086 MiB, 1 %
+7, 16923 MiB, 71 %
+[2026-09-20T18:50:23+08:00] training
+Iteration: 146/4000
+Computation: 33270 steps/s (collection: 7.606s, learning: 0.273s)
+Mean reward: 0.4669
+Mean episode length: 66.0295
+gait/blocked_push: 0.023340
+gait/completed_mean_net_turns: 0.224401
+gait/completed_mean_turns: 0.000000
+gait/completed_one_turn_rate: 0.000000
+gait/support_gate: 0.665921
+stable_rotation_rate: 0.092278
+Total timesteps: 38273024
+ETA (recent FPS): 0d 08:26:06
+GPU index, memory used, utilization:
+0, 27333 MiB, 38 %
+1, 11783 MiB, 94 %
+2, 15558 MiB, 96 %
+3, 1469 MiB, 12 %
+4, 23313 MiB, 95 %
+5, 22567 MiB, 23 %
+6, 21715 MiB, 79 %
+7, 16923 MiB, 93 %
+[2026-09-20T18:50:54+08:00] training
+Iteration: 149/4000
+Computation: 25330 steps/s (collection: 10.213s, learning: 0.136s)
+Mean reward: 0.6526
+Mean episode length: 67.6385
+gait/blocked_push: 0.023982
+gait/completed_mean_net_turns: 0.224557
+gait/completed_mean_turns: 0.000000
+gait/completed_one_turn_rate: 0.000000
+gait/support_gate: 0.670167
+stable_rotation_rate: 0.089325
+Total timesteps: 39059456
+ETA (recent FPS): 0d 11:04:14
+GPU index, memory used, utilization:
+0, 27333 MiB, 42 %
+1, 11783 MiB, 90 %
+2, 15558 MiB, 47 %
+3, 2409 MiB, 50 %
+4, 23313 MiB, 100 %
+5, 22567 MiB, 83 %
+6, 21757 MiB, 92 %
+7, 16923 MiB, 93 %
+[2026-09-20T18:51:24+08:00] training
+Iteration: 157/4000
+Computation: 47771 steps/s (collection: 5.291s, learning: 0.196s)
+Mean reward: 0.9582
+Mean episode length: 67.0750
+gait/blocked_push: 0.026451
+gait/completed_mean_net_turns: 0.227946
+gait/completed_mean_turns: 0.000000
+gait/completed_one_turn_rate: 0.000000
+gait/support_gate: 0.691289
+stable_rotation_rate: 0.092381
+Total timesteps: 41156608
+ETA (recent FPS): 0d 05:51:28
+GPU index, memory used, utilization:
+0, 27333 MiB, 38 %
+1, 11783 MiB, 94 %
+2, 13186 MiB, 90 %
+3, 2557 MiB, 87 %
+4, 23313 MiB, 91 %
+5, 22567 MiB, 28 %
+6, 21683 MiB, 1 %
+7, 16923 MiB, 48 %
+[2026-09-20T18:51:55+08:00] Monitor connection error: Command '['ssh', '-S', '/tmp/brainco-collect.sock', '-o', 'BatchMode=yes', '-o', 'ConnectTimeout=10', '-p', '22020', 'tanjie@127.0.0.1', 'python3', '-']' timed out after 45 seconds
+[2026-09-20T18:53:10+08:00] Monitor connection error: ssh: connect to host 127.0.0.1 port 22020: Connection refused
+[2026-09-20T18:53:40+08:00] Monitor connection error: ssh: connect to host 127.0.0.1 port 22020: Connection refused
+[2026-09-20T18:54:10+08:00] Monitor connection error: ssh: connect to host 127.0.0.1 port 22020: Connection refused
+[2026-09-20T18:54:40+08:00] Monitor connection error: ssh: connect to host 127.0.0.1 port 22020: Connection refused
+[2026-09-20T18:55:10+08:00] Monitor connection error: ssh: connect to host 127.0.0.1 port 22020: Connection refused
+[2026-09-20T18:55:40+08:00] Monitor connection error: ssh: connect to host 127.0.0.1 port 22020: Connection refused
+[2026-09-20T18:56:10+08:00] training
+Iteration: 217/4000
+Computation: 51081 steps/s (collection: 4.960s, learning: 0.171s)
+Mean reward: 0.9706
+Mean episode length: 59.7634
+gait/blocked_push: 0.037299
+gait/completed_mean_net_turns: 0.222983
+gait/completed_mean_turns: 0.000000
+gait/completed_one_turn_rate: 0.000000
+gait/support_gate: 0.721045
+stable_rotation_rate: 0.098862
+Total timesteps: 56885248
+ETA (recent FPS): 0d 05:23:34
+GPU index, memory used, utilization:
+0, 27333 MiB, 38 %
+1, 11871 MiB, 77 %
+2, 13114 MiB, 86 %
+3, 2713 MiB, 85 %
+4, 23313 MiB, 93 %
+5, 22567 MiB, 28 %
+6, 21757 MiB, 88 %
+7, 16947 MiB, 71 %
+[2026-09-20T18:56:42+08:00] training
+Iteration: 223/4000
+Computation: 48083 steps/s (collection: 5.281s, learning: 0.171s)
+Mean reward: 1.1316
+Mean episode length: 61.4459
+gait/blocked_push: 0.039860
+gait/completed_mean_net_turns: 0.233313
+gait/completed_mean_turns: 0.000000
+gait/completed_one_turn_rate: 0.000000
+gait/support_gate: 0.728263
+stable_rotation_rate: 0.099529
+Total timesteps: 58458112
+ETA (recent FPS): 0d 05:43:11
+GPU index, memory used, utilization:
+0, 27333 MiB, 99 %
+1, 11871 MiB, 80 %
+2, 13114 MiB, 88 %
+3, 2727 MiB, 88 %
+4, 23313 MiB, 96 %
+5, 22567 MiB, 78 %
+6, 21086 MiB, 52 %
+7, 15542 MiB, 62 %
+[2026-09-20T18:57:14+08:00] training
+Iteration: 229/4000
+Computation: 51479 steps/s (collection: 4.911s, learning: 0.181s)
+Mean reward: 1.6545
+Mean episode length: 76.9204
+gait/blocked_push: 0.041083
+gait/completed_mean_net_turns: 0.238546
+gait/completed_mean_turns: 0.000000
+gait/completed_one_turn_rate: 0.000000
+gait/support_gate: 0.757885
+stable_rotation_rate: 0.096378
+Total timesteps: 60030976
+ETA (recent FPS): 0d 05:20:02
+GPU index, memory used, utilization:
+0, 27333 MiB, 39 %
+1, 9806 MiB, 84 %
+2, 13114 MiB, 92 %
+3, 2779 MiB, 44 %
+4, 23313 MiB, 88 %
+5, 22567 MiB, 51 %
+6, 21086 MiB, 51 %
+7, 16811 MiB, 51 %
+[2026-09-20T18:57:45+08:00] training
+Iteration: 235/4000
+Computation: 52935 steps/s (collection: 4.788s, learning: 0.164s)
+Mean reward: 1.9163
+Mean episode length: 80.6901
+gait/blocked_push: 0.040622
+gait/completed_mean_net_turns: 0.239418
+gait/completed_mean_turns: 0.000000
+gait/completed_one_turn_rate: 0.000000
+gait/support_gate: 0.765600
+stable_rotation_rate: 0.097809
+Total timesteps: 61603840
+ETA (recent FPS): 0d 05:10:44
+GPU index, memory used, utilization:
+0, 27333 MiB, 38 %
+1, 9806 MiB, 39 %
+2, 13114 MiB, 89 %
+3, 2775 MiB, 83 %
+4, 23313 MiB, 79 %
+5, 22567 MiB, 82 %
+6, 21785 MiB, 10 %
+7, 17705 MiB, 92 %
+[2026-09-20T18:58:17+08:00] training
+Iteration: 242/4000
+Computation: 56615 steps/s (collection: 4.459s, learning: 0.171s)
+Mean reward: 1.8356
+Mean episode length: 83.3125
+gait/blocked_push: 0.038973
+gait/completed_mean_net_turns: 0.239626
+gait/completed_mean_turns: 0.000000
+gait/completed_one_turn_rate: 0.000000
+gait/support_gate: 0.778109
+stable_rotation_rate: 0.091537
+Total timesteps: 63438848
+ETA (recent FPS): 0d 04:50:00
+GPU index, memory used, utilization:
+0, 27333 MiB, 39 %
+1, 9806 MiB, 38 %
+2, 13114 MiB, 84 %
+3, 1723 MiB, 31 %
+4, 23313 MiB, 87 %
+5, 22567 MiB, 84 %
+6, 21777 MiB, 84 %
+7, 17705 MiB, 96 %
+[2026-09-20T18:58:49+08:00] training
+Iteration: 248/4000
+Computation: 53691 steps/s (collection: 4.696s, learning: 0.187s)
+Mean reward: 1.9930
+Mean episode length: 85.4885
+gait/blocked_push: 0.039049
+gait/completed_mean_net_turns: 0.238445
+gait/completed_mean_turns: 0.000000
+gait/completed_one_turn_rate: 0.000000
+gait/support_gate: 0.782496
+stable_rotation_rate: 0.094925
+Total timesteps: 65011712
+ETA (recent FPS): 0d 05:05:18
+GPU index, memory used, utilization:
+0, 27333 MiB, 50 %
+1, 9806 MiB, 81 %
+2, 13114 MiB, 83 %
+3, 2477 MiB, 25 %
+4, 23313 MiB, 91 %
+5, 22567 MiB, 86 %
+6, 21086 MiB, 1 %
+7, 17705 MiB, 96 %
+[2026-09-20T18:59:20+08:00] training
+Iteration: 255/4000
+Computation: 53999 steps/s (collection: 4.686s, learning: 0.169s)
+Mean reward: 2.1882
+Mean episode length: 89.0000
+gait/blocked_push: 0.040420
+gait/completed_mean_net_turns: 0.243850
+gait/completed_mean_turns: 0.000000
+gait/completed_one_turn_rate: 0.000000
+gait/support_gate: 0.785791
+stable_rotation_rate: 0.093506
+Total timesteps: 66846720
+ETA (recent FPS): 0d 05:03:00
+GPU index, memory used, utilization:
+0, 27333 MiB, 45 %
+1, 9806 MiB, 84 %
+2, 13114 MiB, 88 %
+3, 4841 MiB, 93 %
+4, 23313 MiB, 83 %
+5, 22567 MiB, 83 %
+6, 21839 MiB, 83 %
+7, 17705 MiB, 85 %
+[2026-09-20T18:59:52+08:00] training
+Iteration: 261/4000
+Computation: 52879 steps/s (collection: 4.782s, learning: 0.175s)
+Mean reward: 2.0396
+Mean episode length: 86.4302
+gait/blocked_push: 0.042103
+gait/completed_mean_net_turns: 0.243217
+gait/completed_mean_turns: 0.000000
+gait/completed_one_turn_rate: 0.000000
+gait/support_gate: 0.789740
+stable_rotation_rate: 0.095062
+Total timesteps: 68419584
+ETA (recent FPS): 0d 05:08:55
+GPU index, memory used, utilization:
+0, 27333 MiB, 38 %
+1, 9806 MiB, 63 %
+2, 13114 MiB, 91 %
+3, 3765 MiB, 80 %
+4, 23313 MiB, 78 %
+5, 22567 MiB, 55 %
+6, 21777 MiB, 16 %
+7, 17705 MiB, 95 %
+[2026-09-20T19:00:24+08:00] training
+Iteration: 268/4000
+Computation: 66839 steps/s (collection: 3.748s, learning: 0.174s)
+Mean reward: 2.2929
+Mean episode length: 91.0761
+gait/blocked_push: 0.045943
+gait/completed_mean_net_turns: 0.242814
+gait/completed_mean_turns: 0.000000
+gait/completed_one_turn_rate: 0.000000
+gait/support_gate: 0.789761
+stable_rotation_rate: 0.091805
+Total timesteps: 70254592
+ETA (recent FPS): 0d 04:03:56
+GPU index, memory used, utilization:
+0, 27333 MiB, 97 %
+1, 9806 MiB, 85 %
+2, 12089 MiB, 54 %
+3, 3765 MiB, 80 %
+4, 23313 MiB, 88 %
+5, 22567 MiB, 42 %
+6, 21086 MiB, 40 %
+7, 17705 MiB, 96 %
+[2026-09-20T19:00:57+08:00] training
+Iteration: 277/4000
+Computation: 71747 steps/s (collection: 3.484s, learning: 0.170s)
+Mean reward: 2.3562
+Mean episode length: 93.2866
+gait/blocked_push: 0.046698
+gait/completed_mean_net_turns: 0.249310
+gait/completed_mean_turns: 0.000000
+gait/completed_one_turn_rate: 0.000000
+gait/support_gate: 0.789595
+stable_rotation_rate: 0.095779
+Total timesteps: 72613888
+ETA (recent FPS): 0d 03:46:42
+GPU index, memory used, utilization:
+0, 27333 MiB, 38 %
+1, 9806 MiB, 42 %
+2, 12089 MiB, 39 %
+3, 5733 MiB, 93 %
+4, 23313 MiB, 89 %
+5, 22567 MiB, 43 %
+6, 21799 MiB, 49 %
+7, 17943 MiB, 96 %
+[2026-09-20T19:01:29+08:00] training
+Iteration: 287/4000
+Computation: 77087 steps/s (collection: 3.231s, learning: 0.169s)
+Mean reward: 2.3815
+Mean episode length: 97.9722
+gait/blocked_push: 0.049841
+gait/completed_mean_net_turns: 0.250474
+gait/completed_mean_turns: 0.000000
+gait/completed_one_turn_rate: 0.000000
+gait/support_gate: 0.793932
+stable_rotation_rate: 0.088718
+Total timesteps: 75235328
+ETA (recent FPS): 0d 03:30:26
+GPU index, memory used, utilization:
+0, 27333 MiB, 97 %
+1, 9806 MiB, 86 %
+2, 12089 MiB, 44 %
+3, 5805 MiB, 93 %
+4, 23313 MiB, 91 %
+5, 22567 MiB, 63 %
+6, 21799 MiB, 92 %
+7, 17943 MiB, 66 %
+[2026-09-20T19:02:01+08:00] training
+Iteration: 297/4000
+Computation: 79824 steps/s (collection: 3.116s, learning: 0.168s)
+Mean reward: 2.4837
+Mean episode length: 95.9546
+gait/blocked_push: 0.049767
+gait/completed_mean_net_turns: 0.254458
+gait/completed_mean_turns: 0.000000
+gait/completed_one_turn_rate: 0.000000
+gait/support_gate: 0.789898
+stable_rotation_rate: 0.089050
+Total timesteps: 77856768
+ETA (recent FPS): 0d 03:22:40
+GPU index, memory used, utilization:
+0, 27333 MiB, 50 %
+1, 9806 MiB, 39 %
+2, 12089 MiB, 61 %
+3, 5805 MiB, 94 %
+4, 23313 MiB, 94 %
+5, 22567 MiB, 78 %
+6, 21086 MiB, 1 %
+7, 16587 MiB, 87 %
+[2026-09-20T19:02:33+08:00] training
+Iteration: 306/4000
+Computation: 77220 steps/s (collection: 3.224s, learning: 0.171s)
+Mean reward: 2.7270
+Mean episode length: 104.1657
+gait/blocked_push: 0.048381
+gait/completed_mean_net_turns: 0.255012
+gait/completed_mean_turns: 0.000000
+gait/completed_one_turn_rate: 0.000000
+gait/support_gate: 0.802527
+stable_rotation_rate: 0.088619
+Total timesteps: 80216064
+ETA (recent FPS): 0d 03:29:00
+GPU index, memory used, utilization:
+0, 27333 MiB, 39 %
+1, 9806 MiB, 76 %
+2, 12089 MiB, 61 %
+3, 5677 MiB, 93 %
+4, 23313 MiB, 92 %
+5, 22567 MiB, 73 %
+6, 21086 MiB, 53 %
+7, 15542 MiB, 81 %
+[2026-09-20T19:03:06+08:00] training
+Iteration: 316/4000
+Computation: 79003 steps/s (collection: 3.148s, learning: 0.170s)
+Mean reward: 2.4848
+Mean episode length: 101.8563
+gait/blocked_push: 0.050721
+gait/completed_mean_net_turns: 0.254571
+gait/completed_mean_turns: 0.000000
+gait/completed_one_turn_rate: 0.000000
+gait/support_gate: 0.805630
+stable_rotation_rate: 0.085926
+Total timesteps: 82837504
+ETA (recent FPS): 0d 03:23:44
+GPU index, memory used, utilization:
+0, 27333 MiB, 40 %
+1, 9806 MiB, 79 %
+2, 12089 MiB, 42 %
+3, 3765 MiB, 79 %
+4, 23313 MiB, 92 %
+5, 22567 MiB, 86 %
+6, 21086 MiB, 52 %
+7, 16617 MiB, 91 %
+[2026-09-20T19:03:38+08:00] training
+Iteration: 326/4000
+Computation: 78804 steps/s (collection: 3.159s, learning: 0.167s)
+Mean reward: 2.6195
+Mean episode length: 103.8671
+gait/blocked_push: 0.050098
+gait/completed_mean_net_turns: 0.256538
+gait/completed_mean_turns: 0.000000
+gait/completed_one_turn_rate: 0.000000
+gait/support_gate: 0.807908
+stable_rotation_rate: 0.092804
+Total timesteps: 85458944
+ETA (recent FPS): 0d 03:23:41
+GPU index, memory used, utilization:
+0, 27333 MiB, 51 %
+1, 9806 MiB, 77 %
+2, 12089 MiB, 40 %
+3, 3765 MiB, 79 %
+4, 23313 MiB, 93 %
+5, 22567 MiB, 52 %
+6, 21757 MiB, 76 %
+7, 16617 MiB, 90 %
+[2026-09-20T19:04:11+08:00] training
+Iteration: 335/4000
+Computation: 75345 steps/s (collection: 3.311s, learning: 0.169s)
+Mean reward: 2.5678
+Mean episode length: 99.2766
+gait/blocked_push: 0.048254
+gait/completed_mean_net_turns: 0.255127
+gait/completed_mean_turns: 0.000000
+gait/completed_one_turn_rate: 0.000000
+gait/support_gate: 0.816555
+stable_rotation_rate: 0.098610
+Total timesteps: 87818240
+ETA (recent FPS): 0d 03:32:31
+GPU index, memory used, utilization:
+0, 27333 MiB, 36 %
+1, 9806 MiB, 77 %
+2, 12089 MiB, 61 %
+3, 7825 MiB, 96 %
+4, 23313 MiB, 93 %
+5, 22567 MiB, 84 %
+6, 21086 MiB, 70 %
+7, 16617 MiB, 92 %
+[2026-09-20T19:04:44+08:00] training
+Iteration: 345/4000
+Computation: 77735 steps/s (collection: 3.201s, learning: 0.172s)
+Mean reward: 2.9953
+Mean episode length: 105.7958
+gait/blocked_push: 0.050791
+gait/completed_mean_net_turns: 0.258039
+gait/completed_mean_turns: 0.000000
+gait/completed_one_turn_rate: 0.000000
+gait/support_gate: 0.814204
+stable_rotation_rate: 0.102760
+Total timesteps: 90439680
+ETA (recent FPS): 0d 03:25:25
+GPU index, memory used, utilization:
+0, 27333 MiB, 37 %
+1, 9806 MiB, 83 %
+2, 12089 MiB, 61 %
+3, 7283 MiB, 94 %
+4, 23313 MiB, 93 %
+5, 22567 MiB, 66 %
+6, 21819 MiB, 89 %
+7, 16617 MiB, 92 %
+[2026-09-20T19:05:17+08:00] training
+Iteration: 354/4000
+Computation: 77165 steps/s (collection: 3.230s, learning: 0.167s)
+Mean reward: 2.6115
+Mean episode length: 107.8699
+gait/blocked_push: 0.050812
+gait/completed_mean_net_turns: 0.256143
+gait/completed_mean_turns: 0.000000
+gait/completed_one_turn_rate: 0.000000
+gait/support_gate: 0.825855
+stable_rotation_rate: 0.102573
+Total timesteps: 92798976
+ETA (recent FPS): 0d 03:26:26
+GPU index, memory used, utilization:
+0, 27333 MiB, 39 %
+1, 9806 MiB, 42 %
+2, 12089 MiB, 31 %
+3, 7283 MiB, 95 %
+4, 23313 MiB, 83 %
+5, 22567 MiB, 84 %
+6, 21765 MiB, 93 %
+7, 16617 MiB, 93 %
+[2026-09-20T19:05:50+08:00] training
+Iteration: 364/4000
+Computation: 82361 steps/s (collection: 3.018s, learning: 0.165s)
+Mean reward: 2.7255
+Mean episode length: 110.7286
+gait/blocked_push: 0.053080
+gait/completed_mean_net_turns: 0.260551
+gait/completed_mean_turns: 0.000000
+gait/completed_one_turn_rate: 0.000000
+gait/support_gate: 0.828960
+stable_rotation_rate: 0.105373
+Total timesteps: 95420416
+ETA (recent FPS): 0d 03:12:52
+GPU index, memory used, utilization:
+0, 27333 MiB, 49 %
+1, 9806 MiB, 76 %
+2, 12089 MiB, 42 %
+3, 4581 MiB, 92 %
+4, 23313 MiB, 91 %
+5, 22567 MiB, 20 %
+6, 21779 MiB, 84 %
+7, 16617 MiB, 78 %
+[2026-09-20T19:06:23+08:00] training
+Iteration: 374/4000
+Computation: 79618 steps/s (collection: 3.128s, learning: 0.164s)
+Mean reward: 2.9902
+Mean episode length: 111.9067
+gait/blocked_push: 0.052722
+gait/completed_mean_net_turns: 0.264096
+gait/completed_mean_turns: 0.000000
+gait/completed_one_turn_rate: 0.000000
+gait/support_gate: 0.825482
+stable_rotation_rate: 0.109314
+Total timesteps: 98041856
+ETA (recent FPS): 0d 03:18:58
+GPU index, memory used, utilization:
+0, 27333 MiB, 37 %
+1, 9806 MiB, 82 %
+2, 12089 MiB, 65 %
+3, 4587 MiB, 91 %
+4, 23313 MiB, 88 %
+5, 22567 MiB, 50 %
+6, 21611 MiB, 42 %
+7, 16617 MiB, 89 %
+[2026-09-20T19:06:56+08:00] training
+Iteration: 384/4000
+Computation: 71655 steps/s (collection: 3.394s, learning: 0.264s)
+Mean reward: 2.8300
+Mean episode length: 112.1558
+gait/blocked_push: 0.052915
+gait/completed_mean_net_turns: 0.262858
+gait/completed_mean_turns: 0.000000
+gait/completed_one_turn_rate: 0.000000
+gait/support_gate: 0.827703
+stable_rotation_rate: 0.116566
+Total timesteps: 100663296
+ETA (recent FPS): 0d 03:40:28
+GPU index, memory used, utilization:
+0, 27333 MiB, 33 %
+1, 9806 MiB, 45 %
+2, 12089 MiB, 49 %
+3, 4587 MiB, 92 %
+4, 23313 MiB, 77 %
+5, 22567 MiB, 23 %
+6, 21777 MiB, 61 %
+7, 16617 MiB, 83 %
+[2026-09-20T19:07:29+08:00] training
+Iteration: 393/4000
+Computation: 73957 steps/s (collection: 3.374s, learning: 0.171s)
+Mean reward: 3.0237
+Mean episode length: 114.5306
+gait/blocked_push: 0.053048
+gait/completed_mean_net_turns: 0.260883
+gait/completed_mean_turns: 0.000000
+gait/completed_one_turn_rate: 0.000000
+gait/support_gate: 0.822243
+stable_rotation_rate: 0.115578
+Total timesteps: 103022592
+ETA (recent FPS): 0d 03:33:05
+GPU index, memory used, utilization:
+0, 27333 MiB, 34 %
+1, 9806 MiB, 78 %
+2, 12089 MiB, 44 %
+3, 3765 MiB, 69 %
+4, 23313 MiB, 92 %
+5, 22567 MiB, 75 %
+6, 21086 MiB, 66 %
+7, 16617 MiB, 74 %
+[2026-09-20T19:08:03+08:00] training
+Iteration: 403/4000
+Computation: 75995 steps/s (collection: 3.280s, learning: 0.170s)
+Mean reward: 2.8058
+Mean episode length: 118.2654
+gait/blocked_push: 0.053762
+gait/completed_mean_net_turns: 0.265150
+gait/completed_mean_turns: 0.000000
+gait/completed_one_turn_rate: 0.000000
+gait/support_gate: 0.825445
+stable_rotation_rate: 0.115372
+Total timesteps: 105644032
+ETA (recent FPS): 0d 03:26:47
+GPU index, memory used, utilization:
+0, 27333 MiB, 37 %
+1, 9806 MiB, 81 %
+2, 12091 MiB, 42 %
+3, 4015 MiB, 81 %
+4, 23313 MiB, 92 %
+5, 22567 MiB, 84 %
+6, 21086 MiB, 61 %
+7, 16617 MiB, 76 %
+[2026-09-20T19:08:36+08:00] training
+Iteration: 412/4000
+Computation: 66218 steps/s (collection: 3.786s, learning: 0.173s)
+Mean reward: 3.0488
+Mean episode length: 114.9925
+gait/blocked_push: 0.052896
+gait/completed_mean_net_turns: 0.265303
+gait/completed_mean_turns: 0.000000
+gait/completed_one_turn_rate: 0.000000
+gait/support_gate: 0.824589
+stable_rotation_rate: 0.120087
+Total timesteps: 108003328
+ETA (recent FPS): 0d 03:56:44
+GPU index, memory used, utilization:
+0, 27333 MiB, 29 %
+1, 9806 MiB, 82 %
+2, 12091 MiB, 43 %
+3, 4849 MiB, 93 %
+4, 23313 MiB, 88 %
+5, 22567 MiB, 82 %
+6, 21611 MiB, 1 %
+7, 16617 MiB, 91 %
+[2026-09-20T19:09:10+08:00] training
+Iteration: 422/4000
+Computation: 80005 steps/s (collection: 3.112s, learning: 0.164s)
+Mean reward: 3.2450
+Mean episode length: 127.9592
+gait/blocked_push: 0.056038
+gait/completed_mean_net_turns: 0.265441
+gait/completed_mean_turns: 0.000000
+gait/completed_one_turn_rate: 0.000000
+gait/support_gate: 0.814475
+stable_rotation_rate: 0.115932
+Total timesteps: 110624768
+ETA (recent FPS): 0d 03:15:23
+GPU index, memory used, utilization:
+0, 27333 MiB, 51 %
+1, 9806 MiB, 76 %
+2, 12091 MiB, 56 %
+3, 4849 MiB, 93 %
+4, 23313 MiB, 79 %
+5, 22567 MiB, 41 %
+6, 21777 MiB, 60 %
+7, 16617 MiB, 91 %
+[2026-09-20T19:09:43+08:00] training
+Iteration: 432/4000
+Computation: 76800 steps/s (collection: 3.244s, learning: 0.169s)
+Mean reward: 2.6943
+Mean episode length: 115.8846
+gait/blocked_push: 0.057202
+gait/completed_mean_net_turns: 0.268864
+gait/completed_mean_turns: 0.000000
+gait/completed_one_turn_rate: 0.000000
+gait/support_gate: 0.817256
+stable_rotation_rate: 0.119873
+Total timesteps: 113246208
+ETA (recent FPS): 0d 03:22:58
+GPU index, memory used, utilization:
+0, 27333 MiB, 38 %
+1, 7546 MiB, 0 %
+2, 12091 MiB, 48 %
+3, 4015 MiB, 82 %
+4, 21054 MiB, 73 %
+5, 22567 MiB, 21 %
+6, 21086 MiB, 48 %
+7, 16617 MiB, 93 %
+[2026-09-20T19:10:17+08:00] training
+Iteration: 441/4000
+Computation: 76431 steps/s (collection: 3.265s, learning: 0.165s)
+Mean reward: 2.9055
+Mean episode length: 119.2615
+gait/blocked_push: 0.057839
+gait/completed_mean_net_turns: 0.266857
+gait/completed_mean_turns: 0.000000
+gait/completed_one_turn_rate: 0.000000
+gait/support_gate: 0.818271
+stable_rotation_rate: 0.120010
+Total timesteps: 115605504
+ETA (recent FPS): 0d 03:23:26
+GPU index, memory used, utilization:
+0, 27333 MiB, 99 %
+1, 7546 MiB, 0 %
+2, 12091 MiB, 46 %
+3, 6231 MiB, 88 %
+4, 21054 MiB, 66 %
+5, 22567 MiB, 48 %
+6, 21086 MiB, 51 %
+7, 16617 MiB, 93 %
+[2026-09-20T19:10:51+08:00] training
+Iteration: 451/4000
+Computation: 76133 steps/s (collection: 3.272s, learning: 0.172s)
+Mean reward: 3.0536
+Mean episode length: 115.8421
+gait/blocked_push: 0.059027
+gait/completed_mean_net_turns: 0.268019
+gait/completed_mean_turns: 0.000000
+gait/completed_one_turn_rate: 0.000000
+gait/support_gate: 0.822521
+stable_rotation_rate: 0.121006
+Total timesteps: 118226944
+ETA (recent FPS): 0d 03:23:40
+GPU index, memory used, utilization:
+0, 27333 MiB, 44 %
+1, 7546 MiB, 0 %
+2, 12091 MiB, 62 %
+3, 7659 MiB, 96 %
+4, 21054 MiB, 65 %
+5, 22567 MiB, 84 %
+6, 21086 MiB, 68 %
+7, 16617 MiB, 63 %
+[2026-09-20T19:11:25+08:00] training
+Iteration: 461/4000
+Computation: 80036 steps/s (collection: 3.110s, learning: 0.166s)
+Mean reward: 3.0405
+Mean episode length: 115.3636
+gait/blocked_push: 0.058788
+gait/completed_mean_net_turns: 0.271023
+gait/completed_mean_turns: 0.000000
+gait/completed_one_turn_rate: 0.000000
+gait/support_gate: 0.820328
+stable_rotation_rate: 0.119770
+Total timesteps: 120848384
+ETA (recent FPS): 0d 03:13:11
+GPU index, memory used, utilization:
+0, 27333 MiB, 36 %
+1, 7546 MiB, 0 %
+2, 12091 MiB, 66 %
+3, 4291 MiB, 81 %
+4, 21054 MiB, 69 %
+5, 22567 MiB, 35 %
+6, 21086 MiB, 52 %
+7, 16617 MiB, 67 %
+[2026-09-20T19:11:59+08:00] training
+Iteration: 471/4000
+Computation: 71643 steps/s (collection: 3.481s, learning: 0.178s)
+Mean reward: 3.1861
+Mean episode length: 122.1654
+gait/blocked_push: 0.058581
+gait/completed_mean_net_turns: 0.265632
+gait/completed_mean_turns: 0.000000
+gait/completed_one_turn_rate: 0.000000
+gait/support_gate: 0.815912
+stable_rotation_rate: 0.118382
+Total timesteps: 123469824
+ETA (recent FPS): 0d 03:35:12
+GPU index, memory used, utilization:
+0, 27333 MiB, 37 %
+1, 7546 MiB, 0 %
+2, 12091 MiB, 56 %
+3, 5195 MiB, 65 %
+4, 21054 MiB, 67 %
+5, 22567 MiB, 51 %
+6, 21086 MiB, 68 %
+7, 16617 MiB, 73 %
+[2026-09-20T19:12:33+08:00] training
+Iteration: 480/4000
+Computation: 71822 steps/s (collection: 3.484s, learning: 0.166s)
+Mean reward: 3.1764
+Mean episode length: 118.6475
+gait/blocked_push: 0.056134
+gait/completed_mean_net_turns: 0.271330
+gait/completed_mean_turns: 0.000000
+gait/completed_one_turn_rate: 0.000000
+gait/support_gate: 0.819327
+stable_rotation_rate: 0.120129
+Total timesteps: 125829120
+ETA (recent FPS): 0d 03:34:07
+GPU index, memory used, utilization:
+0, 27333 MiB, 47 %
+1, 7546 MiB, 0 %
+2, 12091 MiB, 55 %
+3, 6355 MiB, 94 %
+4, 21683 MiB, 75 %
+5, 22567 MiB, 77 %
+6, 21757 MiB, 82 %
+7, 16617 MiB, 91 %
+[2026-09-20T19:13:06+08:00] training
+Iteration: 490/4000
+Computation: 75588 steps/s (collection: 3.303s, learning: 0.165s)
+Mean reward: 2.9497
+Mean episode length: 122.2985
+gait/blocked_push: 0.052254
+gait/completed_mean_net_turns: 0.267977
+gait/completed_mean_turns: 0.000000
+gait/completed_one_turn_rate: 0.000000
+gait/support_gate: 0.822816
+stable_rotation_rate: 0.121937
+Total timesteps: 128450560
+ETA (recent FPS): 0d 03:22:52
+GPU index, memory used, utilization:
+0, 27333 MiB, 99 %
+1, 7546 MiB, 0 %
+2, 12091 MiB, 63 %
+3, 6355 MiB, 91 %
+4, 21054 MiB, 75 %
+5, 22567 MiB, 80 %
+6, 21086 MiB, 56 %
+7, 16617 MiB, 91 %
+[2026-09-20T19:13:40+08:00] training
+Iteration: 500/4000
+Computation: 75377 steps/s (collection: 3.308s, learning: 0.169s)
+Mean reward: 3.3967
+Mean episode length: 126.0932
+gait/blocked_push: 0.052136
+gait/completed_mean_net_turns: 0.273250
+gait/completed_mean_turns: 0.000000
+gait/completed_one_turn_rate: 0.000000
+gait/support_gate: 0.829421
+stable_rotation_rate: 0.124424
+Total timesteps: 131072000
+ETA (recent FPS): 0d 03:22:52
+GPU index, memory used, utilization:
+0, 27333 MiB, 36 %
+1, 7546 MiB, 0 %
+2, 12091 MiB, 56 %
+3, 4291 MiB, 80 %
+4, 21054 MiB, 51 %
+5, 22567 MiB, 63 %
+6, 21086 MiB, 67 %
+7, 16617 MiB, 75 %
+[2026-09-20T19:14:15+08:00] training
+Iteration: 510/4000
+Computation: 78382 steps/s (collection: 3.178s, learning: 0.167s)
+Mean reward: 3.4341
+Mean episode length: 125.8881
+gait/blocked_push: 0.052349
+gait/completed_mean_net_turns: 0.279403
+gait/completed_mean_turns: 0.000000
+gait/completed_one_turn_rate: 0.000000
+gait/support_gate: 0.825231
+stable_rotation_rate: 0.122288
+Total timesteps: 133693440
+ETA (recent FPS): 0d 03:14:32
+GPU index, memory used, utilization:
+0, 27333 MiB, 99 %
+1, 7546 MiB, 0 %
+2, 12091 MiB, 61 %
+3, 7539 MiB, 96 %
+4, 21767 MiB, 91 %
+5, 22567 MiB, 27 %
+6, 21086 MiB, 78 %
+7, 16617 MiB, 87 %
+[2026-09-20T19:14:50+08:00] training
+Iteration: 520/4000
+Computation: 74767 steps/s (collection: 3.325s, learning: 0.181s)
+Mean reward: 3.1083
+Mean episode length: 123.6207
+gait/blocked_push: 0.051320
+gait/completed_mean_net_turns: 0.278384
+gait/completed_mean_turns: 0.000000
+gait/completed_one_turn_rate: 0.000000
+gait/support_gate: 0.828649
+stable_rotation_rate: 0.122723
+Total timesteps: 136314880
+ETA (recent FPS): 0d 03:23:21
+GPU index, memory used, utilization:
+0, 27333 MiB, 40 %
+1, 7546 MiB, 0 %
+2, 12091 MiB, 58 %
+3, 7929 MiB, 94 %
+4, 21767 MiB, 75 %
+5, 22567 MiB, 61 %
+6, 21777 MiB, 87 %
+7, 16617 MiB, 73 %
+[2026-09-20T19:15:24+08:00] training
+Iteration: 530/4000
+Computation: 79022 steps/s (collection: 3.147s, learning: 0.171s)
+Mean reward: 3.3291
+Mean episode length: 125.9466
+gait/blocked_push: 0.051342
+gait/completed_mean_net_turns: 0.275762
+gait/completed_mean_turns: 0.000000
+gait/completed_one_turn_rate: 0.000000
+gait/support_gate: 0.830070
+stable_rotation_rate: 0.124527
+Total timesteps: 138936320
+ETA (recent FPS): 0d 03:11:51
+GPU index, memory used, utilization:
+0, 27333 MiB, 36 %
+1, 7546 MiB, 0 %
+2, 12091 MiB, 44 %
+3, 5635 MiB, 94 %
+4, 21723 MiB, 85 %
+5, 22567 MiB, 58 %
+6, 21777 MiB, 92 %
+7, 18671 MiB, 94 %
+[2026-09-20T19:15:59+08:00] training
+Iteration: 540/4000
+Computation: 74868 steps/s (collection: 3.329s, learning: 0.172s)
+Mean reward: 3.7604
+Mean episode length: 127.4074
+gait/blocked_push: 0.052317
+gait/completed_mean_net_turns: 0.277987
+gait/completed_mean_turns: 0.000000
+gait/completed_one_turn_rate: 0.000000
+gait/support_gate: 0.832506
+stable_rotation_rate: 0.123573
+Total timesteps: 141557760
+ETA (recent FPS): 0d 03:21:54
+GPU index, memory used, utilization:
+0, 27333 MiB, 99 %
+1, 7546 MiB, 0 %
+2, 12091 MiB, 58 %
+3, 4537 MiB, 68 %
+4, 21054 MiB, 56 %
+5, 22567 MiB, 78 %
+6, 21086 MiB, 55 %
+7, 19115 MiB, 95 %
+[2026-09-20T19:16:34+08:00] training
+Iteration: 550/4000
+Computation: 76568 steps/s (collection: 3.256s, learning: 0.168s)
+Mean reward: 3.4805
+Mean episode length: 117.6214
+gait/blocked_push: 0.050491
+gait/completed_mean_net_turns: 0.280573
+gait/completed_mean_turns: 0.000000
+gait/completed_one_turn_rate: 0.000000
+gait/support_gate: 0.830316
+stable_rotation_rate: 0.130352
+Total timesteps: 144179200
+ETA (recent FPS): 0d 03:16:51
+GPU index, memory used, utilization:
+0, 27333 MiB, 34 %
+1, 7546 MiB, 0 %
+2, 12091 MiB, 57 %
+3, 5563 MiB, 94 %
+4, 21054 MiB, 79 %
+5, 22567 MiB, 30 %
+6, 21086 MiB, 77 %
+7, 19115 MiB, 96 %
+[2026-09-20T19:17:09+08:00] training
+Iteration: 560/4000
+Computation: 77801 steps/s (collection: 3.203s, learning: 0.167s)
+Mean reward: 2.9920
+Mean episode length: 116.6667
+gait/blocked_push: 0.050969
+gait/completed_mean_net_turns: 0.282368
+gait/completed_mean_turns: 0.000000
+gait/completed_one_turn_rate: 0.000000
+gait/support_gate: 0.830407
+stable_rotation_rate: 0.132549
+Total timesteps: 146800640
+ETA (recent FPS): 0d 03:13:10
+GPU index, memory used, utilization:
+0, 27333 MiB, 49 %
+1, 7546 MiB, 0 %
+2, 12091 MiB, 46 %
+3, 5563 MiB, 93 %
+4, 21054 MiB, 53 %
+5, 22567 MiB, 82 %
+6, 21086 MiB, 81 %
+7, 15542 MiB, 48 %
+[2026-09-20T19:17:44+08:00] training
+Iteration: 570/4000
+Computation: 78323 steps/s (collection: 3.174s, learning: 0.173s)
+Mean reward: 3.5070
+Mean episode length: 120.6167
+gait/blocked_push: 0.053430
+gait/completed_mean_net_turns: 0.282875
+gait/completed_mean_turns: 0.000000
+gait/completed_one_turn_rate: 0.000000
+gait/support_gate: 0.833436
+stable_rotation_rate: 0.130825
+Total timesteps: 149422080
+ETA (recent FPS): 0d 03:11:20
+GPU index, memory used, utilization:
+0, 27333 MiB, 97 %
+1, 7546 MiB, 0 %
+2, 12091 MiB, 42 %
+3, 5563 MiB, 94 %
+4, 21054 MiB, 69 %
+5, 22567 MiB, 33 %
+6, 21086 MiB, 57 %
+7, 15542 MiB, 85 %
+[2026-09-20T19:18:19+08:00] training
+Iteration: 581/4000
+Computation: 78822 steps/s (collection: 3.157s, learning: 0.169s)
+Mean reward: 3.4095
+Mean episode length: 128.3235
+gait/blocked_push: 0.055487
+gait/completed_mean_net_turns: 0.282199
+gait/completed_mean_turns: 0.000000
+gait/completed_one_turn_rate: 0.000000
+gait/support_gate: 0.831242
+stable_rotation_rate: 0.119644
+Total timesteps: 152305664
+ETA (recent FPS): 0d 03:09:30
+GPU index, memory used, utilization:
+0, 27333 MiB, 37 %
+1, 7546 MiB, 0 %
+2, 12091 MiB, 58 %
+3, 5563 MiB, 92 %
+4, 21054 MiB, 79 %
+5, 22567 MiB, 47 %
+6, 21757 MiB, 87 %
+7, 15542 MiB, 79 %
+[2026-09-20T19:18:54+08:00] training
+Iteration: 591/4000
+Computation: 75356 steps/s (collection: 3.302s, learning: 0.177s)
+Mean reward: 3.4930
+Mean episode length: 129.5812
+gait/blocked_push: 0.053505
+gait/completed_mean_net_turns: 0.287150
+gait/completed_mean_turns: 0.000000
+gait/completed_one_turn_rate: 0.000000
+gait/support_gate: 0.832329
+stable_rotation_rate: 0.130741
+Total timesteps: 154927104
+ETA (recent FPS): 0d 03:17:39
+GPU index, memory used, utilization:
+0, 27333 MiB, 38 %
+1, 7546 MiB, 0 %
+2, 12091 MiB, 40 %
+3, 5563 MiB, 93 %
+4, 21054 MiB, 65 %
+5, 22567 MiB, 86 %
+6, 21086 MiB, 58 %
+7, 15542 MiB, 54 %
+[2026-09-20T19:19:29+08:00] training
+Iteration: 601/4000
+Computation: 80961 steps/s (collection: 3.077s, learning: 0.161s)
+Mean reward: 3.8229
+Mean episode length: 126.7623
+gait/blocked_push: 0.051725
+gait/completed_mean_net_turns: 0.284131
+gait/completed_mean_turns: 0.000000
+gait/completed_one_turn_rate: 0.000000
+gait/support_gate: 0.831860
+stable_rotation_rate: 0.137051
+Total timesteps: 157548544
+ETA (recent FPS): 0d 03:03:25
+GPU index, memory used, utilization:
+0, 27333 MiB, 100 %
+1, 7546 MiB, 0 %
+2, 12091 MiB, 61 %
+3, 5563 MiB, 94 %
+4, 21054 MiB, 43 %
+5, 22567 MiB, 77 %
+6, 21755 MiB, 71 %
+7, 15542 MiB, 79 %
+[2026-09-20T19:20:04+08:00] training
+Iteration: 611/4000
+Computation: 75965 steps/s (collection: 3.283s, learning: 0.168s)
+Mean reward: 3.2996
+Mean episode length: 124.1385
+gait/blocked_push: 0.051668
+gait/completed_mean_net_turns: 0.289199
+gait/completed_mean_turns: 0.000000
+gait/completed_one_turn_rate: 0.000000
+gait/support_gate: 0.825184
+stable_rotation_rate: 0.130196
+Total timesteps: 160169984
+ETA (recent FPS): 0d 03:14:54
+GPU index, memory used, utilization:
+0, 27333 MiB, 35 %
+1, 7546 MiB, 0 %
+2, 12091 MiB, 42 %
+3, 5563 MiB, 94 %
+4, 21054 MiB, 1 %
+5, 22567 MiB, 86 %
+6, 21799 MiB, 78 %
+7, 15542 MiB, 79 %
+[2026-09-20T19:20:40+08:00] training
+Iteration: 621/4000
+Computation: 76055 steps/s (collection: 3.258s, learning: 0.188s)
+Mean reward: 3.6213
+Mean episode length: 126.5000
+gait/blocked_push: 0.051674
+gait/completed_mean_net_turns: 0.293920
+gait/completed_mean_turns: 0.000000
+gait/completed_one_turn_rate: 0.000000
+gait/support_gate: 0.825687
+stable_rotation_rate: 0.134422
+Total timesteps: 162791424
+ETA (recent FPS): 0d 03:14:06
+GPU index, memory used, utilization:
+0, 27333 MiB, 36 %
+1, 7546 MiB, 0 %
+2, 12091 MiB, 60 %
+3, 5563 MiB, 94 %
+4, 21054 MiB, 1 %
+5, 22567 MiB, 66 %
+6, 21086 MiB, 60 %
+7, 15542 MiB, 79 %
+[2026-09-20T19:21:15+08:00] training
+Iteration: 631/4000
+Computation: 76246 steps/s (collection: 3.270s, learning: 0.168s)
+Mean reward: 3.2159
+Mean episode length: 125.2977
+gait/blocked_push: 0.049830
+gait/completed_mean_net_turns: 0.298796
+gait/completed_mean_turns: 0.000000
+gait/completed_one_turn_rate: 0.000000
+gait/support_gate: 0.820178
+stable_rotation_rate: 0.137684
+Total timesteps: 165412864
+ETA (recent FPS): 0d 03:13:03
+GPU index, memory used, utilization:
+0, 27333 MiB, 38 %
+1, 7546 MiB, 0 %
+2, 12091 MiB, 46 %
+3, 1673 MiB, 24 %
+4, 21767 MiB, 86 %
+5, 22567 MiB, 62 %
+6, 21086 MiB, 79 %
+7, 15542 MiB, 71 %
+[2026-09-20T19:21:51+08:00] training
+Iteration: 641/4000
+Computation: 73638 steps/s (collection: 3.412s, learning: 0.148s)
+Mean reward: 3.3009
+Mean episode length: 125.8548
+gait/blocked_push: 0.048215
+gait/completed_mean_net_turns: 0.289899
+gait/completed_mean_turns: 0.000000
+gait/completed_one_turn_rate: 0.000000
+gait/support_gate: 0.818600
+stable_rotation_rate: 0.148144
+Total timesteps: 168034304
+ETA (recent FPS): 0d 03:19:17
+GPU index, memory used, utilization:
+0, 27333 MiB, 52 %
+1, 7546 MiB, 0 %
+2, 12091 MiB, 60 %
+3, 3061 MiB, 59 %
+4, 21054 MiB, 66 %
+5, 22567 MiB, 33 %
+6, 21086 MiB, 53 %
+7, 15542 MiB, 80 %
+[2026-09-20T19:22:27+08:00] training
+Iteration: 652/4000
+Computation: 74465 steps/s (collection: 3.340s, learning: 0.180s)
+Mean reward: 3.5154
+Mean episode length: 127.1304
+gait/blocked_push: 0.049060
+gait/completed_mean_net_turns: 0.301402
+gait/completed_mean_turns: 0.000000
+gait/completed_one_turn_rate: 0.000000
+gait/support_gate: 0.815319
+stable_rotation_rate: 0.140533
+Total timesteps: 170917888
+ETA (recent FPS): 0d 03:16:26
+GPU index, memory used, utilization:
+0, 27333 MiB, 33 %
+1, 7546 MiB, 0 %
+2, 12091 MiB, 61 %
+3, 3065 MiB, 89 %
+4, 21054 MiB, 34 %
+5, 22567 MiB, 23 %
+6, 21086 MiB, 47 %
+7, 15542 MiB, 82 %
+[2026-09-20T19:23:03+08:00] training
+Iteration: 662/4000
+Computation: 79644 steps/s (collection: 3.105s, learning: 0.187s)
+Mean reward: 3.8570
+Mean episode length: 140.6610
+gait/blocked_push: 0.050303
+gait/completed_mean_net_turns: 0.314844
+gait/completed_mean_turns: 0.000000
+gait/completed_one_turn_rate: 0.000000
+gait/support_gate: 0.806181
+stable_rotation_rate: 0.141228
+Total timesteps: 173539328
+ETA (recent FPS): 0d 03:03:06
+GPU index, memory used, utilization:
+0, 27333 MiB, 42 %
+1, 7546 MiB, 0 %
+2, 12091 MiB, 44 %
+3, 3065 MiB, 89 %
+4, 21725 MiB, 92 %
+5, 22567 MiB, 80 %
+6, 21781 MiB, 67 %
+7, 15542 MiB, 81 %
+[2026-09-20T19:23:39+08:00] training
+Iteration: 672/4000
+Computation: 72652 steps/s (collection: 3.443s, learning: 0.165s)
+Mean reward: 3.4192
+Mean episode length: 137.4144
+gait/blocked_push: 0.044148
+gait/completed_mean_net_turns: 0.316160
+gait/completed_mean_turns: 0.000000
+gait/completed_one_turn_rate: 0.000000
+gait/support_gate: 0.790582
+stable_rotation_rate: 0.149731
+Total timesteps: 176160768
+ETA (recent FPS): 0d 03:20:08
+GPU index, memory used, utilization:
+0, 27333 MiB, 46 %
+1, 7546 MiB, 0 %
+2, 12091 MiB, 59 %
+3, 3065 MiB, 91 %
+4, 21054 MiB, 46 %
+5, 22567 MiB, 41 %
+6, 21086 MiB, 78 %
+7, 15542 MiB, 44 %
+[2026-09-20T19:24:15+08:00] training
+Iteration: 682/4000
+Computation: 69616 steps/s (collection: 3.598s, learning: 0.167s)
+Mean reward: 3.0041
+Mean episode length: 145.9802
+gait/blocked_push: 0.038687
+gait/completed_mean_net_turns: 0.332817
+gait/completed_mean_turns: 0.000000
+gait/completed_one_turn_rate: 0.000000
+gait/support_gate: 0.762937
+stable_rotation_rate: 0.154633
+Total timesteps: 178782208
+ETA (recent FPS): 0d 03:28:14
+GPU index, memory used, utilization:
+0, 27333 MiB, 50 %
+1, 7546 MiB, 0 %
+2, 12091 MiB, 53 %
+3, 3065 MiB, 91 %
+4, 21683 MiB, 53 %
+5, 22567 MiB, 69 %
+6, 21086 MiB, 53 %
+7, 15542 MiB, 52 %
+[2026-09-20T19:24:51+08:00] training
+Iteration: 692/4000
+Computation: 75573 steps/s (collection: 3.302s, learning: 0.167s)
+Mean reward: 3.4441
+Mean episode length: 159.7100
+gait/blocked_push: 0.044577
+gait/completed_mean_net_turns: 0.353739
+gait/completed_mean_turns: 0.000641
+gait/completed_one_turn_rate: 0.000641
+gait/support_gate: 0.771719
+stable_rotation_rate: 0.159328
+Total timesteps: 181403648
+ETA (recent FPS): 0d 03:11:14
+GPU index, memory used, utilization:
+0, 27333 MiB, 97 %
+1, 7546 MiB, 0 %
+2, 12091 MiB, 62 %
+3, 2039 MiB, 43 %
+4, 21579 MiB, 73 %
+5, 22567 MiB, 78 %
+6, 21086 MiB, 42 %
+7, 15542 MiB, 27 %
+[2026-09-20T19:25:28+08:00] training
+Iteration: 702/4000
+Computation: 76657 steps/s (collection: 3.237s, learning: 0.183s)
+Mean reward: 3.8769
+Mean episode length: 169.1672
+gait/blocked_push: 0.047669
+gait/completed_mean_net_turns: 0.381525
+gait/completed_mean_turns: 0.000000
+gait/completed_one_turn_rate: 0.000000
+gait/support_gate: 0.781244
+stable_rotation_rate: 0.160435
+Total timesteps: 184025088
+ETA (recent FPS): 0d 03:07:58
+GPU index, memory used, utilization:
+0, 27333 MiB, 36 %
+1, 7546 MiB, 0 %
+2, 12091 MiB, 43 %
+3, 3067 MiB, 80 %
+4, 21767 MiB, 92 %
+5, 22567 MiB, 83 %
+6, 21086 MiB, 1 %
+7, 15542 MiB, 59 %
+[2026-09-20T19:26:04+08:00] training
+Iteration: 712/4000
+Computation: 76338 steps/s (collection: 3.273s, learning: 0.161s)
+Mean reward: 4.0681
+Mean episode length: 180.4706
+gait/blocked_push: 0.052246
+gait/completed_mean_net_turns: 0.416073
+gait/completed_mean_turns: 0.002134
+gait/completed_one_turn_rate: 0.002134
+gait/support_gate: 0.795763
+stable_rotation_rate: 0.156235
+Total timesteps: 186646528
+ETA (recent FPS): 0d 03:08:10
+GPU index, memory used, utilization:
+0, 27333 MiB, 34 %
+1, 7546 MiB, 0 %
+2, 12091 MiB, 50 %
+3, 3103 MiB, 91 %
+4, 21054 MiB, 71 %
+5, 22567 MiB, 29 %
+6, 21086 MiB, 67 %
+7, 15542 MiB, 83 %
+[2026-09-20T19:26:41+08:00] training
+Iteration: 723/4000
+Computation: 74008 steps/s (collection: 3.374s, learning: 0.168s)
+Mean reward: 4.5975
+Mean episode length: 198.7229
+gait/blocked_push: 0.046445
+gait/completed_mean_net_turns: 0.406266
+gait/completed_mean_turns: 0.002807
+gait/completed_one_turn_rate: 0.002807
+gait/support_gate: 0.809417
+stable_rotation_rate: 0.172897
+Total timesteps: 189530112
+ETA (recent FPS): 0d 03:13:27
+GPU index, memory used, utilization:
+0, 27333 MiB, 38 %
+1, 7546 MiB, 0 %
+2, 12091 MiB, 62 %
+3, 3977 MiB, 88 %
+4, 21054 MiB, 75 %
+5, 22567 MiB, 80 %
+6, 21757 MiB, 93 %
+7, 15542 MiB, 77 %
+[2026-09-20T19:27:18+08:00] training
+Iteration: 733/4000
+Computation: 74628 steps/s (collection: 3.345s, learning: 0.168s)
+Mean reward: 3.9324
+Mean episode length: 226.6897
+gait/blocked_push: 0.036330
+gait/completed_mean_net_turns: 0.455426
+gait/completed_mean_turns: 0.007371
+gait/completed_one_turn_rate: 0.007371
+gait/support_gate: 0.751156
+stable_rotation_rate: 0.169449
+Total timesteps: 192151552
+ETA (recent FPS): 0d 03:11:15
+GPU index, memory used, utilization:
+0, 27333 MiB, 97 %
+1, 7546 MiB, 0 %
+2, 12091 MiB, 46 %
+3, 4079 MiB, 93 %
+4, 21054 MiB, 70 %
+5, 22567 MiB, 85 %
+6, 21775 MiB, 87 %
+7, 15542 MiB, 77 %
+[2026-09-20T19:27:55+08:00] training
+Iteration: 744/4000
+Computation: 75197 steps/s (collection: 3.315s, learning: 0.171s)
+Mean reward: 2.6964
+Mean episode length: 261.0568
+gait/blocked_push: 0.040491
+gait/completed_mean_net_turns: 0.545162
+gait/completed_mean_turns: 0.035496
+gait/completed_one_turn_rate: 0.035496
+gait/support_gate: 0.712811
+stable_rotation_rate: 0.175880
+Total timesteps: 195035136
+ETA (recent FPS): 0d 03:09:10
+GPU index, memory used, utilization:
+0, 27333 MiB, 49 %
+1, 7546 MiB, 0 %
+2, 12091 MiB, 47 %
+3, 4079 MiB, 92 %
+4, 21054 MiB, 50 %
+5, 22567 MiB, 64 %
+6, 21086 MiB, 70 %
+7, 15542 MiB, 60 %
+[2026-09-20T19:28:32+08:00] training
+Iteration: 753/4000
+Computation: 68385 steps/s (collection: 3.666s, learning: 0.167s)
+Mean reward: 3.3125
+Mean episode length: 297.1232
+gait/blocked_push: 0.042789
+gait/completed_mean_net_turns: 0.656131
+gait/completed_mean_turns: 0.119942
+gait/completed_one_turn_rate: 0.119942
+gait/support_gate: 0.735155
+stable_rotation_rate: 0.189335
+Total timesteps: 197394432
+ETA (recent FPS): 0d 03:27:26
+GPU index, memory used, utilization:
+0, 27333 MiB, 37 %
+1, 7546 MiB, 0 %
+2, 12091 MiB, 50 %
+3, 4079 MiB, 90 %
+4, 21054 MiB, 75 %
+5, 22569 MiB, 49 %
+6, 21086 MiB, 67 %
+7, 15542 MiB, 75 %
+[2026-09-20T19:29:09+08:00] training
+Iteration: 763/4000
+Computation: 72686 steps/s (collection: 3.435s, learning: 0.171s)
+Mean reward: 6.9586
+Mean episode length: 361.0024
+gait/blocked_push: 0.048737
+gait/completed_mean_net_turns: 0.773029
+gait/completed_mean_turns: 0.261006
+gait/completed_one_turn_rate: 0.259434
+gait/support_gate: 0.757914
+stable_rotation_rate: 0.186348
+Total timesteps: 200015872
+ETA (recent FPS): 0d 03:14:34
+GPU index, memory used, utilization:
+0, 27333 MiB, 38 %
+1, 7546 MiB, 0 %
+2, 12091 MiB, 40 %
+3, 2627 MiB, 42 %
+4, 21054 MiB, 49 %
+5, 22569 MiB, 89 %
+6, 21086 MiB, 55 %
+7, 15542 MiB, 82 %
+[2026-09-20T19:29:46+08:00] training
+Iteration: 773/4000
+Computation: 67733 steps/s (collection: 3.702s, learning: 0.169s)
+Mean reward: 9.9904
+Mean episode length: 433.2304
+gait/blocked_push: 0.044005
+gait/completed_mean_net_turns: 0.884277
+gait/completed_mean_turns: 0.359788
+gait/completed_one_turn_rate: 0.352734
+gait/support_gate: 0.778028
+stable_rotation_rate: 0.188793
+Total timesteps: 202637312
+ETA (recent FPS): 0d 03:28:09
+GPU index, memory used, utilization:
+0, 27333 MiB, 41 %
+1, 7546 MiB, 0 %
+2, 12091 MiB, 53 %
+3, 3693 MiB, 90 %
+4, 21767 MiB, 70 %
+5, 22569 MiB, 56 %
+6, 21086 MiB, 55 %
+7, 15542 MiB, 81 %
+[2026-09-20T19:30:22+08:00] training
+Iteration: 783/4000
+Computation: 71697 steps/s (collection: 3.490s, learning: 0.167s)
+Mean reward: 8.1591
+Mean episode length: 445.9295
+gait/blocked_push: 0.044153
+gait/completed_mean_net_turns: 1.002729
+gait/completed_mean_turns: 0.494350
+gait/completed_one_turn_rate: 0.440678
+gait/support_gate: 0.758866
+stable_rotation_rate: 0.212463
+Total timesteps: 205258752
+ETA (recent FPS): 0d 03:16:02
+GPU index, memory used, utilization:
+0, 27333 MiB, 31 %
+1, 7546 MiB, 0 %
+2, 12091 MiB, 64 %
+3, 3557 MiB, 89 %
+4, 21723 MiB, 78 %
+5, 22569 MiB, 72 %
+6, 21086 MiB, 57 %
+7, 15542 MiB, 27 %
+[2026-09-20T19:31:00+08:00] training
+Iteration: 793/4000
+Computation: 67593 steps/s (collection: 3.700s, learning: 0.178s)
+Mean reward: 12.0162
+Mean episode length: 535.5450
+gait/blocked_push: 0.050902
+gait/completed_mean_net_turns: 1.264113
+gait/completed_mean_turns: 0.807601
+gait/completed_one_turn_rate: 0.676960
+gait/support_gate: 0.740175
+stable_rotation_rate: 0.209049
+Total timesteps: 207880192
+ETA (recent FPS): 0d 03:27:17
+GPU index, memory used, utilization:
+0, 27333 MiB, 34 %
+1, 7546 MiB, 0 %
+2, 12091 MiB, 58 %
+3, 3683 MiB, 88 %
+4, 21725 MiB, 86 %
+5, 22569 MiB, 61 %
+6, 21086 MiB, 1 %
+7, 15542 MiB, 87 %
+[2026-09-20T19:31:38+08:00] training
+Iteration: 802/4000
+Computation: 58856 steps/s (collection: 4.278s, learning: 0.176s)
+Mean reward: 15.1066
+Mean episode length: 589.7164
+gait/blocked_push: 0.053401
+gait/completed_mean_net_turns: 1.429508
+gait/completed_mean_turns: 0.985882
+gait/completed_one_turn_rate: 0.776471
+gait/support_gate: 0.731549
+stable_rotation_rate: 0.194778
+Total timesteps: 210239488
+ETA (recent FPS): 0d 03:57:23
+GPU index, memory used, utilization:
+0, 27333 MiB, 38 %
+1, 7546 MiB, 0 %
+2, 12091 MiB, 19 %
+3, 2627 MiB, 58 %
+4, 21745 MiB, 79 %
+5, 22569 MiB, 82 %
+6, 21086 MiB, 77 %
+7, 15542 MiB, 63 %
+[2026-09-20T19:32:16+08:00] training
+Iteration: 811/4000
+Computation: 63856 steps/s (collection: 3.934s, learning: 0.171s)
+Mean reward: 16.8792
+Mean episode length: 641.3739
+gait/blocked_push: 0.057226
+gait/completed_mean_net_turns: 1.581640
+gait/completed_mean_turns: 1.113164
+gait/completed_one_turn_rate: 0.836028
+gait/support_gate: 0.738748
+stable_rotation_rate: 0.198021
+Total timesteps: 212598784
+ETA (recent FPS): 0d 03:38:11
+GPU index, memory used, utilization:
+0, 27333 MiB, 97 %
+1, 7546 MiB, 0 %
+2, 12091 MiB, 35 %
+3, 3791 MiB, 91 %
+4, 21054 MiB, 70 %
+5, 22569 MiB, 43 %
+6, 21735 MiB, 56 %
+7, 15542 MiB, 50 %
+[2026-09-20T19:32:53+08:00] training
+Iteration: 820/4000
+Computation: 64834 steps/s (collection: 3.877s, learning: 0.167s)
+Mean reward: 18.3270
+Mean episode length: 681.3402
+gait/blocked_push: 0.057254
+gait/completed_mean_net_turns: 1.726716
+gait/completed_mean_turns: 1.356877
+gait/completed_one_turn_rate: 0.877323
+gait/support_gate: 0.760667
+stable_rotation_rate: 0.217712
+Total timesteps: 214958080
+ETA (recent FPS): 0d 03:34:17
+GPU index, memory used, utilization:
+0, 27333 MiB, 61 %
+1, 7546 MiB, 0 %
+2, 12091 MiB, 42 %
+3, 3791 MiB, 90 %
+4, 21807 MiB, 59 %
+5, 22569 MiB, 60 %
+6, 21757 MiB, 92 %
+7, 15542 MiB, 61 %
+[2026-09-20T19:33:31+08:00] training
+Iteration: 829/4000
+Computation: 64451 steps/s (collection: 3.896s, learning: 0.171s)
+Mean reward: 17.4747
+Mean episode length: 664.1678
+gait/blocked_push: 0.056983
+gait/completed_mean_net_turns: 1.689933
+gait/completed_mean_turns: 1.266871
+gait/completed_one_turn_rate: 0.871166
+gait/support_gate: 0.777483
+stable_rotation_rate: 0.241173
+Total timesteps: 217317376
+ETA (recent FPS): 0d 03:34:57
+GPU index, memory used, utilization:
+0, 27333 MiB, 38 %
+1, 7546 MiB, 0 %
+2, 12091 MiB, 33 %
+3, 3791 MiB, 91 %
+4, 21723 MiB, 41 %
+5, 22569 MiB, 78 %
+6, 21799 MiB, 80 %
+7, 15542 MiB, 50 %
+[2026-09-20T19:34:09+08:00] training
+Iteration: 838/4000
+Computation: 60789 steps/s (collection: 4.137s, learning: 0.176s)
+Mean reward: 16.8843
+Mean episode length: 630.7969
+gait/blocked_push: 0.058888
+gait/completed_mean_net_turns: 1.700535
+gait/completed_mean_turns: 1.286517
+gait/completed_one_turn_rate: 0.865169
+gait/support_gate: 0.767490
+stable_rotation_rate: 0.236050
+Total timesteps: 219676672
+ETA (recent FPS): 0d 03:47:15
+GPU index, memory used, utilization:
+0, 27333 MiB, 36 %
+1, 7546 MiB, 0 %
+2, 12091 MiB, 41 %
+3, 3791 MiB, 89 %
+4, 21733 MiB, 85 %
+5, 22569 MiB, 86 %
+6, 21086 MiB, 52 %
+7, 15542 MiB, 66 %
+[2026-09-20T19:34:47+08:00] training
+Iteration: 847/4000
+Computation: 63380 steps/s (collection: 3.913s, learning: 0.223s)
+Mean reward: 17.9931
+Mean episode length: 634.7333
+gait/blocked_push: 0.058117
+gait/completed_mean_net_turns: 1.757146
+gait/completed_mean_turns: 1.360987
+gait/completed_one_turn_rate: 0.901345
+gait/support_gate: 0.741219
+stable_rotation_rate: 0.218616
+Total timesteps: 222035968
+ETA (recent FPS): 0d 03:37:21
+GPU index, memory used, utilization:
+0, 27333 MiB, 34 %
+1, 7546 MiB, 0 %
+2, 12091 MiB, 52 %
+3, 3791 MiB, 88 %
+4, 21745 MiB, 81 %
+5, 22569 MiB, 80 %
+6, 21086 MiB, 64 %
+7, 15542 MiB, 82 %
+[2026-09-20T19:35:25+08:00] training
+Iteration: 856/4000
+Computation: 58908 steps/s (collection: 4.263s, learning: 0.187s)
+Mean reward: 15.8187
+Mean episode length: 572.8174
+gait/blocked_push: 0.061378
+gait/completed_mean_net_turns: 1.664490
+gait/completed_mean_turns: 1.249104
+gait/completed_one_turn_rate: 0.844086
+gait/support_gate: 0.714198
+stable_rotation_rate: 0.204105
+Total timesteps: 224395264
+ETA (recent FPS): 0d 03:53:10
+GPU index, memory used, utilization:
+0, 27333 MiB, 39 %
+1, 7546 MiB, 0 %
+2, 12091 MiB, 34 %
+3, 3791 MiB, 90 %
+4, 21749 MiB, 81 %
+5, 22569 MiB, 22 %
+6, 21086 MiB, 64 %
+7, 15542 MiB, 25 %
+[2026-09-20T19:36:03+08:00] training
+Iteration: 865/4000
+Computation: 63971 steps/s (collection: 3.931s, learning: 0.167s)
+Mean reward: 14.8075
+Mean episode length: 545.1856
+gait/blocked_push: 0.061966
+gait/completed_mean_net_turns: 1.651820
+gait/completed_mean_turns: 1.218703
+gait/completed_one_turn_rate: 0.805430
+gait/support_gate: 0.691734
+stable_rotation_rate: 0.182625
+Total timesteps: 226754560
+ETA (recent FPS): 0d 03:34:06
+GPU index, memory used, utilization:
+0, 27333 MiB, 38 %
+1, 7546 MiB, 0 %
+2, 12091 MiB, 42 %
+3, 3791 MiB, 91 %
+4, 21054 MiB, 78 %
+5, 22569 MiB, 26 %
+6, 21086 MiB, 41 %
+7, 15542 MiB, 86 %
+[2026-09-20T19:36:41+08:00] training
+Iteration: 875/4000
+Computation: 67075 steps/s (collection: 3.743s, learning: 0.165s)
+Mean reward: 12.5310
+Mean episode length: 499.4027
+gait/blocked_push: 0.064199
+gait/completed_mean_net_turns: 1.373163
+gait/completed_mean_turns: 0.957821
+gait/completed_one_turn_rate: 0.711775
+gait/support_gate: 0.692865
+stable_rotation_rate: 0.162067
+Total timesteps: 229376000
+ETA (recent FPS): 0d 03:23:33
+GPU index, memory used, utilization:
+0, 27333 MiB, 49 %
+1, 7546 MiB, 0 %
+2, 12091 MiB, 38 %
+3, 3791 MiB, 88 %
+4, 21577 MiB, 65 %
+5, 22569 MiB, 80 %
+6, 21086 MiB, 61 %
+7, 15542 MiB, 48 %
+[2026-09-20T19:37:19+08:00] training
+Iteration: 884/4000
+Computation: 66730 steps/s (collection: 3.760s, learning: 0.168s)
+Mean reward: 10.5428
+Mean episode length: 472.8786
+gait/blocked_push: 0.068357
+gait/completed_mean_net_turns: 1.251275
+gait/completed_mean_turns: 0.826211
+gait/completed_one_turn_rate: 0.675214
+gait/support_gate: 0.705124
+stable_rotation_rate: 0.165676
+Total timesteps: 231735296
+ETA (recent FPS): 0d 03:24:00
+GPU index, memory used, utilization:
+0, 27333 MiB, 97 %
+1, 7546 MiB, 0 %
+2, 12091 MiB, 51 %
+3, 1723 MiB, 24 %
+4, 21054 MiB, 50 %
+5, 22569 MiB, 65 %
+6, 21777 MiB, 59 %
+7, 15542 MiB, 73 %
+[2026-09-20T19:37:58+08:00] training
+Iteration: 894/4000
+Computation: 65613 steps/s (collection: 3.816s, learning: 0.179s)
+Mean reward: 11.1668
+Mean episode length: 583.1564
+gait/blocked_push: 0.072084
+gait/completed_mean_net_turns: 1.436411
+gait/completed_mean_turns: 1.031008
+gait/completed_one_turn_rate: 0.728682
+gait/support_gate: 0.721492
+stable_rotation_rate: 0.175579
+Total timesteps: 234356736
+ETA (recent FPS): 0d 03:26:49
+GPU index, memory used, utilization:
+0, 27333 MiB, 50 %
+1, 7546 MiB, 0 %
+2, 12091 MiB, 38 %
+3, 3897 MiB, 94 %
+4, 19516 MiB, 81 %
+5, 22569 MiB, 88 %
+6, 3820 MiB, 75 %
+7, 15542 MiB, 78 %
+[2026-09-20T19:38:36+08:00] training
+Iteration: 903/4000
+Computation: 64689 steps/s (collection: 3.883s, learning: 0.169s)
+Mean reward: 12.1205
+Mean episode length: 659.6261
+gait/blocked_push: 0.073047
+gait/completed_mean_net_turns: 1.531558
+gait/completed_mean_turns: 1.121951
+gait/completed_one_turn_rate: 0.760163
+gait/support_gate: 0.737322
+stable_rotation_rate: 0.172707
+Total timesteps: 236716032
+ETA (recent FPS): 0d 03:29:10
+GPU index, memory used, utilization:
+0, 27333 MiB, 38 %
+1, 7546 MiB, 0 %
+2, 12091 MiB, 38 %
+3, 3881 MiB, 94 %
+4, 1640 MiB, 17 %
+5, 22569 MiB, 52 %
+6, 6327 MiB, 94 %
+7, 15542 MiB, 22 %
+[2026-09-20T19:39:15+08:00] training
+Iteration: 913/4000
+Computation: 67559 steps/s (collection: 3.703s, learning: 0.177s)
+Mean reward: 17.0614
+Mean episode length: 732.3856
+gait/blocked_push: 0.072843
+gait/completed_mean_net_turns: 1.718357
+gait/completed_mean_turns: 1.279070
+gait/completed_one_turn_rate: 0.862791
+gait/support_gate: 0.752706
+stable_rotation_rate: 0.171291
+Total timesteps: 239337472
+ETA (recent FPS): 0d 03:19:38
+GPU index, memory used, utilization:
+0, 27333 MiB, 39 %
+1, 7546 MiB, 0 %
+2, 12091 MiB, 51 %
+3, 3913 MiB, 93 %
+4, 11048 MiB, 92 %
+5, 22569 MiB, 75 %
+6, 11218 MiB, 95 %
+7, 15542 MiB, 79 %
+[2026-09-20T19:39:54+08:00] training
+Iteration: 923/4000
+Computation: 63447 steps/s (collection: 3.963s, learning: 0.169s)
+Mean reward: 18.3456
+Mean episode length: 726.5719
+gait/blocked_push: 0.074954
+gait/completed_mean_net_turns: 1.755722
+gait/completed_mean_turns: 1.312253
+gait/completed_one_turn_rate: 0.883399
+gait/support_gate: 0.796672
+stable_rotation_rate: 0.203411
+Total timesteps: 241958912
+ETA (recent FPS): 0d 03:31:53
+GPU index, memory used, utilization:
+0, 27333 MiB, 51 %
+1, 7546 MiB, 0 %
+2, 12091 MiB, 39 %
+3, 3913 MiB, 93 %
+4, 18428 MiB, 95 %
+5, 22569 MiB, 83 %
+6, 17264 MiB, 94 %
+7, 15542 MiB, 23 %
+[2026-09-20T19:40:33+08:00] training
+Iteration: 933/4000
+Computation: 67762 steps/s (collection: 3.697s, learning: 0.172s)
+Mean reward: 18.3857
+Mean episode length: 736.6283
+gait/blocked_push: 0.076447
+gait/completed_mean_net_turns: 1.797064
+gait/completed_mean_turns: 1.389356
+gait/completed_one_turn_rate: 0.887955
+gait/support_gate: 0.853613
+stable_rotation_rate: 0.254070
+Total timesteps: 244580352
+ETA (recent FPS): 0d 03:17:44
+GPU index, memory used, utilization:
+0, 27333 MiB, 45 %
+1, 7546 MiB, 0 %
+2, 12091 MiB, 37 %
+3, 3913 MiB, 93 %
+4, 14768 MiB, 88 %
+5, 22569 MiB, 86 %
+6, 17454 MiB, 94 %
+7, 15542 MiB, 88 %
+[2026-09-20T19:41:12+08:00] training
+Iteration: 943/4000
+Computation: 71742 steps/s (collection: 3.485s, learning: 0.169s)
+Mean reward: 22.0824
+Mean episode length: 720.1476
+gait/blocked_push: 0.075453
+gait/completed_mean_net_turns: 1.850087
+gait/completed_mean_turns: 1.459350
+gait/completed_one_turn_rate: 0.890244
+gait/support_gate: 0.885633
+stable_rotation_rate: 0.295673
+Total timesteps: 247201792
+ETA (recent FPS): 0d 03:06:10
+GPU index, memory used, utilization:
+0, 27333 MiB, 38 %
+1, 7546 MiB, 0 %
+2, 12091 MiB, 40 %
+3, 2837 MiB, 71 %
+4, 15443 MiB, 93 %
+5, 22569 MiB, 49 %
+6, 17454 MiB, 94 %
+7, 15542 MiB, 79 %
+[2026-09-20T19:41:51+08:00] training
+Iteration: 954/4000
+Computation: 71261 steps/s (collection: 3.501s, learning: 0.178s)
+Mean reward: 24.0783
+Mean episode length: 735.8772
+gait/blocked_push: 0.068913
+gait/completed_mean_net_turns: 1.958734
+gait/completed_mean_turns: 1.614786
+gait/completed_one_turn_rate: 0.929961
+gait/support_gate: 0.908355
+stable_rotation_rate: 0.365295
+Total timesteps: 250085376
+ETA (recent FPS): 0d 03:06:45
+GPU index, memory used, utilization:
+0, 27333 MiB, 37 %
+1, 7546 MiB, 0 %
+2, 12091 MiB, 53 %
+3, 4065 MiB, 85 %
+4, 14774 MiB, 78 %
+5, 22569 MiB, 43 %
+6, 17454 MiB, 94 %
+7, 15542 MiB, 52 %
+[2026-09-20T19:42:29+08:00] training
+Iteration: 964/4000
+Computation: 74529 steps/s (collection: 3.352s, learning: 0.165s)
+Mean reward: 26.4882
+Mean episode length: 721.1999
+gait/blocked_push: 0.064582
+gait/completed_mean_net_turns: 2.032456
+gait/completed_mean_turns: 1.716776
+gait/completed_one_turn_rate: 0.938998
+gait/support_gate: 0.918119
+stable_rotation_rate: 0.400444
+Total timesteps: 252706816
+ETA (recent FPS): 0d 02:57:58
+GPU index, memory used, utilization:
+0, 27333 MiB, 37 %
+1, 7546 MiB, 0 %
+2, 12091 MiB, 53 %
+3, 4069 MiB, 92 %
+4, 14684 MiB, 1 %
+5, 22569 MiB, 90 %
+6, 17454 MiB, 93 %
+7, 15542 MiB, 76 %
+[2026-09-20T19:43:09+08:00] training
+Iteration: 975/4000
+Computation: 70619 steps/s (collection: 3.540s, learning: 0.172s)
+Mean reward: 29.1977
+Mean episode length: 756.7721
+gait/blocked_push: 0.062286
+gait/completed_mean_net_turns: 2.067325
+gait/completed_mean_turns: 1.751515
+gait/completed_one_turn_rate: 0.933333
+gait/support_gate: 0.911603
+stable_rotation_rate: 0.386520
+Total timesteps: 255590400
+ETA (recent FPS): 0d 03:07:09
+GPU index, memory used, utilization:
+0, 27333 MiB, 99 %
+1, 7546 MiB, 0 %
+2, 12091 MiB, 43 %
+3, 4063 MiB, 93 %
+4, 14788 MiB, 88 %
+5, 22569 MiB, 58 %
+6, 17456 MiB, 95 %
+7, 15542 MiB, 83 %
+[2026-09-20T19:43:48+08:00] training
+Iteration: 986/4000
+Computation: 69503 steps/s (collection: 3.607s, learning: 0.165s)
+Mean reward: 28.7131
+Mean episode length: 736.7406
+gait/blocked_push: 0.059485
+gait/completed_mean_net_turns: 2.078044
+gait/completed_mean_turns: 1.763578
+gait/completed_one_turn_rate: 0.936102
+gait/support_gate: 0.919248
+stable_rotation_rate: 0.429684
+Total timesteps: 258473984
+ETA (recent FPS): 0d 03:09:27
+GPU index, memory used, utilization:
+0, 27333 MiB, 97 %
+1, 7546 MiB, 0 %
+2, 12091 MiB, 36 %
+3, 4063 MiB, 91 %
+4, 15479 MiB, 92 %
+5, 22569 MiB, 89 %
+6, 17456 MiB, 93 %
+7, 15542 MiB, 79 %
+[2026-09-20T19:44:28+08:00] training
+Iteration: 996/4000
+Computation: 66955 steps/s (collection: 3.737s, learning: 0.179s)
+Mean reward: 29.9956
+Mean episode length: 759.9831
+gait/blocked_push: 0.056986
+gait/completed_mean_net_turns: 2.115118
+gait/completed_mean_turns: 1.756345
+gait/completed_one_turn_rate: 0.949239
+gait/support_gate: 0.919871
+stable_rotation_rate: 0.423225
+Total timesteps: 261095424
+ETA (recent FPS): 0d 03:16:01
+GPU index, memory used, utilization:
+0, 27333 MiB, 15 %
+1, 7546 MiB, 0 %
+2, 12091 MiB, 37 %
+3, 2331 MiB, 23 %
+4, 15922 MiB, 27 %
+5, 22569 MiB, 25 %
+6, 17456 MiB, 95 %
+7, 15542 MiB, 29 %
+[2026-09-20T19:45:08+08:00] training
+Iteration: 1006/4000
+Computation: 70168 steps/s (collection: 3.565s, learning: 0.171s)
+Mean reward: 30.6009
+Mean episode length: 755.2267
+gait/blocked_push: 0.055674
+gait/completed_mean_net_turns: 2.101613
+gait/completed_mean_turns: 1.743590
+gait/completed_one_turn_rate: 0.935897
+gait/support_gate: 0.915690
+stable_rotation_rate: 0.385391
+Total timesteps: 263716864
+ETA (recent FPS): 0d 03:06:25
+GPU index, memory used, utilization:
+0, 27333 MiB, 46 %
+1, 7546 MiB, 0 %
+2, 12091 MiB, 62 %
+3, 3459 MiB, 90 %
+4, 16016 MiB, 83 %
+5, 22569 MiB, 59 %
+6, 17456 MiB, 94 %
+7, 15542 MiB, 24 %
+[2026-09-20T19:45:48+08:00] training
+Iteration: 1017/4000
+Computation: 72879 steps/s (collection: 3.432s, learning: 0.165s)
+Mean reward: 29.7035
+Mean episode length: 735.5138
+gait/blocked_push: 0.050700
+gait/completed_mean_net_turns: 2.078803
+gait/completed_mean_turns: 1.723447
+gait/completed_one_turn_rate: 0.923848
+gait/support_gate: 0.915285
+stable_rotation_rate: 0.348907
+Total timesteps: 266600448
+ETA (recent FPS): 0d 02:58:49
+GPU index, memory used, utilization:
+0, 27333 MiB, 37 %
+1, 7546 MiB, 0 %
+2, 12091 MiB, 57 %
+3, 3459 MiB, 24 %
+4, 16016 MiB, 89 %
+5, 22569 MiB, 80 %
+6, 17762 MiB, 94 %
+7, 15542 MiB, 81 %
+[2026-09-20T19:46:27+08:00] training
+Iteration: 1027/4000
+Computation: 66881 steps/s (collection: 3.746s, learning: 0.174s)
+Mean reward: 29.6279
+Mean episode length: 754.5302
+gait/blocked_push: 0.050095
+gait/completed_mean_net_turns: 2.124209
+gait/completed_mean_turns: 1.752193
+gait/completed_one_turn_rate: 0.942982
+gait/support_gate: 0.900232
+stable_rotation_rate: 0.329445
+Total timesteps: 269221888
+ETA (recent FPS): 0d 03:14:12
+GPU index, memory used, utilization:
+0, 27333 MiB, 34 %
+1, 7546 MiB, 0 %
+2, 12091 MiB, 54 %
+3, 3459 MiB, 88 %
+4, 15862 MiB, 46 %
+5, 22569 MiB, 45 %
+6, 17762 MiB, 94 %
+7, 15542 MiB, 77 %
+[2026-09-20T19:47:07+08:00] training
+Iteration: 1038/4000
+Computation: 69210 steps/s (collection: 3.617s, learning: 0.171s)
+Mean reward: 26.4004
+Mean episode length: 707.4860
+gait/blocked_push: 0.051412
+gait/completed_mean_net_turns: 1.954397
+gait/completed_mean_turns: 1.598706
+gait/completed_one_turn_rate: 0.864078
+gait/support_gate: 0.901763
+stable_rotation_rate: 0.349865
+Total timesteps: 272105472
+ETA (recent FPS): 0d 03:06:59
+GPU index, memory used, utilization:
+0, 27333 MiB, 50 %
+1, 7546 MiB, 0 %
+2, 12091 MiB, 36 %
+3, 3459 MiB, 89 %
+4, 17996 MiB, 88 %
+5, 22569 MiB, 78 %
+6, 13814 MiB, 59 %
+7, 15542 MiB, 19 %
+[2026-09-20T19:47:47+08:00] training
+Iteration: 1048/4000
+Computation: 68400 steps/s (collection: 3.723s, learning: 0.110s)
+Mean reward: 25.7335
+Mean episode length: 717.2255
+gait/blocked_push: 0.055212
+gait/completed_mean_net_turns: 1.981034
+gait/completed_mean_turns: 1.625000
+gait/completed_one_turn_rate: 0.883621
+gait/support_gate: 0.908361
+stable_rotation_rate: 0.373970
+Total timesteps: 274726912
+ETA (recent FPS): 0d 03:08:33
+GPU index, memory used, utilization:
+0, 27333 MiB, 43 %
+1, 7546 MiB, 0 %
+2, 12091 MiB, 42 %
+3, 3459 MiB, 90 %
+4, 18424 MiB, 95 %
+5, 22569 MiB, 32 %
+6, 15196 MiB, 92 %
+7, 15542 MiB, 78 %
+[2026-09-20T19:48:27+08:00] training
+Iteration: 1058/4000
+Computation: 67957 steps/s (collection: 3.679s, learning: 0.179s)
+Mean reward: 28.7746
+Mean episode length: 736.1653
+gait/blocked_push: 0.057508
+gait/completed_mean_net_turns: 2.092777
+gait/completed_mean_turns: 1.746835
+gait/completed_one_turn_rate: 0.892405
+gait/support_gate: 0.911825
+stable_rotation_rate: 0.398384
+Total timesteps: 277348352
+ETA (recent FPS): 0d 03:09:08
+GPU index, memory used, utilization:
+0, 27333 MiB, 36 %
+1, 7546 MiB, 0 %
+2, 12091 MiB, 52 %
+3, 3459 MiB, 91 %
+4, 18424 MiB, 91 %
+5, 22569 MiB, 70 %
+6, 15196 MiB, 91 %
+7, 15542 MiB, 55 %
+[2026-09-20T19:49:08+08:00] training
+Iteration: 1068/4000
+Computation: 60948 steps/s (collection: 4.124s, learning: 0.177s)
+Mean reward: 31.0768
+Mean episode length: 751.1720
+gait/blocked_push: 0.058854
+gait/completed_mean_net_turns: 2.193003
+gait/completed_mean_turns: 1.826531
+gait/completed_one_turn_rate: 0.938776
+gait/support_gate: 0.917801
+stable_rotation_rate: 0.446140
+Total timesteps: 279969792
+ETA (recent FPS): 0d 03:30:10
+GPU index, memory used, utilization:
+0, 27333 MiB, 37 %
+1, 7546 MiB, 0 %
+2, 12091 MiB, 49 %
+3, 3459 MiB, 89 %
+4, 17422 MiB, 95 %
+5, 22569 MiB, 33 %
+6, 15196 MiB, 84 %
+7, 15542 MiB, 72 %
+[2026-09-20T19:49:48+08:00] training
+Iteration: 1076/4000
+Computation: 28983 steps/s (collection: 8.794s, learning: 0.251s)
+Mean reward: 31.0331
+Mean episode length: 762.3509
+gait/blocked_push: 0.060872
+gait/completed_mean_net_turns: 2.216509
+gait/completed_mean_turns: 1.860000
+gait/completed_one_turn_rate: 0.942222
+gait/support_gate: 0.907274
+stable_rotation_rate: 0.401100
+Total timesteps: 282066944
+ETA (recent FPS): 0d 07:20:46
+GPU index, memory used, utilization:
+0, 27333 MiB, 50 %
+1, 9898 MiB, 87 %
+2, 14442 MiB, 97 %
+3, 5810 MiB, 93 %
+4, 16304 MiB, 92 %
+5, 22569 MiB, 58 %
+6, 15196 MiB, 54 %
+7, 15542 MiB, 74 %
+[2026-09-20T19:50:28+08:00] training
+Iteration: 1080/4000
+Computation: 23911 steps/s (collection: 10.716s, learning: 0.247s)
+Mean reward: 31.6482
+Mean episode length: 734.3811
+gait/blocked_push: 0.061106
+gait/completed_mean_net_turns: 2.122209
+gait/completed_mean_turns: 1.774869
+gait/completed_one_turn_rate: 0.905759
+gait/support_gate: 0.913179
+stable_rotation_rate: 0.406879
+Total timesteps: 283115520
+ETA (recent FPS): 0d 08:53:32
+GPU index, memory used, utilization:
+0, 27333 MiB, 38 %
+1, 9898 MiB, 79 %
+2, 14442 MiB, 97 %
+3, 5810 MiB, 93 %
+4, 16304 MiB, 94 %
+5, 22569 MiB, 50 %
+6, 15220 MiB, 48 %
+7, 15542 MiB, 44 %
+[2026-09-20T19:51:09+08:00] training
+Iteration: 1083/4000
+Computation: 24107 steps/s (collection: 10.598s, learning: 0.276s)
+Mean reward: 31.8144
+Mean episode length: 743.4400
+gait/blocked_push: 0.061761
+gait/completed_mean_net_turns: 2.182206
+gait/completed_mean_turns: 1.834688
+gait/completed_one_turn_rate: 0.929539
+gait/support_gate: 0.915299
+stable_rotation_rate: 0.420921
+Total timesteps: 283901952
+ETA (recent FPS): 0d 08:48:40
+GPU index, memory used, utilization:
+0, 27333 MiB, 29 %
+1, 9898 MiB, 87 %
+2, 14442 MiB, 97 %
+3, 5810 MiB, 93 %
+4, 16304 MiB, 89 %
+5, 22569 MiB, 87 %
+6, 15933 MiB, 92 %
+7, 15542 MiB, 85 %
+[2026-09-20T19:51:50+08:00] training
+Iteration: 1086/4000
+Computation: 17744 steps/s (collection: 14.517s, learning: 0.256s)
+Mean reward: 31.1853
+Mean episode length: 720.2954
+gait/blocked_push: 0.061743
+gait/completed_mean_net_turns: 2.100257
+gait/completed_mean_turns: 1.739003
+gait/completed_one_turn_rate: 0.894428
+gait/support_gate: 0.914498
+stable_rotation_rate: 0.424927
+Total timesteps: 284688384
+ETA (recent FPS): 0d 11:57:30
+GPU index, memory used, utilization:
+0, 27333 MiB, 39 %
+1, 9898 MiB, 85 %
+2, 14442 MiB, 96 %
+3, 5810 MiB, 94 %
+4, 16304 MiB, 97 %
+5, 22569 MiB, 26 %
+6, 14818 MiB, 74 %
+7, 15542 MiB, 19 %
+[2026-09-20T19:52:30+08:00] training
+Iteration: 1090/4000
+Computation: 24192 steps/s (collection: 10.585s, learning: 0.250s)
+Mean reward: 31.8281
+Mean episode length: 729.5031
+gait/blocked_push: 0.062319
+gait/completed_mean_net_turns: 2.123691
+gait/completed_mean_turns: 1.785156
+gait/completed_one_turn_rate: 0.906250
+gait/support_gate: 0.901188
+stable_rotation_rate: 0.371738
+Total timesteps: 285736960
+ETA (recent FPS): 0d 08:45:32
+GPU index, memory used, utilization:
+0, 27333 MiB, 39 %
+1, 9898 MiB, 81 %
+2, 14442 MiB, 98 %
+3, 5810 MiB, 94 %
+4, 16304 MiB, 94 %
+5, 22569 MiB, 85 %
+6, 14818 MiB, 90 %
+7, 15542 MiB, 49 %
+[2026-09-20T19:53:11+08:00] training
+Iteration: 1094/4000
+Computation: 24484 steps/s (collection: 10.451s, learning: 0.255s)
+Mean reward: 32.7241
+Mean episode length: 746.3147
+gait/blocked_push: 0.061080
+gait/completed_mean_net_turns: 2.237689
+gait/completed_mean_turns: 1.876984
+gait/completed_one_turn_rate: 0.944444
+gait/support_gate: 0.905792
+stable_rotation_rate: 0.358398
+Total timesteps: 286785536
+ETA (recent FPS): 0d 08:38:33
+GPU index, memory used, utilization:
+0, 27333 MiB, 38 %
+1, 9898 MiB, 86 %
+2, 14442 MiB, 97 %
+3, 5836 MiB, 94 %
+4, 16304 MiB, 96 %
+5, 22569 MiB, 49 %
+6, 14818 MiB, 92 %
+7, 15542 MiB, 32 %
+[2026-09-20T19:53:51+08:00] training
+Iteration: 1096/4000
+Computation: 20964 steps/s (collection: 12.244s, learning: 0.260s)
+Mean reward: 31.4536
+Mean episode length: 725.7048
+gait/blocked_push: 0.061164
+gait/completed_mean_net_turns: 2.123020
+gait/completed_mean_turns: 1.758621
+gait/completed_one_turn_rate: 0.881773
+gait/support_gate: 0.910348
+stable_rotation_rate: 0.378517
+Total timesteps: 287309824
+ETA (recent FPS): 0d 10:05:13
+GPU index, memory used, utilization:
+0, 27333 MiB, 36 %
+1, 9900 MiB, 80 %
+2, 14444 MiB, 97 %
+3, 4813 MiB, 95 %
+4, 16306 MiB, 93 %
+5, 22569 MiB, 19 %
+6, 14650 MiB, 79 %
+7, 15542 MiB, 77 %
+[2026-09-20T19:54:32+08:00] training
+Iteration: 1100/4000
+Computation: 27478 steps/s (collection: 9.255s, learning: 0.285s)
+Mean reward: 32.1930
+Mean episode length: 728.9563
+gait/blocked_push: 0.061822
+gait/completed_mean_net_turns: 2.116279
+gait/completed_mean_turns: 1.754386
+gait/completed_one_turn_rate: 0.894737
+gait/support_gate: 0.920958
+stable_rotation_rate: 0.424217
+Total timesteps: 288358400
+ETA (recent FPS): 0d 07:41:06
+GPU index, memory used, utilization:
+0, 27333 MiB, 33 %
+1, 9900 MiB, 83 %
+2, 14444 MiB, 95 %
+3, 4813 MiB, 94 %
+4, 16306 MiB, 95 %
+5, 22569 MiB, 19 %
+6, 15072 MiB, 83 %
+7, 16607 MiB, 87 %
+[2026-09-20T19:55:13+08:00] training
+Iteration: 1104/4000
+Computation: 28095 steps/s (collection: 9.069s, learning: 0.262s)
+Mean reward: 33.0388
+Mean episode length: 735.8589
+gait/blocked_push: 0.062131
+gait/completed_mean_net_turns: 2.216271
+gait/completed_mean_turns: 1.861538
+gait/completed_one_turn_rate: 0.938462
+gait/support_gate: 0.911570
+stable_rotation_rate: 0.396561
+Total timesteps: 289406976
+ETA (recent FPS): 0d 07:30:21
+GPU index, memory used, utilization:
+0, 27333 MiB, 38 %
+1, 9900 MiB, 30 %
+2, 14444 MiB, 100 %
+3, 4813 MiB, 98 %
+4, 16306 MiB, 99 %
+5, 22569 MiB, 37 %
+6, 15072 MiB, 27 %
+7, 16227 MiB, 57 %
+[2026-09-20T19:55:53+08:00] training
+Iteration: 1108/4000
+Computation: 29113 steps/s (collection: 8.755s, learning: 0.250s)
+Mean reward: 33.6737
+Mean episode length: 741.7661
+gait/blocked_push: 0.062574
+gait/completed_mean_net_turns: 2.199431
+gait/completed_mean_turns: 1.827476
+gait/completed_one_turn_rate: 0.920128
+gait/support_gate: 0.907996
+stable_rotation_rate: 0.362797
+Total timesteps: 290455552
+ETA (recent FPS): 0d 07:14:00
+GPU index, memory used, utilization:
+0, 27333 MiB, 38 %
+1, 9900 MiB, 80 %
+2, 14444 MiB, 96 %
+3, 4813 MiB, 96 %
+4, 16306 MiB, 97 %
+5, 22569 MiB, 82 %
+6, 15822 MiB, 32 %
+7, 15542 MiB, 38 %
+[2026-09-20T19:56:35+08:00] training
+Iteration: 1112/4000
+Computation: 20752 steps/s (collection: 12.359s, learning: 0.273s)
+Mean reward: 33.8057
+Mean episode length: 753.8893
+gait/blocked_push: 0.062962
+gait/completed_mean_net_turns: 2.222730
+gait/completed_mean_turns: 1.839674
+gait/completed_one_turn_rate: 0.932065
+gait/support_gate: 0.910741
+stable_rotation_rate: 0.377808
+Total timesteps: 291504128
+ETA (recent FPS): 0d 10:08:01
+GPU index, memory used, utilization:
+0, 27333 MiB, 97 %
+1, 9900 MiB, 83 %
+2, 14444 MiB, 96 %
+3, 4813 MiB, 94 %
+4, 16306 MiB, 95 %
+5, 22569 MiB, 58 %
+6, 16801 MiB, 94 %
+7, 16617 MiB, 88 %
+[2026-09-20T19:57:16+08:00] training
+Iteration: 1115/4000
+Computation: 19317 steps/s (collection: 13.323s, learning: 0.248s)
+Mean reward: 33.8194
+Mean episode length: 745.8425
+gait/blocked_push: 0.062746
+gait/completed_mean_net_turns: 2.244073
+gait/completed_mean_turns: 1.845652
+gait/completed_one_turn_rate: 0.932609
+gait/support_gate: 0.908009
+stable_rotation_rate: 0.367851
+Total timesteps: 292290560
+ETA (recent FPS): 0d 10:52:31
+GPU index, memory used, utilization:
+0, 27333 MiB, 97 %
+1, 9900 MiB, 87 %
+2, 14444 MiB, 98 %
+3, 4813 MiB, 96 %
+4, 16306 MiB, 95 %
+5, 22569 MiB, 82 %
+6, 16048 MiB, 92 %
+7, 16617 MiB, 78 %
+[2026-09-20T19:57:57+08:00] training
+Iteration: 1119/4000
+Computation: 27430 steps/s (collection: 9.303s, learning: 0.253s)
+Mean reward: 32.6162
+Mean episode length: 720.4693
+gait/blocked_push: 0.062725
+gait/completed_mean_net_turns: 2.141130
+gait/completed_mean_turns: 1.765286
+gait/completed_one_turn_rate: 0.895464
+gait/support_gate: 0.903895
+stable_rotation_rate: 0.362148
+Total timesteps: 293339136
+ETA (recent FPS): 0d 07:38:53
+GPU index, memory used, utilization:
+0, 27333 MiB, 39 %
+1, 9900 MiB, 85 %
+2, 14444 MiB, 97 %
+3, 4813 MiB, 96 %
+4, 16310 MiB, 95 %
+5, 22569 MiB, 27 %
+6, 14678 MiB, 90 %
+7, 16617 MiB, 58 %
+[2026-09-20T19:58:37+08:00] training
+Iteration: 1123/4000
+Computation: 25037 steps/s (collection: 10.200s, learning: 0.270s)
+Mean reward: 33.6719
+Mean episode length: 748.1305
+gait/blocked_push: 0.062720
+gait/completed_mean_net_turns: 2.219961
+gait/completed_mean_turns: 1.823755
+gait/completed_one_turn_rate: 0.923372
+gait/support_gate: 0.908486
+stable_rotation_rate: 0.374722
+Total timesteps: 294387712
+ETA (recent FPS): 0d 08:22:02
+GPU index, memory used, utilization:
+0, 27333 MiB, 36 %
+1, 9900 MiB, 33 %
+2, 14444 MiB, 100 %
+3, 4813 MiB, 98 %
+4, 16310 MiB, 99 %
+5, 22569 MiB, 90 %
+6, 18793 MiB, 94 %
+7, 16617 MiB, 92 %
+[2026-09-20T19:59:18+08:00] training
+Iteration: 1126/4000
+Computation: 29298 steps/s (collection: 8.695s, learning: 0.253s)
+Mean reward: 34.4329
+Mean episode length: 750.0035
+gait/blocked_push: 0.064210
+gait/completed_mean_net_turns: 2.205734
+gait/completed_mean_turns: 1.812636
+gait/completed_one_turn_rate: 0.912854
+gait/support_gate: 0.911402
+stable_rotation_rate: 0.393814
+Total timesteps: 295174144
+ETA (recent FPS): 0d 07:08:35
+GPU index, memory used, utilization:
+0, 27333 MiB, 39 %
+1, 9900 MiB, 71 %
+2, 14444 MiB, 97 %
+3, 4813 MiB, 94 %
+4, 16310 MiB, 94 %
+5, 22569 MiB, 88 %
+6, 18484 MiB, 82 %
+7, 16617 MiB, 93 %
+[2026-09-20T20:00:00+08:00] training
+Iteration: 1130/4000
+Computation: 28683 steps/s (collection: 8.874s, learning: 0.265s)
+Mean reward: 32.9622
+Mean episode length: 732.9184
+gait/blocked_push: 0.065051
+gait/completed_mean_net_turns: 2.249209
+gait/completed_mean_turns: 1.845333
+gait/completed_one_turn_rate: 0.930667
+gait/support_gate: 0.917818
+stable_rotation_rate: 0.406586
+Total timesteps: 296222720
+ETA (recent FPS): 0d 07:17:09
+GPU index, memory used, utilization:
+0, 27333 MiB, 53 %
+1, 9900 MiB, 77 %
+2, 14444 MiB, 97 %
+3, 4813 MiB, 94 %
+4, 16310 MiB, 94 %
+5, 22569 MiB, 15 %
+6, 18484 MiB, 93 %
+7, 16617 MiB, 90 %
+[2026-09-20T20:00:41+08:00] training
+Iteration: 1133/4000
+Computation: 16133 steps/s (collection: 15.942s, learning: 0.306s)
+Mean reward: 33.2609
+Mean episode length: 729.5131
+gait/blocked_push: 0.066146
+gait/completed_mean_net_turns: 2.258485
+gait/completed_mean_turns: 1.846995
+gait/completed_one_turn_rate: 0.931694
+gait/support_gate: 0.920298
+stable_rotation_rate: 0.412216
+Total timesteps: 297009152
+ETA (recent FPS): 0d 12:56:25
+GPU index, memory used, utilization:
+0, 27333 MiB, 36 %
+1, 9900 MiB, 83 %
+2, 14444 MiB, 94 %
+3, 4813 MiB, 96 %
+4, 16310 MiB, 95 %
+5, 22569 MiB, 41 %
+6, 14008 MiB, 49 %
+7, 16617 MiB, 94 %
+[2026-09-20T20:01:21+08:00] training
+Iteration: 1137/4000
+Computation: 27996 steps/s (collection: 9.038s, learning: 0.325s)
+Mean reward: 35.3852
+Mean episode length: 763.7957
+gait/blocked_push: 0.066487
+gait/completed_mean_net_turns: 2.287458
+gait/completed_mean_turns: 1.858896
+gait/completed_one_turn_rate: 0.938650
+gait/support_gate: 0.929543
+stable_rotation_rate: 0.438812
+Total timesteps: 298057728
+ETA (recent FPS): 0d 07:26:48
+GPU index, memory used, utilization:
+0, 27333 MiB, 39 %
+1, 9900 MiB, 74 %
+2, 14444 MiB, 96 %
+3, 4813 MiB, 95 %
+4, 16310 MiB, 96 %
+5, 22569 MiB, 21 %
+6, 14830 MiB, 75 %
+7, 16617 MiB, 92 %
+[2026-09-20T20:02:02+08:00] training
+Iteration: 1142/4000
+Computation: 30681 steps/s (collection: 8.305s, learning: 0.239s)
+Mean reward: 32.9000
+Mean episode length: 716.1166
+gait/blocked_push: 0.068573
+gait/completed_mean_net_turns: 2.201468
+gait/completed_mean_turns: 1.794979
+gait/completed_one_turn_rate: 0.907950
+gait/support_gate: 0.925084
+stable_rotation_rate: 0.404522
+Total timesteps: 299368448
+ETA (recent FPS): 0d 06:46:59
+GPU index, memory used, utilization:
+0, 27333 MiB, 38 %
+1, 9900 MiB, 85 %
+2, 14444 MiB, 96 %
+3, 3001 MiB, 77 %
+4, 16310 MiB, 93 %
+5, 22569 MiB, 81 %
+6, 15479 MiB, 90 %
+7, 16617 MiB, 73 %
+[2026-09-20T20:02:44+08:00] training
+Iteration: 1145/4000
+Computation: 29291 steps/s (collection: 8.698s, learning: 0.251s)
+Mean reward: 32.7420
+Mean episode length: 709.5492
+gait/blocked_push: 0.068166
+gait/completed_mean_net_turns: 2.122612
+gait/completed_mean_turns: 1.746094
+gait/completed_one_turn_rate: 0.878906
+gait/support_gate: 0.926495
+stable_rotation_rate: 0.395699
+Total timesteps: 300154880
+ETA (recent FPS): 0d 07:05:51
+GPU index, memory used, utilization:
+0, 27333 MiB, 35 %
+1, 9900 MiB, 74 %
+2, 14444 MiB, 97 %
+3, 3001 MiB, 93 %
+4, 16310 MiB, 93 %
+5, 22569 MiB, 80 %
+6, 14832 MiB, 91 %
+7, 16617 MiB, 92 %
+[2026-09-20T20:03:25+08:00] training
+Iteration: 1150/4000
+Computation: 29902 steps/s (collection: 8.530s, learning: 0.237s)
+Mean reward: 35.0124
+Mean episode length: 744.1305
+gait/blocked_push: 0.067784
+gait/completed_mean_net_turns: 2.237599
+gait/completed_mean_turns: 1.823789
+gait/completed_one_turn_rate: 0.916300
+gait/support_gate: 0.930042
+stable_rotation_rate: 0.415882
+Total timesteps: 301465600
+ETA (recent FPS): 0d 06:56:25
+GPU index, memory used, utilization:
+0, 27333 MiB, 39 %
+1, 9900 MiB, 80 %
+2, 14444 MiB, 96 %
+3, 3001 MiB, 87 %
+4, 16310 MiB, 95 %
+5, 22569 MiB, 15 %
+6, 15565 MiB, 92 %
+7, 16617 MiB, 88 %
+[2026-09-20T20:04:06+08:00] training
+Iteration: 1153/4000
+Computation: 11345 steps/s (collection: 22.845s, learning: 0.262s)
+Mean reward: 35.3166
+Mean episode length: 747.9061
+gait/blocked_push: 0.068096
+gait/completed_mean_net_turns: 2.248665
+gait/completed_mean_turns: 1.839357
+gait/completed_one_turn_rate: 0.923695
+gait/support_gate: 0.933344
+stable_rotation_rate: 0.436741
+Total timesteps: 302252032
+ETA (recent FPS): 0d 18:16:24
+GPU index, memory used, utilization:
+0, 27333 MiB, 37 %
+1, 9900 MiB, 71 %
+2, 14444 MiB, 95 %
+3, 3001 MiB, 85 %
+4, 16310 MiB, 96 %
+5, 22569 MiB, 87 %
+6, 15990 MiB, 85 %
+7, 16617 MiB, 73 %
+[2026-09-20T20:04:47+08:00] training
+Iteration: 1157/4000
+Computation: 28716 steps/s (collection: 8.892s, learning: 0.236s)
+Mean reward: 34.8764
+Mean episode length: 730.2868
+gait/blocked_push: 0.068383
+gait/completed_mean_net_turns: 2.235725
+gait/completed_mean_turns: 1.816949
+gait/completed_one_turn_rate: 0.915254
+gait/support_gate: 0.933201
+stable_rotation_rate: 0.455318
+Total timesteps: 303300608
+ETA (recent FPS): 0d 07:12:33
+GPU index, memory used, utilization:
+0, 27333 MiB, 43 %
+1, 9900 MiB, 75 %
+2, 14444 MiB, 97 %
+3, 3001 MiB, 88 %
+4, 16310 MiB, 93 %
+5, 22569 MiB, 34 %
+6, 16038 MiB, 37 %
+7, 16617 MiB, 93 %
+[2026-09-20T20:05:29+08:00] training
+Iteration: 1161/4000
+Computation: 30688 steps/s (collection: 8.299s, learning: 0.243s)
+Mean reward: 37.2719
+Mean episode length: 757.9760
+gait/blocked_push: 0.069978
+gait/completed_mean_net_turns: 2.327598
+gait/completed_mean_turns: 1.882353
+gait/completed_one_turn_rate: 0.947059
+gait/support_gate: 0.934715
+stable_rotation_rate: 0.467285
+Total timesteps: 304349184
+ETA (recent FPS): 0d 06:44:11
+GPU index, memory used, utilization:
+0, 27333 MiB, 38 %
+1, 9900 MiB, 30 %
+2, 14444 MiB, 100 %
+3, 3001 MiB, 100 %
+4, 16310 MiB, 99 %
+5, 22569 MiB, 24 %
+6, 15986 MiB, 36 %
+7, 16617 MiB, 92 %
+[2026-09-20T20:06:10+08:00] training
+Iteration: 1165/4000
+Computation: 31389 steps/s (collection: 8.115s, learning: 0.237s)
+Mean reward: 36.1869
+Mean episode length: 732.2899
+gait/blocked_push: 0.070799
+gait/completed_mean_net_turns: 2.263089
+gait/completed_mean_turns: 1.825806
+gait/completed_one_turn_rate: 0.918280
+gait/support_gate: 0.933811
+stable_rotation_rate: 0.466892
+Total timesteps: 305397760
+ETA (recent FPS): 0d 06:34:36
+GPU index, memory used, utilization:
+0, 27333 MiB, 40 %
+1, 9900 MiB, 84 %
+2, 14444 MiB, 96 %
+3, 3001 MiB, 81 %
+4, 16310 MiB, 95 %
+5, 22569 MiB, 59 %
+6, 15986 MiB, 84 %
+7, 16617 MiB, 92 %
+[2026-09-20T20:06:51+08:00] training
+Iteration: 1170/4000
+Computation: 29571 steps/s (collection: 8.626s, learning: 0.238s)
+Mean reward: 38.1571
+Mean episode length: 760.9828
+gait/blocked_push: 0.070609
+gait/completed_mean_net_turns: 2.324265
+gait/completed_mean_turns: 1.870000
+gait/completed_one_turn_rate: 0.942000
+gait/support_gate: 0.935350
+stable_rotation_rate: 0.478291
+Total timesteps: 306708480
+ETA (recent FPS): 0d 06:58:07
+GPU index, memory used, utilization:
+0, 27333 MiB, 97 %
+1, 9900 MiB, 79 %
+2, 14444 MiB, 96 %
+3, 3001 MiB, 77 %
+4, 16310 MiB, 95 %
+5, 22569 MiB, 56 %
+6, 15986 MiB, 83 %
+7, 16617 MiB, 90 %
+[2026-09-20T20:07:32+08:00] training
+Iteration: 1173/4000
+Computation: 31304 steps/s (collection: 8.136s, learning: 0.238s)
+Mean reward: 37.7907
+Mean episode length: 747.4966
+gait/blocked_push: 0.070349
+gait/completed_mean_net_turns: 2.319176
+gait/completed_mean_turns: 1.862745
+gait/completed_one_turn_rate: 0.935294
+gait/support_gate: 0.935904
+stable_rotation_rate: 0.479156
+Total timesteps: 307494912
+ETA (recent FPS): 0d 06:34:33
+GPU index, memory used, utilization:
+0, 27333 MiB, 97 %
+1, 9900 MiB, 88 %
+2, 14444 MiB, 97 %
+3, 3001 MiB, 80 %
+4, 16310 MiB, 95 %
+5, 22569 MiB, 62 %
+6, 15986 MiB, 80 %
+7, 16617 MiB, 91 %
+[2026-09-20T20:08:14+08:00] training
+Iteration: 1178/4000
+Computation: 31151 steps/s (collection: 8.186s, learning: 0.229s)
+Mean reward: 37.6155
+Mean episode length: 752.9917
+gait/blocked_push: 0.070237
+gait/completed_mean_net_turns: 2.326711
+gait/completed_mean_turns: 1.864532
+gait/completed_one_turn_rate: 0.935961
+gait/support_gate: 0.935846
+stable_rotation_rate: 0.475586
+Total timesteps: 308805632
+ETA (recent FPS): 0d 06:35:47
+GPU index, memory used, utilization:
+0, 27333 MiB, 99 %
+1, 9900 MiB, 77 %
+2, 14444 MiB, 97 %
+3, 3001 MiB, 92 %
+4, 16310 MiB, 94 %
+5, 22569 MiB, 82 %
+6, 15986 MiB, 86 %
+7, 16617 MiB, 92 %
+[2026-09-20T20:08:55+08:00] training
+Iteration: 1181/4000
+Computation: 23393 steps/s (collection: 10.902s, learning: 0.304s)
+Mean reward: 39.5136
+Mean episode length: 775.7373
+gait/blocked_push: 0.070197
+gait/completed_mean_net_turns: 2.310462
+gait/completed_mean_turns: 1.850123
+gait/completed_one_turn_rate: 0.933661
+gait/support_gate: 0.943177
+stable_rotation_rate: 0.502998
+Total timesteps: 309592064
+ETA (recent FPS): 0d 08:46:29
+GPU index, memory used, utilization:
+0, 27333 MiB, 41 %
+1, 9900 MiB, 30 %
+2, 14444 MiB, 100 %
+3, 3001 MiB, 100 %
+4, 16310 MiB, 99 %
+5, 22569 MiB, 51 %
+6, 15986 MiB, 80 %
+7, 15542 MiB, 78 %
+[2026-09-20T20:09:37+08:00] training
+Iteration: 1186/4000
+Computation: 30721 steps/s (collection: 8.281s, learning: 0.252s)
+Mean reward: 37.6875
+Mean episode length: 737.9136
+gait/blocked_push: 0.072961
+gait/completed_mean_net_turns: 2.284847
+gait/completed_mean_turns: 1.839879
+gait/completed_one_turn_rate: 0.927492
+gait/support_gate: 0.948141
+stable_rotation_rate: 0.539501
+Total timesteps: 310902784
+ETA (recent FPS): 0d 06:40:12
+GPU index, memory used, utilization:
+0, 27333 MiB, 54 %
+1, 9900 MiB, 82 %
+2, 14444 MiB, 95 %
+3, 3001 MiB, 87 %
+4, 16310 MiB, 94 %
+5, 22569 MiB, 85 %
+6, 16074 MiB, 92 %
+7, 15542 MiB, 79 %
+[2026-09-20T20:10:18+08:00] training
+Iteration: 1190/4000
+Computation: 30379 steps/s (collection: 8.364s, learning: 0.265s)
+Mean reward: 37.6928
+Mean episode length: 734.1211
+gait/blocked_push: 0.074041
+gait/completed_mean_net_turns: 2.254553
+gait/completed_mean_turns: 1.790210
+gait/completed_one_turn_rate: 0.902098
+gait/support_gate: 0.951944
+stable_rotation_rate: 0.538246
+Total timesteps: 311951360
+ETA (recent FPS): 0d 06:44:07
+GPU index, memory used, utilization:
+0, 27333 MiB, 38 %
+1, 9900 MiB, 31 %
+2, 14444 MiB, 100 %
+3, 3001 MiB, 100 %
+4, 16310 MiB, 100 %
+5, 22569 MiB, 69 %
+6, 16074 MiB, 86 %
+7, 15542 MiB, 79 %
+[2026-09-20T20:10:59+08:00] training
+Iteration: 1195/4000
+Computation: 29667 steps/s (collection: 8.592s, learning: 0.244s)
+Mean reward: 36.8342
+Mean episode length: 730.9714
+gait/blocked_push: 0.075896
+gait/completed_mean_net_turns: 2.268170
+gait/completed_mean_turns: 1.805447
+gait/completed_one_turn_rate: 0.914397
+gait/support_gate: 0.952769
+stable_rotation_rate: 0.555855
+Total timesteps: 313262080
+ETA (recent FPS): 0d 06:53:05
+GPU index, memory used, utilization:
+0, 27333 MiB, 97 %
+1, 9900 MiB, 81 %
+2, 14444 MiB, 95 %
+3, 3001 MiB, 78 %
+4, 16310 MiB, 93 %
+5, 22569 MiB, 27 %
+6, 16763 MiB, 93 %
+7, 15542 MiB, 72 %
+[2026-09-20T20:12:07+08:00] training
+Iteration: 1201/4000
+Computation: 11605 steps/s (collection: 22.342s, learning: 0.246s)
+Mean reward: 39.3095
+Mean episode length: 758.6152
+gait/blocked_push: 0.075780
+gait/completed_mean_net_turns: 2.340085
+gait/completed_mean_turns: 1.854701
+gait/completed_one_turn_rate: 0.940171
+gait/support_gate: 0.956194
+stable_rotation_rate: 0.557789
+Total timesteps: 314834944
+ETA (recent FPS): 0d 17:33:46
+GPU index, memory used, utilization:
+0, 27333 MiB, 42 %
+1, 9900 MiB, 82 %
+2, 14444 MiB, 97 %
+3, 2970 MiB, 87 %
+4, 2878 MiB, 86 %
+5, 22569 MiB, 51 %
+6, 3143 MiB, 52 %
+7, 15542 MiB, 85 %
+[2026-09-20T20:13:14+08:00] training
+Iteration: 1208/4000
+Computation: 31694 steps/s (collection: 8.024s, learning: 0.247s)
+Mean reward: 39.0531
+Mean episode length: 748.0807
+gait/blocked_push: 0.075340
+gait/completed_mean_net_turns: 2.292665
+gait/completed_mean_turns: 1.832237
+gait/completed_one_turn_rate: 0.937500
+gait/support_gate: 0.952727
+stable_rotation_rate: 0.566551
+Total timesteps: 316669952
+ETA (recent FPS): 0d 06:24:52
+GPU index, memory used, utilization:
+0, 27333 MiB, 37 %
+1, 9900 MiB, 28 %
+2, 14444 MiB, 100 %
+3, 3001 MiB, 100 %
+4, 6986 MiB, 100 %
+5, 22569 MiB, 83 %
+6, 7664 MiB, 71 %
+7, 15542 MiB, 19 %
+[2026-09-20T20:14:21+08:00] training
+Iteration: 1216/4000
+Computation: 32911 steps/s (collection: 7.722s, learning: 0.244s)
+Mean reward: 40.0177
+Mean episode length: 755.3255
+gait/blocked_push: 0.076112
+gait/completed_mean_net_turns: 2.323290
+gait/completed_mean_turns: 1.841860
+gait/completed_one_turn_rate: 0.930233
+gait/support_gate: 0.951117
+stable_rotation_rate: 0.557007
+Total timesteps: 318767104
+ETA (recent FPS): 0d 06:09:35
+GPU index, memory used, utilization:
+0, 27333 MiB, 38 %
+1, 9900 MiB, 33 %
+2, 14444 MiB, 100 %
+3, 3001 MiB, 100 %
+4, 8046 MiB, 100 %
+5, 22569 MiB, 78 %
+6, 7888 MiB, 65 %
+7, 16191 MiB, 87 %
+[2026-09-20T20:15:27+08:00] training
+Iteration: 1220/4000
+Computation: 31490 steps/s (collection: 8.081s, learning: 0.243s)
+Mean reward: 40.6853
+Mean episode length: 754.9956
+gait/blocked_push: 0.076181
+gait/completed_mean_net_turns: 2.349707
+gait/completed_mean_turns: 1.864000
+gait/completed_one_turn_rate: 0.942000
+gait/support_gate: 0.948465
+stable_rotation_rate: 0.539608
+Total timesteps: 319815680
+ETA (recent FPS): 0d 06:25:42
+GPU index, memory used, utilization:
+0, 27333 MiB, 35 %
+1, 9900 MiB, 82 %
+2, 14444 MiB, 96 %
+3, 3001 MiB, 86 %
+4, 25626 MiB, 93 %
+5, 22569 MiB, 27 %
+6, 26607 MiB, 93 %
+7, 17581 MiB, 83 %
+[2026-09-20T20:16:09+08:00] training
+Iteration: 1225/4000
+Computation: 27756 steps/s (collection: 9.194s, learning: 0.250s)
+Mean reward: 40.7999
+Mean episode length: 752.1254
+gait/blocked_push: 0.075813
+gait/completed_mean_net_turns: 2.352682
+gait/completed_mean_turns: 1.866812
+gait/completed_one_turn_rate: 0.938865
+gait/support_gate: 0.944737
+stable_rotation_rate: 0.515343
+Total timesteps: 321126400
+ETA (recent FPS): 0d 07:16:48
+GPU index, memory used, utilization:
+0, 27333 MiB, 38 %
+1, 9900 MiB, 31 %
+2, 14444 MiB, 100 %
+3, 3001 MiB, 100 %
+4, 25626 MiB, 100 %
+5, 22569 MiB, 88 %
+6, 26845 MiB, 95 %
+7, 17581 MiB, 77 %
+[2026-09-20T20:16:51+08:00] training
+Iteration: 1228/4000
+Computation: 27160 steps/s (collection: 9.409s, learning: 0.243s)
+Mean reward: 41.4222
+Mean episode length: 763.2059
+gait/blocked_push: 0.075932
+gait/completed_mean_net_turns: 2.318877
+gait/completed_mean_turns: 1.835784
+gait/completed_one_turn_rate: 0.924020
+gait/support_gate: 0.944858
+stable_rotation_rate: 0.516315
+Total timesteps: 321912832
+ETA (recent FPS): 0d 07:25:54
+GPU index, memory used, utilization:
+0, 27333 MiB, 35 %
+1, 9900 MiB, 82 %
+2, 14444 MiB, 95 %
+3, 3001 MiB, 80 %
+4, 25626 MiB, 94 %
+5, 22569 MiB, 52 %
+6, 26845 MiB, 96 %
+7, 17451 MiB, 88 %
+[2026-09-20T20:17:33+08:00] training
+Iteration: 1233/4000
+Computation: 29876 steps/s (collection: 8.525s, learning: 0.250s)
+Mean reward: 40.2934
+Mean episode length: 757.8980
+gait/blocked_push: 0.076983
+gait/completed_mean_net_turns: 2.372288
+gait/completed_mean_turns: 1.866667
+gait/completed_one_turn_rate: 0.944444
+gait/support_gate: 0.944290
+stable_rotation_rate: 0.504456
+Total timesteps: 323223552
+ETA (recent FPS): 0d 06:44:38
+GPU index, memory used, utilization:
+0, 27333 MiB, 35 %
+1, 9900 MiB, 79 %
+2, 14444 MiB, 97 %
+3, 3001 MiB, 86 %
+4, 25628 MiB, 77 %
+5, 22569 MiB, 75 %
+6, 26845 MiB, 95 %
+7, 18671 MiB, 91 %
+[2026-09-20T20:18:16+08:00] training
+Iteration: 1236/4000
+Computation: 21346 steps/s (collection: 12.027s, learning: 0.253s)
+Mean reward: 37.5081
+Mean episode length: 750.9595
+gait/blocked_push: 0.077403
+gait/completed_mean_net_turns: 2.314880
+gait/completed_mean_turns: 1.829851
+gait/completed_one_turn_rate: 0.919403
+gait/support_gate: 0.943640
+stable_rotation_rate: 0.501659
+Total timesteps: 324009984
+ETA (recent FPS): 0d 09:25:43
+GPU index, memory used, utilization:
+0, 27333 MiB, 99 %
+1, 9900 MiB, 85 %
+2, 14444 MiB, 97 %
+3, 3001 MiB, 86 %
+4, 25628 MiB, 94 %
+5, 22569 MiB, 47 %
+6, 26845 MiB, 92 %
+7, 20013 MiB, 88 %
+[2026-09-20T20:18:58+08:00] training
+Iteration: 1241/4000
+Computation: 33081 steps/s (collection: 7.666s, learning: 0.258s)
+Mean reward: 36.7588
+Mean episode length: 745.6723
+gait/blocked_push: 0.075393
+gait/completed_mean_net_turns: 2.218694
+gait/completed_mean_turns: 1.755102
+gait/completed_one_turn_rate: 0.887755
+gait/support_gate: 0.946058
+stable_rotation_rate: 0.509922
+Total timesteps: 325320704
+ETA (recent FPS): 0d 06:04:23
+GPU index, memory used, utilization:
+0, 27333 MiB, 99 %
+1, 9900 MiB, 80 %
+2, 14444 MiB, 97 %
+3, 3001 MiB, 89 %
+4, 25628 MiB, 95 %
+5, 22569 MiB, 69 %
+6, 26847 MiB, 93 %
+7, 20013 MiB, 91 %
+[2026-09-20T20:19:41+08:00] training
+Iteration: 1244/4000
+Computation: 23634 steps/s (collection: 10.786s, learning: 0.306s)
+Mean reward: 39.4191
+Mean episode length: 774.9406
+gait/blocked_push: 0.076377
+gait/completed_mean_net_turns: 2.381963
+gait/completed_mean_turns: 1.881356
+gait/completed_one_turn_rate: 0.957627
+gait/support_gate: 0.946585
+stable_rotation_rate: 0.517136
+Total timesteps: 326107136
+ETA (recent FPS): 0d 08:29:29
+GPU index, memory used, utilization:
+0, 27333 MiB, 39 %
+1, 9900 MiB, 12 %
+2, 14444 MiB, 70 %
+3, 3001 MiB, 100 %
+4, 25628 MiB, 80 %
+5, 22569 MiB, 81 %
+6, 26847 MiB, 92 %
+7, 20013 MiB, 96 %
+[2026-09-20T20:20:23+08:00] training
+Iteration: 1250/4000
+Computation: 31535 steps/s (collection: 8.065s, learning: 0.248s)
+Mean reward: 39.6518
+Mean episode length: 754.8783
+gait/blocked_push: 0.074282
+gait/completed_mean_net_turns: 2.304259
+gait/completed_mean_turns: 1.836207
+gait/completed_one_turn_rate: 0.935345
+gait/support_gate: 0.954477
+stable_rotation_rate: 0.558720
+Total timesteps: 327680000
+ETA (recent FPS): 0d 06:21:00
+GPU index, memory used, utilization:
+0, 27333 MiB, 100 %
+1, 9900 MiB, 81 %
+2, 14444 MiB, 97 %
+3, 3001 MiB, 88 %
+4, 25628 MiB, 78 %
+5, 22569 MiB, 81 %
+6, 26911 MiB, 92 %
+7, 19015 MiB, 96 %
+[2026-09-20T20:21:14+08:00] training
+Iteration: 1253/4000
+Computation: 28541 steps/s (collection: 8.911s, learning: 0.273s)
+Mean reward: 37.9114
+Mean episode length: 749.2508
+gait/blocked_push: 0.074316
+gait/completed_mean_net_turns: 2.298920
+gait/completed_mean_turns: 1.820408
+gait/completed_one_turn_rate: 0.930612
+gait/support_gate: 0.953969
+stable_rotation_rate: 0.565918
+Total timesteps: 328466432
+ETA (recent FPS): 0d 07:00:30
+GPU index, memory used, utilization:
+0, 27333 MiB, 35 %
+1, 9900 MiB, 30 %
+2, 14444 MiB, 100 %
+3, 3001 MiB, 100 %
+4, 25628 MiB, 96 %
+5, 22569 MiB, 80 %
+6, 26911 MiB, 93 %
+7, 15542 MiB, 80 %
+[2026-09-20T20:21:56+08:00] training
+Iteration: 1258/4000
+Computation: 29040 steps/s (collection: 8.752s, learning: 0.275s)
+Mean reward: 39.2622
+Mean episode length: 762.8577
+gait/blocked_push: 0.074172
+gait/completed_mean_net_turns: 2.327215
+gait/completed_mean_turns: 1.850993
+gait/completed_one_turn_rate: 0.943709
+gait/support_gate: 0.951693
+stable_rotation_rate: 0.551991
+Total timesteps: 329777152
+ETA (recent FPS): 0d 06:52:32
+GPU index, memory used, utilization:
+0, 27333 MiB, 33 %
+1, 9900 MiB, 85 %
+2, 14444 MiB, 97 %
+3, 3001 MiB, 88 %
+4, 25628 MiB, 94 %
+5, 22569 MiB, 19 %
+6, 26915 MiB, 91 %
+7, 16545 MiB, 83 %

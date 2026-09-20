@@ -42,7 +42,7 @@ case "${1:-start}" in
     /usr/bin/python3 -u "$root/scripts/mirror_duck_events.py" --destination "$events" &
     mirror_pid=$!
     OMP_NUM_THREADS=2 OPENBLAS_NUM_THREADS=2 "$tensorboard" \
-      --host 127.0.0.1 --port 16006 --load_fast=false --logdir "$events" &
+      --host 127.0.0.1 --port 16006 --load_fast=false --logdir "$root/outputs/remote_monitor" &
     tb_pid=$!
     # Restart the whole service if either child exits, even with exit code zero.
     wait -n "$mirror_pid" "$tb_pid" && exit 1

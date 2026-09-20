@@ -288,84 +288,92 @@ def object_axis_tilt_deg() -> torch.Tensor:
         alignment = torch.clamp(alignment, -1.0, 1.0)
     return torch.rad2deg(torch.acos(alignment))
 
-if not args.physics:
-    print("\n[VIEW] Frozen render mode.")
-    print("  Showing assets.py hand init pose + assets.py object init pos.")
-    if pose_editor is not None:
-        print("  Hand/object editor is live; adjustments are applied to every displayed environment.")
-    print("  Add --physics to step zero actions and test passive stability.\n")
-    env.sim._physics_context.enabled = False  # freeze physics, render only
-    render_frames = 0
-    while simulation_app.is_running():
+try:
+    if not args.physics:
+        print("\n[VIEW] Frozen render mode.")
+        print("  Showing assets.py hand init pose + assets.py object init pos.")
         if pose_editor is not None:
-            pose_editor.apply()
-        env.sim.render()
-        render_frames += 1
-        if args.steps and render_frames >= args.steps:
-            print(f"[RESULT] render_frames={render_frames}", flush=True)
-            break
-else:
-    print("\n[PHYSICS] Stepping with zero actions.", flush=True)
-    print("  Testing whether the selected initial pose can hold the object without policy action.", flush=True)
-    print("  obj_z printed every 20 steps. Hand z printed for reference.\n", flush=True)
-    step = 0
-    termination_count = 0
-    timeout_count = 0
-    max_abs_z_drift = 0.0
-    max_horizontal_drift = 0.0
-    max_stable_horizontal_drift = 0.0
-    max_axis_tilt_deg = 0.0
-    max_stable_axis_tilt_deg = 0.0
-    while simulation_app.is_running():
-        with torch.inference_mode():
-            _, _, terminated, truncated, _ = env.step(zero_actions)
-        step += 1
-        termination_count += int(terminated.sum().item())
-        timeout_count += int(truncated.sum().item())
-        obj_z = env.object.data.root_pos_w[:, 2]
-        max_abs_z_drift = max(
-            max_abs_z_drift, float(torch.max(torch.abs(obj_z - initial_obj_z)).item())
-        )
-        horizontal_drift = torch.norm(
-            env.object.data.root_pos_w[:, :2] - initial_obj_pos[:, :2], dim=-1
-        )
-        max_horizontal_drift = max(
-            max_horizontal_drift, float(horizontal_drift.max().item())
-        )
-        axis_tilt_deg = object_axis_tilt_deg()
-        max_axis_tilt_deg = max(max_axis_tilt_deg, float(axis_tilt_deg.max().item()))
-        if step > args.settle_steps:
-            max_stable_horizontal_drift = max(
-                max_stable_horizontal_drift, float(horizontal_drift.max().item())
+            print("  Hand/object editor is live; adjustments are applied to every displayed environment.")
+        print("  Add --physics to step zero actions and test passive stability.\n")
+        env.sim._physics_context.enabled = False  # freeze physics, render only
+        render_frames = 0
+        while simulation_app.is_running():
+            if pose_editor is not None:
+                pose_editor.apply()
+            env.sim.render()
+            render_frames += 1
+            if args.steps and render_frames >= args.steps:
+                print(f"[RESULT] render_frames={render_frames}", flush=True)
+                break
+    else:
+        print("\n[PHYSICS] Stepping with zero actions.", flush=True)
+        print("  Testing whether the selected initial pose can hold the object without policy action.", flush=True)
+        print("  obj_z printed every 20 steps. Hand z printed for reference.\n", flush=True)
+        step = 0
+        termination_count = 0
+        timeout_count = 0
+        max_abs_z_drift = 0.0
+        max_horizontal_drift = 0.0
+        max_stable_horizontal_drift = 0.0
+        max_axis_tilt_deg = 0.0
+        max_stable_axis_tilt_deg = 0.0
+        while simulation_app.is_running():
+            with torch.inference_mode():
+                _, _, terminated, truncated, _ = env.step(zero_actions)
+            step += 1
+            termination_count += int(terminated.sum().item())
+            timeout_count += int(truncated.sum().item())
+            obj_z = env.object.data.root_pos_w[:, 2]
+            max_abs_z_drift = max(
+                max_abs_z_drift, float(torch.max(torch.abs(obj_z - initial_obj_z)).item())
             )
-            max_stable_axis_tilt_deg = max(
-                max_stable_axis_tilt_deg, float(axis_tilt_deg.max().item())
+            horizontal_drift = torch.norm(
+                env.object.data.root_pos_w[:, :2] - initial_obj_pos[:, :2], dim=-1
             )
-        if step % 20 == 0:
-            hand_z = env.hand.data.root_pos_w[:, 2]
-            print(
-                f"  step={step:4d}  "
-                f"obj_z={obj_z[0]:.4f}  "
-                f"obj_z_range=[{obj_z.min():.4f}, {obj_z.max():.4f}]  "
-                f"xy_drift_max={1000.0 * horizontal_drift.max():.2f}mm  "
-                f"tilt_range=[{axis_tilt_deg.min():.2f}, {axis_tilt_deg.max():.2f}]deg  "
-                f"hand_z={hand_z[0]:.4f}  "
-                f"diff={obj_z[0] - hand_z[0]:.4f}"
+            max_horizontal_drift = max(
+                max_horizontal_drift, float(horizontal_drift.max().item())
             )
-        if args.steps and step >= args.steps:
-            print(
-                f"\n[RESULT] steps={step} terminations={termination_count} timeouts={timeout_count} "
-                f"max_abs_z_drift={max_abs_z_drift:.6f}m "
-                f"max_xy_drift={1000.0 * max_horizontal_drift:.2f}mm "
-                f"max_stable_xy_drift={1000.0 * max_stable_horizontal_drift:.2f}mm "
-                f"max_axis_tilt={max_axis_tilt_deg:.2f}deg "
-                f"max_stable_axis_tilt={max_stable_axis_tilt_deg:.2f}deg",
-                flush=True,
-            )
-            break
-
-if pose_editor is not None:
-    pose_editor.print_values()
-
-env.close()
-simulation_app.close()
+            axis_tilt_deg = object_axis_tilt_deg()
+            max_axis_tilt_deg = max(max_axis_tilt_deg, float(axis_tilt_deg.max().item()))
+            if step > args.settle_steps:
+                max_stable_horizontal_drift = max(
+                    max_stable_horizontal_drift, float(horizontal_drift.max().item())
+                )
+                max_stable_axis_tilt_deg = max(
+                    max_stable_axis_tilt_deg, float(axis_tilt_deg.max().item())
+                )
+            if step % 20 == 0:
+                hand_z = env.hand.data.root_pos_w[:, 2]
+                print(
+                    f"  step={step:4d}  "
+                    f"obj_z={obj_z[0]:.4f}  "
+                    f"obj_z_range=[{obj_z.min():.4f}, {obj_z.max():.4f}]  "
+                    f"xy_drift_max={1000.0 * horizontal_drift.max():.2f}mm  "
+                    f"tilt_range=[{axis_tilt_deg.min():.2f}, {axis_tilt_deg.max():.2f}]deg  "
+                    f"hand_z={hand_z[0]:.4f}  "
+                    f"diff={obj_z[0] - hand_z[0]:.4f}"
+                )
+            if args.steps and step >= args.steps:
+                print(
+                    f"\n[RESULT] steps={step} terminations={termination_count} timeouts={timeout_count} "
+                    f"max_abs_z_drift={max_abs_z_drift:.6f}m "
+                    f"max_xy_drift={1000.0 * max_horizontal_drift:.2f}mm "
+                    f"max_stable_xy_drift={1000.0 * max_stable_horizontal_drift:.2f}mm "
+                    f"max_axis_tilt={max_axis_tilt_deg:.2f}deg "
+                    f"max_stable_axis_tilt={max_stable_axis_tilt_deg:.2f}deg",
+                    flush=True,
+                )
+                break
+except (ReferenceError, RuntimeError):
+    if simulation_app.is_running():
+        raise
+    print('[VIEW] Window closed during a simulation step.', flush=True)
+finally:
+    try:
+        if pose_editor is not None:
+            pose_editor.print_values()
+    finally:
+        try:
+            env.close()
+        finally:
+            simulation_app.close()

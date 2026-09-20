@@ -123,7 +123,7 @@ class ProprioAdapt(object):
         self.running_mean_std.eval()
         self.sa_mean_std.eval()
 
-    def test(self, max_steps: int = 0, real_time: bool = False):
+    def test(self, max_steps: int = 0, real_time: bool = False, should_continue=None):
         self.set_eval()
         obs_dict = self.env.reset()
         step = 0
@@ -133,6 +133,9 @@ class ProprioAdapt(object):
         tilt_sum = 0.0
         step_dt = float(getattr(self.env, 'step_dt', 0.0))
         while max_steps <= 0 or step < max_steps:
+            if should_continue is not None and not should_continue():
+                print(f'[INFO] Playback closed after {step} policy steps.', flush=True)
+                return
             step_start = time.time()
             input_dict = {
                 'obs': self.running_mean_std(obs_dict['obs']),

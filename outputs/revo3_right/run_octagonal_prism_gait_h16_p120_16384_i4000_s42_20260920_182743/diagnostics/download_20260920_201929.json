@@ -1,0 +1,22 @@
+{
+  "verified_at": "2026-09-20T20:20:52.763014+08:00",
+  "snapshot": "download_20260920_201929",
+  "verified_files": 31,
+  "checkpoints": {
+    "last.pth": {
+      "epoch": 1200,
+      "agent_steps": 314572800,
+      "sha256": "c45e7dcf2a6f93bc5e94d7c5eb109eeaf80b26b00a62054d284e7be97a8c0151"
+    },
+    "best.pth": {
+      "epoch": 1229,
+      "agent_steps": 322174976,
+      "sha256": "0c0f295dab8653fe462bbf1403770bb6ef876df6e15404bd35824c62846e2aa6"
+    },
+    "best_full_gravity.pth": {
+      "epoch": 1229,
+      "agent_steps": 322174976,
+      "sha256": "cc66558ff661afc574e46848782a1d84b014db4f58d397ed032bebf66417f140"
+    }
+  }
+}

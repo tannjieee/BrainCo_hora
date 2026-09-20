@@ -11,6 +11,10 @@ import time
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--destination', type=Path, required=True)
+    parser.add_argument('--source', default=(
+        'tanjie@127.0.0.1:/home/tanjie/BrainCo_hora/outputs/revo3_right/'
+        'run_rubber_duck_gait_h16_p120_16384_i4000_s42_20260920/stage1_tb/'),
+        help='Remote TensorBoard event directory (rsync source).')
     parser.add_argument('--interval', type=float, default=30)
     args = parser.parse_args()
     args.destination.mkdir(parents=True, exist_ok=True)
@@ -21,8 +25,7 @@ def main():
     command = ['rsync', '-az', '--append-verify', '--timeout=20',
                '-e', 'ssh -S /tmp/brainco-collect.sock -p 22020 -o BatchMode=yes -o ConnectTimeout=10',
                '--include=events.out.tfevents.*', '--exclude=*',
-               'tanjie@127.0.0.1:/home/tanjie/BrainCo_hora/outputs/revo3_right/'
-               'run_rubber_duck_gait_h16_p120_16384_i4000_s42_20260920/stage1_tb/',
+               args.source.rstrip('/') + '/',
                str(args.destination) + '/']
     while True:
         now = datetime.datetime.now().astimezone().isoformat(timespec='seconds')

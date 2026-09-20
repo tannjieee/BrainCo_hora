@@ -925,16 +925,26 @@ if args.usd:
 zero_actions = torch.zeros((args.num_envs, env_cfg.action_space), device=env.device)
 
 collection_steps = 0
-while simulation_app.is_running():
-    with torch.inference_mode():
-        env.step(zero_actions)
-    collection_steps += 1
-    if args.max_steps and collection_steps >= args.max_steps:
-        env._print_progress(force=True)
-        env.save_report(complete=False)
-        print('[INCOMPLETE] Collection budget exhausted; no training cache written. Inspect .report.json coverage.', flush=True)
+try:
+    while simulation_app.is_running():
+        with torch.inference_mode():
+            env.step(zero_actions)
+        collection_steps += 1
+        if args.max_steps and collection_steps >= args.max_steps:
+            env._print_progress(force=True)
+            env.save_report(complete=False)
+            print('[INCOMPLETE] Collection budget exhausted; no training cache written. Inspect .report.json coverage.', flush=True)
+            env.close()
+            import omni.kit.app
+            omni.kit.app.get_app().post_quit(2)
+            simulation_app.close()
+            sys.exit(2)
+except (ReferenceError, RuntimeError):
+    if simulation_app.is_running():
+        raise
+    print('[INFO] Window closed during a collection step.', flush=True)
+finally:
+    try:
         env.close()
-        import omni.kit.app
-        omni.kit.app.get_app().post_quit(2)
+    finally:
         simulation_app.close()
-        sys.exit(2)

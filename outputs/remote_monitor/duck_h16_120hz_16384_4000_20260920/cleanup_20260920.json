@@ -1,0 +1,25 @@
+{
+  "timestamp": "2026-09-20T09:26:26.803934+00:00",
+  "deleted": [
+    {
+      "path": "/home/tanjie/BrainCo_hora/outputs/revo3_right/_smoke_duck_h16_120_resume_20260920",
+      "bytes": 6853763
+    },
+    {
+      "path": "/home/tanjie/BrainCo_hora/outputs/revo3_right/_smoke_duck_long_20260920",
+      "bytes": 6858861
+    },
+    {
+      "path": "/home/tanjie/BrainCo_hora/outputs/revo3_right/_smoke_duck_long_20260920_eval",
+      "bytes": 40
+    },
+    {
+      "path": "/home/tanjie/BrainCo_hora/outputs/revo3_right/run_rubber_duck_gait_baseline_s42_20260920",
+      "bytes": 14288206
+    },
+    {
+      "path": "/home/tanjie/BrainCo_hora/outputs/revo3_right/run_rubber_duck_gait_long_16384_i4000_s42_20260920",
+      "bytes": 3566137
+    }
+  ]
+}

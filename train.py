@@ -22,8 +22,6 @@ import os
 import subprocess
 import traceback
 
-os.environ.setdefault("HORA_SKIP_SIM_CLOSE", "1")
-
 from isaaclab.app import AppLauncher
 from hora.object_registry import OBJECT_TASK_NAMES, get_object_task_spec
 
@@ -477,10 +475,16 @@ def main():
             agent.test(
                 max_steps=video_steps if args.video else args.test_steps,
                 real_time=args.real_time,
+                should_continue=simulation_app.is_running,
             )
+        except (ReferenceError, RuntimeError):
+            # A close event can invalidate PhysX views inside env.step(), before
+            # the playback loop gets its next chance to check is_running().
+            if simulation_app.is_running():
+                raise
+            print('[INFO] Window closed during a simulation step.', flush=True)
         finally:
-            if args.video:
-                env.close()
+            env.close()
     else:
         best_ckpt_path = os.path.join(
             output_dif,
@@ -560,12 +564,13 @@ def main():
 if __name__ == '__main__':
     try:
         main()
+    except KeyboardInterrupt:
+        simulation_app.app.post_quit(130)
+        raise
     except Exception:
         print("\n[ERROR] Training terminated with an exception. Full traceback:", flush=True)
         traceback.print_exc()
+        simulation_app.app.post_quit(1)
         raise
     finally:
-        if os.getenv("HORA_SKIP_SIM_CLOSE", "0") == "1":
-            print("[INFO] Skip simulation_app.close() due to HORA_SKIP_SIM_CLOSE=1", flush=True)
-        else:
-            simulation_app.close()
+        simulation_app.close()

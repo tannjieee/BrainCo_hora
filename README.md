@@ -101,6 +101,7 @@ REWARD_AND_LOSS.md              # 当前 Stage1 奖励公式、日志缩放与 P
 | `strawberry` | Blender 3.5 Cozy Kitchen Strawberry (Wikimedia Commons, CC BY-SA 4.0) | 1.0 | 52.7×54.7×52.1 |
 | `toys_r_us_foobler` | Toys_R_Us_Treat_Dispenser_Smart_Puzzle_Foobler | 0.5 | 77.4×77.0×76.7 |
 | `wilton_sprinkles` | Wilton_Pearlized_Sugar_Sprinkles_525_oz_Gold | 1.3 | 59.5×59.3×174.8 |
+| `octagonal_prism` | 本地生成的正八棱柱（8 个侧面），初始尺寸 | 1.0 | 60.0×60.0×70.0 |
 
 每种物体使用独立抓握缓存和输出目录，防止不同几何之间误用缓存或 checkpoint。
 
@@ -147,6 +148,10 @@ REWARD_AND_LOSS.md              # 当前 Stage1 奖励公式、日志缩放与 P
 # 同时调节手部关节、物体位置/旋转和大小（--edit_joints 仍兼容）
 ~/IsaacLab/isaaclab.sh -p tools/view_init_pose.py \
   --task strawberry --num_envs 1 --edit_pose
+
+# 八棱柱：外接直径 60 mm、对边距离约 55.43 mm、高 70 mm；初始手姿待校准
+~/IsaacLab/isaaclab.sh -p tools/view_init_pose.py \
+  --task octagonal_prism --num_envs 1 --edit_pose
 ```
 
 `--edit_pose`（别名 `--edit_joints`）仅用于默认的冻结展示模式，不能和
@@ -168,6 +173,12 @@ REWARD_AND_LOSS.md              # 当前 Stage1 奖励公式、日志缩放与 P
 RGB 物体坐标轴随位姿更新。使用 `--cache` 时以环境 0 的加载值作为编辑起点；
 编辑不会改写已有抓握缓存。冻结预览通过临时几何层变换实现实时缩放，
 保留源资产的居中效果，不会改写 USD 文件。
+
+关闭主窗口会退出程序并释放仿真资源。时间轴的 Stop 同样结束程序；
+暂时停住物理仿真请用 Pause。种子仍需点击 `Save to manifest.json` 保存，
+关闭编辑器只打印当前配置。项目已替换会阻塞窗口关闭的时间轴停止回调。
+可用 `python tests/check_window_close.py --case editor` 验证真实窗口关闭；
+`--case physics` 验证物理预览，`--case play --checkpoint <duck检查点>` 验证策略播放。
 保存后重新启动采集/训练即会按新缩放创建物体及其碰撞形状。
 
 可通过 `--joint_step 0.005`（弧度）、`--position_step 0.0005`（米，即 0.5 mm）、

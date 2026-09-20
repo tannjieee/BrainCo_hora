@@ -1,0 +1,21 @@
+{
+  "stopped_at": "2026-09-20T17:37:42.407545+08:00",
+  "stop_reason": "user_requested",
+  "training_pid_exited": 1851878,
+  "checkpoints": {
+    "last": {
+      "epoch": 2500,
+      "agent_steps": 670302208
+    },
+    "best": {
+      "epoch": 2522,
+      "agent_steps": 676069376
+    },
+    "best_full_gravity": {
+      "epoch": 2522,
+      "agent_steps": 676069376
+    }
+  },
+  "checkpoint_sha256_verified": 54,
+  "last_logged_steps": 677117952
+}

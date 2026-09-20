@@ -1,0 +1,159 @@
+[INFO][AppLauncher]: Using device: cuda:2
+[INFO][AppLauncher]: Loading experience file: /home/tanjie/IsaacLab/apps/isaaclab.python.headless.kit
+Loading user config located at: '/home/tanjie/.venvs/hora/lib/python3.11/site-packages/isaacsim/kit/data/Kit/Isaac-Sim/5.1/user.config.json'
+[Info] [carb] Logging to file: /home/tanjie/.venvs/hora/lib/python3.11/site-packages/isaacsim/kit/logs/Kit/Isaac-Sim/5.1/kit_20260920_101700.log
+2026-09-20T10:17:00Z [292ms] [Warning] [omni.usd_config.extension] Enable omni.materialx.libs extension to use MaterialX
+2026-09-20T10:17:01Z [691ms] [Warning] [omni.platforminfo.plugin] failed to open the default display.  Can't verify X Server version.
+2026-09-20T10:17:01Z [849ms] [Warning] [carb] Acquiring non optional plugin interface which is not listed as dependency: [omni::physx::IPhysxBenchmarks v1.0] (plugin: <default plugin>), by client: omni.physics.physx.plugin. Add it to CARB_PLUGIN_IMPL_DEPS() macro of a client.
+2026-09-20T10:17:01Z [861ms] [Warning] [omni.isaac.dynamic_control] omni.isaac.dynamic_control is deprecated as of Isaac Sim 4.5. No action is needed from end-users.
+
+|---------------------------------------------------------------------------------------------|
+| Driver Version: 580.178.04    | Graphics API: Vulkan
+|=============================================================================================|
+| GPU | Name                             | Active | LDA | GPU Memory | Vendor-ID | LUID       |
+|     |                                  |        |     |            | Device-ID | UUID       |
+|     |                                  |        |     |            | Bus-ID    |            |
+|---------------------------------------------------------------------------------------------|
+| 0   | NVIDIA GeForce RTX 5090          |        |     | 32607   MB | 10de      | 0          |
+|     |                                  |        |     |            | 2b85      | c6939fca.. |
+|     |                                  |        |     |            | 1         |            |
+|---------------------------------------------------------------------------------------------|
+| 1   | NVIDIA GeForce RTX 5090          |        |     | 32607   MB | 10de      | 0          |
+|     |                                  |        |     |            | 2b85      | 93961777.. |
+|     |                                  |        |     |            | 21        |            |
+|---------------------------------------------------------------------------------------------|
+| 2   | NVIDIA GeForce RTX 5090          | Yes: 0 |     | 32607   MB | 10de      | 0          |
+|     |                                  |        |     |            | 2b85      | ef94a1e3.. |
+|     |                                  |        |     |            | 41        |            |
+|---------------------------------------------------------------------------------------------|
+| 3   | NVIDIA GeForce RTX 5090          |        |     | 32607   MB | 10de      | 0          |
+|     |                                  |        |     |            | 2b85      | 6584b11d.. |
+|     |                                  |        |     |            | 61        |            |
+|---------------------------------------------------------------------------------------------|
+| 4   | NVIDIA GeForce RTX 5090          |        |     | 32607   MB | 10de      | 0          |
+|     |                                  |        |     |            | 2b85      | b08473ca.. |
+|     |                                  |        |     |            | 81        |            |
+|---------------------------------------------------------------------------------------------|
+| 5   | NVIDIA GeForce RTX 5090          |        |     | 32607   MB | 10de      | 0          |
+|     |                                  |        |     |            | 2b85      | c990a98b.. |
+|     |                                  |        |     |            | a1        |            |
+|---------------------------------------------------------------------------------------------|
+| 6   | NVIDIA GeForce RTX 5090          |        |     | 32607   MB | 10de      | 0          |
+|     |                                  |        |     |            | 2b85      | 02a503ac.. |
+|     |                                  |        |     |            | c1        |            |
+|---------------------------------------------------------------------------------------------|
+| 7   | NVIDIA GeForce RTX 5090          |        |     | 32607   MB | 10de      | 0          |
+|     |                                  |        |     |            | 2b85      | a25bb953.. |
+|     |                                  |        |     |            | e1        |            |
+|=============================================================================================|
+| OS: 24.04.3 LTS (Noble Numbat) ubuntu, Version: 24.04.3, Kernel: 6.8.0-139-generic
+| Processor: AMD EPYC 9554 64-Core Processor
+| Cores: 128 | Logical Cores: 256
+|---------------------------------------------------------------------------------------------|
+| Total Memory (MB): 257516 | Free Memory: 200431
+| Total Page/Swap (MB): 8191 | Free Page/Swap: 8189
+|---------------------------------------------------------------------------------------------|
+2026-09-20T10:17:07Z [7,352ms] [Warning] [gpu.foundation.plugin] IOMMU is enabled.
+2026-09-20T10:17:07Z [7,352ms] [Warning] [gpu.foundation.plugin] Detected IOMMU is enabled. Running CUDA peer-to-peer bandwidth and latency validation.
+Unidirectional P2P=Enabled Bandwidth (P2P Writes) Matrix (GB/s)
+   D\D     0      1      2      3      4      5      6      7 
+     0 1559.38  42.56  42.37  42.55  42.77  42.07  42.55  41.91 
+     1  41.78 1544.45  42.88  42.88  42.75  42.31  42.50  41.92 
+     2  41.11  42.24 1541.64  42.40  41.64  42.69  42.73  42.68 
+     3  42.08  42.78  42.68 1544.45  41.53  42.77  42.71  41.80 
+     4  42.49  42.04  42.13  42.23 1543.97  41.78  41.60  41.43 
+     5  42.96  42.54  42.06  42.66  41.54 1541.64  41.54  38.86 
+     6  42.29  42.14  42.17  41.83  40.25  41.77 1541.59  41.04 
+     7  41.84  42.45  42.46  42.52  41.75  39.12  41.49 1547.70 
+P2P=Enabled Latency (P2P Writes) Matrix (us)
+   GPU     0      1      2      3      4      5      6      7 
+     0   2.06 168.53 521.25 419.52 126.76 500.75 155.32 127.34 
+     1 141.93   2.06 478.78 415.54 110.77 356.10 166.81 116.81 
+     2  33.93 153.40   2.06 297.19 167.70 455.96 165.64 107.57 
+     3  31.74 166.80 414.79   2.06 191.85 293.99  78.42 130.07 
+     4 181.56 142.11 375.76 318.89   2.07 474.55 160.40 132.10 
+     5  14.92 175.18 399.43 169.59  19.23   2.06 165.88 129.26 
+     6 140.59  74.70 457.15 255.11 137.39 499.73   2.07  52.71 
+     7 110.27 135.98 443.94 359.31 197.72 355.78 166.17   2.06 
+
+   CPU     0      1      2      3      4      5      6      7 
+     0   2.67   7.02   6.86   6.89   7.76   7.57   7.51   7.49 
+     1   7.25   2.18   6.14   6.24   7.28   6.83   6.88   6.92 
+     2   7.34   6.02   2.17   6.20   7.04   6.90   6.93   6.88 
+     3   7.29   6.16   6.16   2.28   7.03   6.84   6.80   6.94 
+     4   7.68   6.70   6.78   6.82   2.49   7.72   7.40   7.47 
+     5   7.35   6.36   6.49   6.71   7.44   2.36   7.27   7.41 
+     6   7.30   6.88   7.39   6.78   7.69   7.36   2.45   7.43 
+     7   7.80   6.69   6.68   6.82   7.63   7.42   7.39   2.50 
+2026-09-20T10:17:10Z [10,027ms] [Warning] [gpu.foundation.plugin] CUDA peer-to-peer observed bandwidth: 38.9 GB/s.
+2026-09-20T10:17:10Z [10,027ms] [Warning] [gpu.foundation.plugin] CUDA peer-to-peer observed latency: 521.3 us.
+2026-09-20T10:17:10Z [10,027ms] [Warning] [gpu.foundation.plugin] Please verify if observed bandwidth and latency are expected.
+
+[36m==============================================================================================================[0m
+[36m[1m[INFO][IsaacLab]: Logging to file: /home/tanjie/.cache/hora/tmp/isaaclab/logs/isaaclab_2026-09-20_10-17-11.log[0m
+[36m==============================================================================================================[0m
+
+[INFO]: Base environment:
+	Environment device    : cuda:2
+	Environment seed      : 42
+	Physics step-size     : 0.004166666666666667
+	Rendering step-size   : 0.05
+	Environment step-size : 0.05
+[INFO]: Time taken for scene creation : 1.681320 seconds
+[INFO]: Scene manager:  <class InteractiveScene>
+	Number of environments: 128
+	Environment spacing   : 0.75
+	Source prim name      : /World/envs/env_0
+	Global prim paths     : ['/World/ground']
+	Replicate physics     : False
+[INFO]: Starting the simulation. This may take a few seconds. Please wait...
+[INFO]: Time taken for simulation start : 4.140828 seconds
+[INFO]: Completed setting up the environment...
+[WARN] Grasp cache not found: cache/_smoke_octagonal_20260920_181435.npy, falling back to default pose.
+
+[INFO] Grasp cache generation started.
+  task        : octagonal_prism
+  object      : Regular octagonal prism (60 mm across vertices x 70 mm)
+  scale       : 1.07
+  size        : (64.2, 64.2, 74.9) mm
+  hand seed   : custom + 21 overrides
+  local axis  : (0.0, 0.0, 1.0)
+  target axis : (0.0, 0.0, 1.0)
+  num_envs    : 128
+  seed        : 42
+  noise_scale : ±0.15 rad
+  coverage    : 1 axis-angle bins x 1 contact groups
+  free fingers: []; extension fraction=0.7
+  episode_len : 5.0s  (100 steps)
+  target      : 16 grasps
+  progress    : every 10s
+  settle      : 20 steps
+  contact     : >= 3 fingertips present in >= 70% of a 20-step (1s at 20Hz) rolling window
+  force gate  : > 0.05N per fingertip per frame
+  live contact: >= 3 fingertips after settle
+  axis tilt   : <= 10deg after settle (unsigned)
+  XY drift    : <= 5mm after settle
+  height drift: <= 15mm after settle
+  height guard: initial Z +/- 15mm, including settle; env_0=[1.6200, 1.6500]m (env-local)
+  gravity     : fixed (9.81m/s²)
+  disturbance : random force off, friction randomization off
+  output      : cache/_smoke_octagonal_20260920_181435.npy
+
+[PROGRESS]      0/16 (  0.00%) | attempts=321 | success=  0.00% | rate=   0.00/s (recent=   0.00/s) | elapsed=00:00:10 | ETA=--:--:--
+[CONDITIONS] fingertip= 99.89% | contact_frame= 55.88% | established=  2.01% | axis/rotation= 64.58% | horizontal= 32.22% | height= 87.87% | all_frame= 18.34% | contacts=2.52/5 | force mean= 0.565N active_mean= 1.123N max=39.787N | tilt mean=10.28deg max=54.43deg
+[FINGERS] thumb:contact= 51.2%,force=0.383N,max= 7.04N,window= 45.0%,dist= 5.2cm | index:contact= 57.5%,force=1.007N,max=36.84N,window= 47.6%,dist= 4.7cm | middle:contact= 50.5%,force=0.323N,max= 7.13N,window= 46.8%,dist= 4.6cm | ring:contact= 48.4%,force=0.329N,max= 7.59N,window= 43.1%,dist= 4.7cm | little:contact= 43.9%,force=0.784N,max=39.79N,window= 34.1%,dist= 4.8cm
+[PROGRESS]      0/16 (  0.00%) | attempts=599 | success=  0.00% | rate=   0.00/s (recent=   0.00/s) | elapsed=00:00:20 | ETA=--:--:--
+[CONDITIONS] fingertip=100.00% | contact_frame= 67.78% | established= 24.93% | axis/rotation= 67.15% | horizontal= 50.22% | height= 92.82% | all_frame= 35.04% | contacts=2.90/5 | force mean= 0.617N active_mean= 1.062N max=51.228N | tilt mean=10.08deg max=62.79deg
+[FINGERS] thumb:contact= 58.0%,force=0.474N,max= 8.64N,window= 53.2%,dist= 5.1cm | index:contact= 65.4%,force=1.039N,max=51.23N,window= 58.1%,dist= 4.7cm | middle:contact= 55.0%,force=0.347N,max=11.78N,window= 52.5%,dist= 4.6cm | ring:contact= 55.9%,force=0.350N,max= 4.68N,window= 52.2%,dist= 4.6cm | little:contact= 56.0%,force=0.874N,max=49.27N,window= 48.0%,dist= 4.8cm
+[PROGRESS]      0/16 (  0.00%) | attempts=825 | success=  0.00% | rate=   0.00/s (recent=   0.00/s) | elapsed=00:00:30 | ETA=--:--:--
+[CONDITIONS] fingertip=100.00% | contact_frame= 73.30% | established= 39.77% | axis/rotation= 72.87% | horizontal= 60.16% | height= 93.96% | all_frame= 48.22% | contacts=3.03/5 | force mean= 0.676N active_mean= 1.115N max=28.536N | tilt mean= 8.95deg max=74.39deg
+[FINGERS] thumb:contact= 56.3%,force=0.436N,max= 4.26N,window= 53.4%,dist= 5.2cm | index:contact= 69.0%,force=1.169N,max=28.54N,window= 61.8%,dist= 4.7cm | middle:contact= 57.9%,force=0.366N,max= 4.57N,window= 56.2%,dist= 4.6cm | ring:contact= 54.2%,force=0.361N,max= 4.22N,window= 53.0%,dist= 4.6cm | little:contact= 65.6%,force=1.048N,max=28.53N,window= 58.6%,dist= 4.7cm
+[PROGRESS]      0/16 (  0.00%) | attempts=954 | success=  0.00% | rate=   0.00/s (recent=   0.00/s) | elapsed=00:00:40 | ETA=--:--:--
+[CONDITIONS] fingertip=100.00% | contact_frame= 79.06% | established= 52.53% | axis/rotation= 81.85% | horizontal= 66.74% | height= 96.95% | all_frame= 59.52% | contacts=3.23/5 | force mean= 0.668N active_mean= 1.035N max=22.160N | tilt mean= 7.41deg max=44.02deg
+[FINGERS] thumb:contact= 62.0%,force=0.462N,max= 6.86N,window= 58.5%,dist= 5.1cm | index:contact= 76.9%,force=1.141N,max=22.16N,window= 71.5%,dist= 4.6cm | middle:contact= 58.0%,force=0.357N,max= 8.26N,window= 57.4%,dist= 4.5cm | ring:contact= 55.9%,force=0.367N,max= 8.67N,window= 54.0%,dist= 4.6cm | little:contact= 69.9%,force=1.014N,max=20.87N,window= 64.3%,dist= 4.7cm
+[PROGRESS]     16/16 (100.00%) | attempts=1071 | success=  1.49% | rate=   0.32/s (recent=   1.80/s) | elapsed=00:00:49 | ETA=00:00:00
+[CONDITIONS] fingertip=100.00% | contact_frame= 85.33% | established= 59.46% | axis/rotation= 82.99% | horizontal= 71.31% | height= 97.27% | all_frame= 65.84% | contacts=3.40/5 | force mean= 0.699N active_mean= 1.029N max=32.004N | tilt mean= 7.51deg max=64.37deg
+[FINGERS] thumb:contact= 66.0%,force=0.487N,max= 7.59N,window= 62.7%,dist= 5.0cm | index:contact= 75.5%,force=1.095N,max=21.12N,window= 71.2%,dist= 4.6cm | middle:contact= 65.5%,force=0.404N,max= 5.01N,window= 63.3%,dist= 4.5cm | ring:contact= 60.4%,force=0.386N,max= 5.58N,window= 58.1%,dist= 4.6cm | little:contact= 72.3%,force=1.123N,max=32.00N,window= 67.3%,dist= 4.7cm
+
+[INFO] Saved 16 grasps -> cache/_smoke_octagonal_20260920_181435.npy
+       shape=(16, 28)  dtype=float32

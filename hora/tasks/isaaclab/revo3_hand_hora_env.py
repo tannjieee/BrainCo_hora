@@ -21,6 +21,7 @@ from isaaclab.sensors import ContactSensor
 from isaaclab.utils.math import quat_conjugate, quat_mul, saturate
 from hora.utils.grasp_cache import load_grasp_cache
 from hora.utils.privileged_observations import object_rotation_6d
+from .shutdown import install_nonblocking_stop_handler
 from hora.utils.finger_gait import (
     signed_axis_increment, new_turns, blocked_push, support_gate, debounce_contacts,
     directed_speed_reward,
@@ -76,6 +77,7 @@ class Revo3HandHoraEnv(DirectRLEnv):
         self.reset_height_upper = torch.zeros(cfg.scene.num_envs, device=cfg.sim.device)
 
         super().__init__(cfg, render_mode, **kwargs)
+        install_nonblocking_stop_handler(self.sim)
 
         self.num_hand_dofs = self.hand.num_joints
 

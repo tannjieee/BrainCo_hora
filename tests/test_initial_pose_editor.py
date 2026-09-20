@@ -17,6 +17,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from isaaclab.app import AppLauncher
 
 parser = argparse.ArgumentParser()
+parser.add_argument("--task", default="strawberry", choices=("strawberry", "octagonal_prism"))
 parser.add_argument("--screenshot", type=Path, help="Optional full Isaac Sim window capture for UI inspection.")
 AppLauncher.add_app_launcher_args(parser)
 args = parser.parse_args()
@@ -34,7 +35,7 @@ from tools.initial_pose_editor import InitialPoseEditor
 class InitialPoseEditorTest(unittest.TestCase):
     def test_live_edits_reset_and_manifest_round_trip(self):
         cfg = Revo3HandHoraEnvCfg()
-        spec = configure_env_for_object_task(cfg, "strawberry")
+        spec = configure_env_for_object_task(cfg, args.task)
         cfg.scene.num_envs = 2
         cfg.grasp_cache_path = "__nonexistent__"
         cfg.debug_show_axes = True
@@ -121,6 +122,8 @@ class InitialPoseEditorTest(unittest.TestCase):
                 target_pos = (0.02, -0.06, 1.67)
                 for model, value in zip(editor.position_models, target_pos):
                     model.set_value(value * 1000)
+                editor.rotation_models[0].set_value(0.0)
+                editor.rotation_models[1].set_value(0.0)
                 editor.rotation_models[2].set_value(90.0)
                 joint_index = 0
                 target_joint = float((env.hand_dof_lower_limits[0, joint_index] + env.hand_dof_upper_limits[0, joint_index]) / 2)
@@ -157,25 +160,25 @@ class InitialPoseEditorTest(unittest.TestCase):
 
                 # Include external changes made after the panel opened.
                 external = json.loads(manifest_path.read_text())
-                external["strawberry"]["editor_test_note"] = "keep me"
+                external[args.task]["editor_test_note"] = "keep me"
                 manifest_path.write_text(json.dumps(external))
                 self.assertTrue(editor.save())
                 saved = json.loads(manifest_path.read_text())
-                self.assertEqual(saved["strawberry"]["editor_test_note"], "keep me")
+                self.assertEqual(saved[args.task]["editor_test_note"], "keep me")
                 for name in external:
-                    if name != "strawberry":
+                    if name != args.task:
                         self.assertEqual(saved[name], external[name])
-                for name, value in external["strawberry"].items():
+                for name, value in external[args.task].items():
                     if name not in {"scale", "grasp_seed"}:
-                        self.assertEqual(saved["strawberry"][name], value)
+                        self.assertEqual(saved[args.task][name], value)
 
                 with patch.object(object_registry, "OBJECT_MANIFEST_PATH", manifest_path):
-                    reloaded = object_registry._load_scanned_objects()["strawberry"]
+                    reloaded = object_registry._load_scanned_objects()[args.task]
                 self.assertAlmostEqual(reloaded.scale, 1.5 * spec.scale, places=5)
                 for actual, expected in zip(reloaded.object_init_pos_m, target_pos):
                     self.assertAlmostEqual(actual, expected, places=6)
-                with patch.dict(object_registry.OBJECT_TASK_SPECS, strawberry=reloaded):
-                    spawn_cfg = get_object_cfg("strawberry")
+                with patch.dict(object_registry.OBJECT_TASK_SPECS, {args.task: reloaded}):
+                    spawn_cfg = get_object_cfg(args.task)
                 self.assertEqual(spawn_cfg.spawn.scale, (reloaded.scale,) * 3)
                 self.assertEqual(spawn_cfg.init_state.pos, reloaded.object_init_pos_m)
                 self.assertEqual(spawn_cfg.init_state.rot, reloaded.object_init_quat_wxyz)

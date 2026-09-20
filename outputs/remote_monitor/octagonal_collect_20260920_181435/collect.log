@@ -1,0 +1,308 @@
+[INFO][AppLauncher]: Using device: cuda:2
+[INFO][AppLauncher]: Loading experience file: /home/tanjie/IsaacLab/apps/isaaclab.python.headless.kit
+Loading user config located at: '/home/tanjie/.venvs/hora/lib/python3.11/site-packages/isaacsim/kit/data/Kit/Isaac-Sim/5.1/user.config.json'
+[Info] [carb] Logging to file: /home/tanjie/.venvs/hora/lib/python3.11/site-packages/isaacsim/kit/logs/Kit/Isaac-Sim/5.1/kit_20260920_101809.log
+2026-09-20T10:18:09Z [114ms] [Warning] [omni.usd_config.extension] Enable omni.materialx.libs extension to use MaterialX
+2026-09-20T10:18:09Z [478ms] [Warning] [omni.platforminfo.plugin] failed to open the default display.  Can't verify X Server version.
+2026-09-20T10:18:09Z [567ms] [Warning] [carb] Acquiring non optional plugin interface which is not listed as dependency: [omni::physx::IPhysxBenchmarks v1.0] (plugin: <default plugin>), by client: omni.physics.physx.plugin. Add it to CARB_PLUGIN_IMPL_DEPS() macro of a client.
+2026-09-20T10:18:09Z [575ms] [Warning] [omni.isaac.dynamic_control] omni.isaac.dynamic_control is deprecated as of Isaac Sim 4.5. No action is needed from end-users.
+
+|---------------------------------------------------------------------------------------------|
+| Driver Version: 580.178.04    | Graphics API: Vulkan
+|=============================================================================================|
+| GPU | Name                             | Active | LDA | GPU Memory | Vendor-ID | LUID       |
+|     |                                  |        |     |            | Device-ID | UUID       |
+|     |                                  |        |     |            | Bus-ID    |            |
+|---------------------------------------------------------------------------------------------|
+| 0   | NVIDIA GeForce RTX 5090          |        |     | 32607   MB | 10de      | 0          |
+|     |                                  |        |     |            | 2b85      | c6939fca.. |
+|     |                                  |        |     |            | 1         |            |
+|---------------------------------------------------------------------------------------------|
+| 1   | NVIDIA GeForce RTX 5090          |        |     | 32607   MB | 10de      | 0          |
+|     |                                  |        |     |            | 2b85      | 93961777.. |
+|     |                                  |        |     |            | 21        |            |
+|---------------------------------------------------------------------------------------------|
+| 2   | NVIDIA GeForce RTX 5090          | Yes: 0 |     | 32607   MB | 10de      | 0          |
+|     |                                  |        |     |            | 2b85      | ef94a1e3.. |
+|     |                                  |        |     |            | 41        |            |
+|---------------------------------------------------------------------------------------------|
+| 3   | NVIDIA GeForce RTX 5090          |        |     | 32607   MB | 10de      | 0          |
+|     |                                  |        |     |            | 2b85      | 6584b11d.. |
+|     |                                  |        |     |            | 61        |            |
+|---------------------------------------------------------------------------------------------|
+| 4   | NVIDIA GeForce RTX 5090          |        |     | 32607   MB | 10de      | 0          |
+|     |                                  |        |     |            | 2b85      | b08473ca.. |
+|     |                                  |        |     |            | 81        |            |
+|---------------------------------------------------------------------------------------------|
+| 5   | NVIDIA GeForce RTX 5090          |        |     | 32607   MB | 10de      | 0          |
+|     |                                  |        |     |            | 2b85      | c990a98b.. |
+|     |                                  |        |     |            | a1        |            |
+|---------------------------------------------------------------------------------------------|
+| 6   | NVIDIA GeForce RTX 5090          |        |     | 32607   MB | 10de      | 0          |
+|     |                                  |        |     |            | 2b85      | 02a503ac.. |
+|     |                                  |        |     |            | c1        |            |
+|---------------------------------------------------------------------------------------------|
+| 7   | NVIDIA GeForce RTX 5090          |        |     | 32607   MB | 10de      | 0          |
+|     |                                  |        |     |            | 2b85      | a25bb953.. |
+|     |                                  |        |     |            | e1        |            |
+|=============================================================================================|
+| OS: 24.04.3 LTS (Noble Numbat) ubuntu, Version: 24.04.3, Kernel: 6.8.0-139-generic
+| Processor: AMD EPYC 9554 64-Core Processor
+| Cores: 128 | Logical Cores: 256
+|---------------------------------------------------------------------------------------------|
+| Total Memory (MB): 257516 | Free Memory: 221548
+| Total Page/Swap (MB): 8191 | Free Page/Swap: 8189
+|---------------------------------------------------------------------------------------------|
+2026-09-20T10:18:15Z [6,577ms] [Warning] [gpu.foundation.plugin] IOMMU is enabled.
+2026-09-20T10:18:15Z [6,577ms] [Warning] [gpu.foundation.plugin] Detected IOMMU is enabled. Running CUDA peer-to-peer bandwidth and latency validation.
+Unidirectional P2P=Enabled Bandwidth (P2P Writes) Matrix (GB/s)
+   D\D     0      1      2      3      4      5      6      7 
+     0 1534.87  41.24  42.24  40.59  41.84  42.76  42.49  42.47 
+     1  41.27 1559.38  42.44  41.44  42.69  42.56  42.59  42.65 
+     2  41.32  43.03 1556.32  41.31  42.63  42.82  42.68  42.75 
+     3  41.39  43.01  42.11 1562.50  42.71  42.68  42.60  42.64 
+     4  42.45  42.68  43.29  42.86 1553.23  43.30  43.21  43.13 
+     5  42.64  42.43  43.03  42.85  43.69 1556.32  43.25  43.36 
+     6  42.66  42.40  43.04  42.18  43.14  43.32 1556.32  43.19 
+     7  43.38  42.35  43.17  42.70  43.24  43.47  43.33 1553.18 
+P2P=Enabled Latency (P2P Writes) Matrix (us)
+   GPU     0      1      2      3      4      5      6      7 
+     0   2.07  14.31  14.32  14.36  14.33  14.32  14.33  21.57 
+     1  18.46   2.07  14.34  14.33  14.16  14.29  14.32  14.35 
+     2 164.37  14.34   2.07  14.29  14.15  14.32  14.32  14.32 
+     3  15.05  14.29  14.34   2.07  14.35  14.32  14.33  14.31 
+     4 303.51  14.33  14.25  14.24   2.07  14.31  13.97  12.63 
+     5 142.18  14.32  14.25  14.16  14.33   2.07  14.17  14.31 
+     6 112.34  14.31  14.17  14.25  14.02  14.31   2.07  14.14 
+     7  15.02  14.32  14.32  14.15  14.08  12.42  14.31   2.07 
+
+   CPU     0      1      2      3      4      5      6      7 
+     0   2.64   9.33   7.66   7.62   6.70   6.44   6.55   6.40 
+     1   8.75   2.83   7.81   7.95   7.12   6.93   6.87   6.79 
+     2   7.40   8.33   2.44   7.33   6.39   6.32   6.34   6.35 
+     3   7.51   7.93   7.22   2.46   6.52   6.41   6.33   6.37 
+     4   6.82   7.36   6.62   6.66   2.29   5.88   5.78   5.86 
+     5   6.70   7.31   6.51   6.59   5.82   2.05   5.79   5.82 
+     6   6.70   7.27   6.49   6.80   5.87   5.72   2.17   5.89 
+     7   6.60   7.19   6.54   6.63   5.96   5.74   5.73   2.06 
+2026-09-20T10:18:17Z [8,055ms] [Warning] [gpu.foundation.plugin] CUDA peer-to-peer observed bandwidth: 40.6 GB/s.
+2026-09-20T10:18:17Z [8,055ms] [Warning] [gpu.foundation.plugin] CUDA peer-to-peer observed latency: 303.5 us.
+2026-09-20T10:18:17Z [8,055ms] [Warning] [gpu.foundation.plugin] Please verify if observed bandwidth and latency are expected.
+
+[36m==============================================================================================================[0m
+[36m[1m[INFO][IsaacLab]: Logging to file: /home/tanjie/.cache/hora/tmp/isaaclab/logs/isaaclab_2026-09-20_10-18-17.log[0m
+[36m==============================================================================================================[0m
+
+[INFO]: Base environment:
+	Environment device    : cuda:2
+	Environment seed      : 42
+	Physics step-size     : 0.004166666666666667
+	Rendering step-size   : 0.05
+	Environment step-size : 0.05
+[INFO]: Time taken for scene creation : 11.361730 seconds
+[INFO]: Scene manager:  <class InteractiveScene>
+	Number of environments: 2048
+	Environment spacing   : 0.75
+	Source prim name      : /World/envs/env_0
+	Global prim paths     : ['/World/ground']
+	Replicate physics     : False
+[INFO]: Starting the simulation. This may take a few seconds. Please wait...
+[INFO]: Time taken for simulation start : 43.131063 seconds
+[INFO]: Completed setting up the environment...
+[WARN] Grasp cache not found: cache/revo3_right_grasp_octagonal_prism.npy, falling back to default pose.
+
+[INFO] Grasp cache generation started.
+  task        : octagonal_prism
+  object      : Regular octagonal prism (60 mm across vertices x 70 mm)
+  scale       : 1.07
+  size        : (64.2, 64.2, 74.9) mm
+  hand seed   : custom + 21 overrides
+  local axis  : (0.0, 0.0, 1.0)
+  target axis : (0.0, 0.0, 1.0)
+  num_envs    : 2048
+  seed        : 42
+  noise_scale : ±0.15 rad
+  coverage    : 8 axis-angle bins x 5 contact groups
+  free fingers: ['index', 'middle', 'ring', 'little']; extension fraction=0.7
+  episode_len : 5.0s  (100 steps)
+  target      : 8192 grasps
+  progress    : every 10s
+  settle      : 20 steps
+  contact     : >= 3 fingertips present in >= 70% of a 20-step (1s at 20Hz) rolling window
+  force gate  : > 0.05N per fingertip per frame
+  live contact: >= 3 fingertips after settle
+  axis tilt   : <= 10deg after settle (unsigned)
+  XY drift    : <= 5mm after settle
+  height drift: <= 15mm after settle
+  height guard: initial Z +/- 15mm, including settle; env_0=[1.6200, 1.6500]m (env-local)
+  gravity     : fixed (9.81m/s²)
+  disturbance : random force off, friction randomization off
+  output      : cache/revo3_right_grasp_octagonal_prism.npy
+
+[PROGRESS]      0/8192 (  0.00%) | attempts=7078 | success=  0.00% | rate=   0.00/s (recent=   0.00/s) | elapsed=00:00:10 | ETA=--:--:--
+[COVERAGE] accepted=[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] targets=[205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 204, 204, 204, 204, 204, 204, 204, 204]
+[CONDITIONS] fingertip= 99.77% | contact_frame= 36.11% | established=  1.09% | axis/rotation= 54.61% | horizontal= 27.31% | height= 83.31% | all_frame=  9.58% | contacts=1.88/5 | force mean= 0.408N active_mean= 1.086N max=51.559N | tilt mean=14.16deg max=89.99deg
+[FINGERS] thumb:contact= 43.9%,force=0.334N,max=51.56N,window= 39.5%,dist= 5.3cm | index:contact= 40.5%,force=0.658N,max=45.25N,window= 34.0%,dist= 5.5cm | middle:contact= 33.8%,force=0.242N,max=22.25N,window= 31.4%,dist= 5.6cm | ring:contact= 35.1%,force=0.283N,max=23.05N,window= 31.5%,dist= 5.6cm | little:contact= 34.5%,force=0.522N,max=50.66N,window= 28.3%,dist= 5.6cm
+[PROGRESS]      0/8192 (  0.00%) | attempts=17123 | success=  0.00% | rate=   0.00/s (recent=   0.00/s) | elapsed=00:00:20 | ETA=--:--:--
+[COVERAGE] accepted=[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] targets=[205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 204, 204, 204, 204, 204, 204, 204, 204]
+[CONDITIONS] fingertip= 99.81% | contact_frame= 51.71% | established= 18.09% | axis/rotation= 59.94% | horizontal= 38.47% | height= 88.94% | all_frame= 23.62% | contacts=2.32/5 | force mean= 0.476N active_mean= 1.026N max=40.853N | tilt mean=13.18deg max=89.99deg
+[FINGERS] thumb:contact= 52.4%,force=0.396N,max=10.55N,window= 48.8%,dist= 5.3cm | index:contact= 49.7%,force=0.743N,max=38.04N,window= 44.3%,dist= 5.3cm | middle:contact= 42.6%,force=0.291N,max=12.28N,window= 40.7%,dist= 5.5cm | ring:contact= 43.2%,force=0.330N,max=16.60N,window= 40.4%,dist= 5.6cm | little:contact= 43.9%,force=0.619N,max=40.85N,window= 38.5%,dist= 5.5cm
+[PROGRESS]      0/8192 (  0.00%) | attempts=25741 | success=  0.00% | rate=   0.00/s (recent=   0.00/s) | elapsed=00:00:30 | ETA=--:--:--
+[COVERAGE] accepted=[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] targets=[205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 204, 204, 204, 204, 204, 204, 204, 204]
+[CONDITIONS] fingertip= 99.86% | contact_frame= 59.79% | established= 32.59% | axis/rotation= 68.06% | horizontal= 50.46% | height= 90.70% | all_frame= 38.05% | contacts=2.53/5 | force mean= 0.494N active_mean= 0.976N max=78.102N | tilt mean=11.49deg max=89.98deg
+[FINGERS] thumb:contact= 58.5%,force=0.444N,max=13.75N,window= 55.5%,dist= 5.2cm | index:contact= 53.3%,force=0.751N,max=46.37N,window= 48.8%,dist= 5.2cm | middle:contact= 47.2%,force=0.313N,max=13.03N,window= 45.7%,dist= 5.4cm | ring:contact= 47.6%,force=0.348N,max=17.25N,window= 45.3%,dist= 5.5cm | little:contact= 46.4%,force=0.612N,max=78.10N,window= 42.1%,dist= 5.4cm
+[PROGRESS]    372/8192 (  4.54%) | attempts=33963 | success=  1.10% | rate=   9.16/s (recent=  36.27/s) | elapsed=00:00:40 | ETA=00:14:13
+[COVERAGE] accepted=[19, 4, 8, 5, 12, 23, 9, 6, 6, 5, 26, 8, 6, 5, 3, 18, 3, 0, 8, 7, 23, 6, 3, 7, 15, 28, 1, 6, 7, 4, 17, 3, 4, 11, 13, 14, 3, 6, 5, 15] targets=[205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 204, 204, 204, 204, 204, 204, 204, 204]
+[CONDITIONS] fingertip= 99.83% | contact_frame= 61.75% | established= 36.49% | axis/rotation= 68.50% | horizontal= 52.80% | height= 91.12% | all_frame= 41.12% | contacts=2.57/5 | force mean= 0.502N active_mean= 0.976N max=46.930N | tilt mean=11.34deg max=90.00deg
+[FINGERS] thumb:contact= 59.9%,force=0.453N,max= 8.89N,window= 57.0%,dist= 5.1cm | index:contact= 55.0%,force=0.770N,max=38.13N,window= 50.6%,dist= 5.2cm | middle:contact= 47.2%,force=0.307N,max=14.39N,window= 45.8%,dist= 5.4cm | ring:contact= 49.2%,force=0.367N,max=18.47N,window= 46.9%,dist= 5.5cm | little:contact= 45.8%,force=0.613N,max=46.93N,window= 41.9%,dist= 5.5cm
+[PROGRESS]    671/8192 (  8.19%) | attempts=42641 | success=  1.57% | rate=  13.24/s (recent=  29.76/s) | elapsed=00:00:50 | ETA=00:09:27
+[COVERAGE] accepted=[32, 7, 13, 11, 17, 39, 12, 12, 11, 11, 45, 10, 10, 13, 14, 38, 6, 6, 21, 11, 39, 8, 9, 8, 17, 45, 5, 10, 11, 10, 32, 9, 10, 18, 16, 34, 11, 12, 9, 19] targets=[205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 204, 204, 204, 204, 204, 204, 204, 204]
+[CONDITIONS] fingertip= 99.79% | contact_frame= 59.06% | established= 31.92% | axis/rotation= 65.70% | horizontal= 48.05% | height= 90.58% | all_frame= 36.53% | contacts=2.50/5 | force mean= 0.502N active_mean= 1.004N max=114.388N | tilt mean=12.09deg max=89.92deg
+[FINGERS] thumb:contact= 57.2%,force=0.429N,max= 8.54N,window= 54.3%,dist= 5.2cm | index:contact= 54.2%,force=0.780N,max=53.79N,window= 49.4%,dist= 5.3cm | middle:contact= 45.8%,force=0.306N,max=12.14N,window= 44.2%,dist= 5.4cm | ring:contact= 46.5%,force=0.354N,max=22.14N,window= 44.4%,dist= 5.5cm | little:contact= 45.9%,force=0.639N,max=114.39N,window= 41.6%,dist= 5.5cm
+[PROGRESS]    926/8192 ( 11.30%) | attempts=52312 | success=  1.77% | rate=  15.25/s (recent=  25.37/s) | elapsed=00:01:00 | ETA=00:07:56
+[COVERAGE] accepted=[47, 12, 15, 15, 21, 51, 13, 12, 20, 15, 53, 12, 14, 17, 22, 56, 7, 7, 23, 17, 54, 10, 14, 11, 19, 64, 10, 18, 14, 15, 49, 10, 15, 22, 22, 51, 16, 18, 19, 26] targets=[205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 204, 204, 204, 204, 204, 204, 204, 204]
+[CONDITIONS] fingertip= 99.80% | contact_frame= 57.96% | established= 30.46% | axis/rotation= 66.14% | horizontal= 47.41% | height= 89.91% | all_frame= 34.94% | contacts=2.46/5 | force mean= 0.485N active_mean= 0.985N max=65.616N | tilt mean=11.86deg max=89.95deg
+[FINGERS] thumb:contact= 57.7%,force=0.439N,max=10.59N,window= 54.8%,dist= 5.2cm | index:contact= 52.3%,force=0.733N,max=48.64N,window= 47.7%,dist= 5.3cm | middle:contact= 44.9%,force=0.303N,max=11.73N,window= 43.0%,dist= 5.5cm | ring:contact= 46.6%,force=0.352N,max=17.16N,window= 44.4%,dist= 5.5cm | little:contact= 44.4%,force=0.596N,max=65.62N,window= 40.3%,dist= 5.5cm
+[PROGRESS]   1178/8192 ( 14.38%) | attempts=61366 | success=  1.92% | rate=  16.64/s (recent=  25.06/s) | elapsed=00:01:10 | ETA=00:07:01
+[COVERAGE] accepted=[59, 14, 19, 21, 27, 61, 14, 14, 28, 20, 59, 15, 17, 19, 24, 73, 11, 14, 29, 23, 74, 11, 22, 13, 22, 82, 15, 25, 20, 25, 65, 15, 18, 28, 25, 66, 20, 20, 21, 30] targets=[205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 204, 204, 204, 204, 204, 204, 204, 204]
+[CONDITIONS] fingertip= 99.86% | contact_frame= 57.54% | established= 30.37% | axis/rotation= 65.13% | horizontal= 48.15% | height= 90.03% | all_frame= 34.80% | contacts=2.47/5 | force mean= 0.489N active_mean= 0.991N max=45.623N | tilt mean=12.15deg max=89.91deg
+[FINGERS] thumb:contact= 57.5%,force=0.444N,max=16.59N,window= 54.5%,dist= 5.2cm | index:contact= 52.3%,force=0.737N,max=42.60N,window= 47.6%,dist= 5.3cm | middle:contact= 45.3%,force=0.311N,max=11.96N,window= 43.9%,dist= 5.5cm | ring:contact= 47.1%,force=0.364N,max=13.48N,window= 44.9%,dist= 5.6cm | little:contact= 44.4%,force=0.588N,max=45.62N,window= 39.7%,dist= 5.5cm
+[PROGRESS]   1425/8192 ( 17.40%) | attempts=70231 | success=  2.03% | rate=  17.64/s (recent=  24.68/s) | elapsed=00:01:20 | ETA=00:06:23
+[COVERAGE] accepted=[68, 17, 22, 27, 32, 76, 15, 16, 34, 22, 74, 21, 24, 24, 29, 89, 17, 23, 33, 27, 89, 16, 30, 19, 27, 90, 17, 35, 23, 29, 74, 21, 22, 34, 31, 76, 22, 23, 25, 32] targets=[205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 204, 204, 204, 204, 204, 204, 204, 204]
+[CONDITIONS] fingertip= 99.85% | contact_frame= 57.51% | established= 30.29% | axis/rotation= 65.77% | horizontal= 47.09% | height= 90.29% | all_frame= 35.08% | contacts=2.46/5 | force mean= 0.487N active_mean= 0.990N max=124.541N | tilt mean=12.13deg max=89.98deg
+[FINGERS] thumb:contact= 57.4%,force=0.437N,max=17.29N,window= 54.4%,dist= 5.2cm | index:contact= 52.4%,force=0.745N,max=124.54N,window= 47.9%,dist= 5.3cm | middle:contact= 45.2%,force=0.307N,max=18.79N,window= 43.7%,dist= 5.5cm | ring:contact= 47.2%,force=0.369N,max=17.31N,window= 44.9%,dist= 5.6cm | little:contact= 43.6%,force=0.577N,max=39.78N,window= 39.4%,dist= 5.5cm
+[PROGRESS]   1667/8192 ( 20.35%) | attempts=79295 | success=  2.10% | rate=  18.32/s (recent=  23.69/s) | elapsed=00:01:30 | ETA=00:05:56
+[COVERAGE] accepted=[82, 21, 28, 39, 38, 95, 17, 18, 39, 31, 87, 26, 28, 29, 33, 100, 17, 29, 35, 35, 99, 19, 39, 29, 33, 102, 22, 40, 26, 30, 81, 23, 25, 40, 34, 83, 24, 26, 25, 40] targets=[205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 204, 204, 204, 204, 204, 204, 204, 204]
+[CONDITIONS] fingertip= 99.82% | contact_frame= 57.70% | established= 30.47% | axis/rotation= 64.39% | horizontal= 46.47% | height= 90.00% | all_frame= 34.42% | contacts=2.45/5 | force mean= 0.484N active_mean= 0.987N max=66.153N | tilt mean=12.51deg max=90.00deg
+[FINGERS] thumb:contact= 56.9%,force=0.442N,max=10.49N,window= 54.2%,dist= 5.2cm | index:contact= 52.5%,force=0.735N,max=49.34N,window= 48.0%,dist= 5.3cm | middle:contact= 46.0%,force=0.310N,max=11.17N,window= 44.2%,dist= 5.5cm | ring:contact= 45.8%,force=0.352N,max=30.56N,window= 43.7%,dist= 5.6cm | little:contact= 43.7%,force=0.579N,max=66.15N,window= 39.4%,dist= 5.5cm
+[PROGRESS]   1929/8192 ( 23.55%) | attempts=88552 | success=  2.18% | rate=  19.09/s (recent=  26.06/s) | elapsed=00:01:41 | ETA=00:05:28
+[COVERAGE] accepted=[93, 25, 31, 44, 42, 104, 23, 22, 46, 34, 100, 30, 32, 32, 36, 122, 19, 32, 40, 42, 111, 23, 42, 35, 35, 109, 24, 46, 32, 38, 101, 28, 29, 45, 45, 94, 29, 36, 30, 48] targets=[205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 204, 204, 204, 204, 204, 204, 204, 204]
+[CONDITIONS] fingertip= 99.81% | contact_frame= 56.63% | established= 29.64% | axis/rotation= 66.09% | horizontal= 47.05% | height= 89.83% | all_frame= 34.63% | contacts=2.42/5 | force mean= 0.475N active_mean= 0.981N max=49.458N | tilt mean=12.07deg max=89.96deg
+[FINGERS] thumb:contact= 56.5%,force=0.437N,max=31.70N,window= 53.6%,dist= 5.2cm | index:contact= 51.7%,force=0.717N,max=43.79N,window= 47.0%,dist= 5.3cm | middle:contact= 44.2%,force=0.301N,max=12.47N,window= 42.6%,dist= 5.5cm | ring:contact= 46.3%,force=0.346N,max=30.08N,window= 43.9%,dist= 5.6cm | little:contact= 43.0%,force=0.571N,max=49.46N,window= 38.8%,dist= 5.5cm
+[PROGRESS]   2135/8192 ( 26.06%) | attempts=96896 | success=  2.20% | rate=  19.21/s (recent=  20.46/s) | elapsed=00:01:51 | ETA=00:05:15
+[COVERAGE] accepted=[103, 28, 33, 47, 46, 120, 25, 22, 47, 36, 117, 34, 35, 35, 42, 130, 23, 35, 45, 48, 120, 27, 44, 42, 37, 117, 27, 49, 39, 41, 112, 31, 34, 50, 49, 103, 31, 39, 40, 52] targets=[205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 204, 204, 204, 204, 204, 204, 204, 204]
+[CONDITIONS] fingertip= 99.81% | contact_frame= 58.52% | established= 30.97% | axis/rotation= 66.04% | horizontal= 48.28% | height= 90.31% | all_frame= 35.61% | contacts=2.47/5 | force mean= 0.489N active_mean= 0.990N max=68.168N | tilt mean=12.01deg max=89.98deg
+[FINGERS] thumb:contact= 58.7%,force=0.459N,max= 9.39N,window= 55.7%,dist= 5.2cm | index:contact= 51.7%,force=0.717N,max=43.25N,window= 47.1%,dist= 5.4cm | middle:contact= 46.4%,force=0.323N,max=14.46N,window= 44.7%,dist= 5.5cm | ring:contact= 45.9%,force=0.347N,max=18.36N,window= 43.9%,dist= 5.6cm | little:contact= 44.1%,force=0.599N,max=68.17N,window= 39.8%,dist= 5.5cm
+[PROGRESS]   2361/8192 ( 28.82%) | attempts=105582 | success=  2.24% | rate=  19.47/s (recent=  22.22/s) | elapsed=00:02:01 | ETA=00:04:59
+[COVERAGE] accepted=[118, 32, 35, 51, 49, 129, 31, 26, 52, 43, 129, 34, 40, 39, 48, 145, 27, 41, 49, 53, 124, 33, 46, 48, 39, 126, 28, 54, 44, 46, 126, 35, 36, 57, 53, 115, 36, 43, 43, 58] targets=[205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 204, 204, 204, 204, 204, 204, 204, 204]
+[CONDITIONS] fingertip= 99.83% | contact_frame= 56.90% | established= 31.24% | axis/rotation= 65.27% | horizontal= 47.10% | height= 90.20% | all_frame= 35.26% | contacts=2.42/5 | force mean= 0.477N active_mean= 0.982N max=49.754N | tilt mean=12.50deg max=89.95deg
+[FINGERS] thumb:contact= 57.1%,force=0.439N,max=13.62N,window= 54.3%,dist= 5.2cm | index:contact= 52.1%,force=0.715N,max=48.71N,window= 47.7%,dist= 5.4cm | middle:contact= 45.8%,force=0.315N,max=12.10N,window= 44.1%,dist= 5.5cm | ring:contact= 44.7%,force=0.343N,max=49.75N,window= 42.7%,dist= 5.6cm | little:contact= 42.8%,force=0.570N,max=47.61N,window= 38.6%,dist= 5.5cm
+[PROGRESS]   2642/8192 ( 32.25%) | attempts=114849 | success=  2.30% | rate=  20.09/s (recent=  27.48/s) | elapsed=00:02:11 | ETA=00:04:36
+[COVERAGE] accepted=[125, 37, 43, 56, 53, 139, 37, 32, 57, 48, 138, 39, 45, 50, 50, 157, 30, 48, 55, 57, 133, 40, 48, 56, 43, 142, 34, 59, 52, 51, 140, 38, 44, 67, 63, 131, 40, 47, 53, 65] targets=[205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 204, 204, 204, 204, 204, 204, 204, 204]
+[CONDITIONS] fingertip= 99.80% | contact_frame= 56.20% | established= 29.51% | axis/rotation= 64.87% | horizontal= 45.99% | height= 89.85% | all_frame= 33.68% | contacts=2.39/5 | force mean= 0.475N active_mean= 0.992N max=50.349N | tilt mean=12.37deg max=89.93deg
+[FINGERS] thumb:contact= 57.0%,force=0.441N,max=10.11N,window= 54.1%,dist= 5.2cm | index:contact= 50.1%,force=0.705N,max=49.10N,window= 45.8%,dist= 5.5cm | middle:contact= 45.0%,force=0.312N,max=12.00N,window= 43.5%,dist= 5.6cm | ring:contact= 44.8%,force=0.341N,max=32.67N,window= 42.5%,dist= 5.6cm | little:contact= 42.6%,force=0.577N,max=50.35N,window= 38.2%,dist= 5.6cm
+[PROGRESS]   2871/8192 ( 35.05%) | attempts=124490 | success=  2.31% | rate=  20.26/s (recent=  22.42/s) | elapsed=00:02:21 | ETA=00:04:22
+[COVERAGE] accepted=[134, 41, 47, 63, 56, 146, 41, 39, 59, 55, 143, 46, 54, 56, 58, 172, 32, 50, 58, 61, 143, 44, 51, 61, 49, 154, 36, 61, 56, 56, 153, 42, 47, 74, 68, 141, 44, 50, 57, 73] targets=[205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 204, 204, 204, 204, 204, 204, 204, 204]
+[CONDITIONS] fingertip= 99.81% | contact_frame= 54.77% | established= 28.50% | axis/rotation= 63.58% | horizontal= 45.56% | height= 89.26% | all_frame= 32.35% | contacts=2.36/5 | force mean= 0.464N active_mean= 0.981N max=56.620N | tilt mean=12.55deg max=89.98deg
+[FINGERS] thumb:contact= 56.8%,force=0.444N,max=11.04N,window= 54.0%,dist= 5.2cm | index:contact= 49.9%,force=0.691N,max=56.62N,window= 45.5%,dist= 5.4cm | middle:contact= 44.0%,force=0.301N,max=17.47N,window= 42.3%,dist= 5.6cm | ring:contact= 45.2%,force=0.342N,max=13.18N,window= 42.9%,dist= 5.6cm | little:contact= 40.7%,force=0.543N,max=46.08N,window= 36.6%,dist= 5.6cm
+[PROGRESS]   3125/8192 ( 38.15%) | attempts=135147 | success=  2.31% | rate=  20.59/s (recent=  25.24/s) | elapsed=00:02:31 | ETA=00:04:06
+[COVERAGE] accepted=[145, 48, 55, 67, 68, 154, 49, 44, 66, 61, 152, 51, 55, 61, 68, 177, 32, 54, 62, 66, 151, 48, 52, 66, 53, 161, 43, 68, 64, 69, 162, 49, 52, 80, 72, 156, 49, 57, 61, 77] targets=[205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 204, 204, 204, 204, 204, 204, 204, 204]
+[CONDITIONS] fingertip= 99.80% | contact_frame= 54.79% | established= 28.05% | axis/rotation= 62.79% | horizontal= 45.07% | height= 89.40% | all_frame= 31.85% | contacts=2.38/5 | force mean= 0.472N active_mean= 0.993N max=125.409N | tilt mean=12.84deg max=89.98deg
+[FINGERS] thumb:contact= 55.3%,force=0.429N,max= 8.21N,window= 52.4%,dist= 5.2cm | index:contact= 51.2%,force=0.711N,max=53.99N,window= 46.7%,dist= 5.4cm | middle:contact= 43.9%,force=0.299N,max=12.46N,window= 42.1%,dist= 5.7cm | ring:contact= 45.4%,force=0.347N,max=44.76N,window= 43.1%,dist= 5.6cm | little:contact= 41.7%,force=0.572N,max=125.41N,window= 37.5%,dist= 5.6cm
+[PROGRESS]   3500/8192 ( 42.72%) | attempts=151626 | success=  2.31% | rate=  21.61/s (recent=  36.93/s) | elapsed=00:02:41 | ETA=00:03:37
+[COVERAGE] accepted=[169, 55, 63, 77, 77, 165, 56, 54, 74, 71, 160, 60, 65, 70, 77, 187, 38, 68, 73, 73, 164, 52, 61, 74, 63, 174, 47, 76, 75, 84, 176, 55, 61, 88, 78, 172, 51, 65, 67, 85] targets=[205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 204, 204, 204, 204, 204, 204, 204, 204]
+[CONDITIONS] fingertip= 99.80% | contact_frame= 54.17% | established= 27.48% | axis/rotation= 63.56% | horizontal= 44.75% | height= 89.39% | all_frame= 31.40% | contacts=2.36/5 | force mean= 0.456N active_mean= 0.965N max=60.029N | tilt mean=12.53deg max=89.99deg
+[FINGERS] thumb:contact= 56.7%,force=0.437N,max=15.10N,window= 53.7%,dist= 5.2cm | index:contact= 49.9%,force=0.673N,max=60.03N,window= 45.4%,dist= 5.5cm | middle:contact= 43.7%,force=0.297N,max=13.31N,window= 42.2%,dist= 5.6cm | ring:contact= 44.0%,force=0.333N,max=37.82N,window= 41.8%,dist= 5.7cm | little:contact= 41.7%,force=0.538N,max=51.23N,window= 37.4%,dist= 5.6cm
+[PROGRESS]   3876/8192 ( 47.31%) | attempts=167826 | success=  2.31% | rate=  22.51/s (recent=  36.67/s) | elapsed=00:02:52 | ETA=00:03:11
+[COVERAGE] accepted=[183, 59, 72, 87, 88, 177, 64, 61, 91, 82, 174, 64, 75, 80, 90, 195, 46, 78, 82, 82, 175, 59, 65, 81, 70, 182, 57, 81, 83, 87, 191, 64, 65, 100, 85, 189, 60, 78, 78, 96] targets=[205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 204, 204, 204, 204, 204, 204, 204, 204]
+[CONDITIONS] fingertip= 99.82% | contact_frame= 53.70% | established= 27.09% | axis/rotation= 61.71% | horizontal= 43.78% | height= 89.20% | all_frame= 30.66% | contacts=2.33/5 | force mean= 0.448N active_mean= 0.961N max=45.374N | tilt mean=13.16deg max=90.00deg
+[FINGERS] thumb:contact= 56.8%,force=0.437N,max=15.91N,window= 54.0%,dist= 5.2cm | index:contact= 49.2%,force=0.659N,max=43.82N,window= 44.8%,dist= 5.5cm | middle:contact= 42.5%,force=0.294N,max=11.37N,window= 40.9%,dist= 5.7cm | ring:contact= 44.2%,force=0.341N,max=22.23N,window= 42.0%,dist= 5.7cm | little:contact= 40.3%,force=0.509N,max=45.37N,window= 36.1%,dist= 5.7cm
+[PROGRESS]   4051/8192 ( 49.45%) | attempts=176201 | success=  2.30% | rate=  22.22/s (recent=  17.37/s) | elapsed=00:03:02 | ETA=00:03:06
+[COVERAGE] accepted=[189, 61, 74, 89, 95, 181, 70, 65, 96, 92, 182, 66, 80, 82, 94, 198, 52, 81, 88, 87, 178, 61, 69, 88, 80, 188, 58, 85, 89, 94, 194, 68, 67, 104, 87, 191, 64, 81, 85, 98] targets=[205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 204, 204, 204, 204, 204, 204, 204, 204]
+[CONDITIONS] fingertip= 99.77% | contact_frame= 52.84% | established= 25.51% | axis/rotation= 61.10% | horizontal= 43.27% | height= 88.86% | all_frame= 29.61% | contacts=2.30/5 | force mean= 0.449N active_mean= 0.976N max=41.797N | tilt mean=13.36deg max=89.99deg
+[FINGERS] thumb:contact= 56.0%,force=0.429N,max=14.21N,window= 53.1%,dist= 5.2cm | index:contact= 48.1%,force=0.662N,max=39.09N,window= 43.8%,dist= 5.6cm | middle:contact= 41.7%,force=0.293N,max=18.64N,window= 40.2%,dist= 5.7cm | ring:contact= 44.9%,force=0.353N,max=31.24N,window= 42.7%,dist= 5.7cm | little:contact= 39.3%,force=0.509N,max=41.80N,window= 35.1%,dist= 5.7cm
+[PROGRESS]   4262/8192 ( 52.03%) | attempts=186024 | success=  2.29% | rate=  22.16/s (recent=  21.02/s) | elapsed=00:03:12 | ETA=00:02:57
+[COVERAGE] accepted=[192, 67, 80, 93, 102, 187, 74, 68, 102, 102, 186, 73, 86, 87, 101, 198, 58, 87, 94, 94, 181, 65, 73, 98, 83, 194, 61, 88, 93, 103, 198, 71, 74, 106, 96, 193, 70, 85, 93, 106] targets=[205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 204, 204, 204, 204, 204, 204, 204, 204]
+[CONDITIONS] fingertip= 99.79% | contact_frame= 52.91% | established= 26.90% | axis/rotation= 61.98% | horizontal= 43.11% | height= 89.04% | all_frame= 30.38% | contacts=2.30/5 | force mean= 0.443N active_mean= 0.964N max=73.401N | tilt mean=13.19deg max=90.00deg
+[FINGERS] thumb:contact= 56.4%,force=0.436N,max= 8.94N,window= 53.6%,dist= 5.2cm | index:contact= 48.3%,force=0.648N,max=73.40N,window= 43.9%,dist= 5.6cm | middle:contact= 43.0%,force=0.300N,max=14.76N,window= 41.6%,dist= 5.7cm | ring:contact= 42.8%,force=0.336N,max=19.52N,window= 40.9%,dist= 5.8cm | little:contact= 39.3%,force=0.497N,max=47.71N,window= 35.1%,dist= 5.7cm
+[PROGRESS]   4456/8192 ( 54.39%) | attempts=195928 | success=  2.27% | rate=  22.02/s (recent=  19.28/s) | elapsed=00:03:22 | ETA=00:02:49
+[COVERAGE] accepted=[197, 69, 86, 101, 107, 194, 78, 72, 107, 108, 192, 76, 90, 93, 106, 201, 61, 91, 96, 98, 183, 69, 80, 102, 89, 197, 64, 91, 100, 114, 203, 76, 80, 109, 107, 194, 80, 85, 101, 109] targets=[205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 204, 204, 204, 204, 204, 204, 204, 204]
+[CONDITIONS] fingertip= 99.80% | contact_frame= 52.56% | established= 26.72% | axis/rotation= 61.68% | horizontal= 43.17% | height= 88.55% | all_frame= 30.19% | contacts=2.27/5 | force mean= 0.437N active_mean= 0.962N max=51.657N | tilt mean=13.00deg max=89.99deg
+[FINGERS] thumb:contact= 56.0%,force=0.427N,max= 9.77N,window= 53.3%,dist= 5.2cm | index:contact= 48.0%,force=0.636N,max=51.66N,window= 43.6%,dist= 5.6cm | middle:contact= 41.2%,force=0.288N,max=13.04N,window= 39.7%,dist= 5.8cm | ring:contact= 43.0%,force=0.339N,max=14.45N,window= 41.0%,dist= 5.7cm | little:contact= 38.8%,force=0.495N,max=41.34N,window= 34.7%,dist= 5.7cm
+[PROGRESS]   4675/8192 ( 57.07%) | attempts=206024 | success=  2.27% | rate=  22.01/s (recent=  21.81/s) | elapsed=00:03:32 | ETA=00:02:39
+[COVERAGE] accepted=[200, 72, 93, 108, 111, 200, 86, 82, 112, 120, 192, 80, 95, 103, 112, 202, 66, 98, 103, 107, 188, 77, 84, 111, 96, 199, 68, 93, 111, 115, 205, 79, 84, 119, 111, 195, 87, 90, 106, 115] targets=[205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 204, 204, 204, 204, 204, 204, 204, 204]
+[CONDITIONS] fingertip= 99.77% | contact_frame= 52.24% | established= 25.92% | axis/rotation= 61.07% | horizontal= 42.17% | height= 88.75% | all_frame= 29.18% | contacts=2.27/5 | force mean= 0.444N active_mean= 0.980N max=52.388N | tilt mean=13.75deg max=89.99deg
+[FINGERS] thumb:contact= 54.7%,force=0.413N,max=16.82N,window= 51.8%,dist= 5.3cm | index:contact= 49.0%,force=0.674N,max=41.71N,window= 44.6%,dist= 5.6cm | middle:contact= 40.2%,force=0.278N,max=14.88N,window= 38.7%,dist= 5.8cm | ring:contact= 43.4%,force=0.359N,max=16.83N,window= 41.3%,dist= 5.7cm | little:contact= 39.2%,force=0.496N,max=52.39N,window= 34.9%,dist= 5.7cm
+[PROGRESS]   4859/8192 ( 59.31%) | attempts=215487 | success=  2.25% | rate=  21.84/s (recent=  18.25/s) | elapsed=00:03:42 | ETA=00:02:32
+[COVERAGE] accepted=[205, 80, 97, 119, 116, 200, 93, 88, 115, 128, 195, 82, 98, 109, 119, 203, 74, 99, 107, 111, 192, 81, 90, 120, 100, 202, 70, 102, 113, 120, 205, 86, 90, 120, 113, 197, 91, 94, 112, 123] targets=[205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 204, 204, 204, 204, 204, 204, 204, 204]
+[CONDITIONS] fingertip= 99.78% | contact_frame= 51.72% | established= 25.72% | axis/rotation= 60.75% | horizontal= 41.91% | height= 88.78% | all_frame= 29.08% | contacts=2.26/5 | force mean= 0.445N active_mean= 0.983N max=65.896N | tilt mean=13.72deg max=89.97deg
+[FINGERS] thumb:contact= 54.4%,force=0.407N,max=10.73N,window= 51.5%,dist= 5.3cm | index:contact= 48.4%,force=0.672N,max=65.90N,window= 44.0%,dist= 5.6cm | middle:contact= 39.6%,force=0.273N,max=10.60N,window= 38.2%,dist= 5.9cm | ring:contact= 43.8%,force=0.352N,max=13.46N,window= 41.5%,dist= 5.7cm | little:contact= 40.3%,force=0.522N,max=58.88N,window= 36.1%,dist= 5.7cm
+[PROGRESS]   5049/8192 ( 61.63%) | attempts=224618 | success=  2.25% | rate=  21.71/s (recent=  18.78/s) | elapsed=00:03:52 | ETA=00:02:24
+[COVERAGE] accepted=[205, 81, 99, 121, 119, 204, 96, 95, 120, 133, 197, 85, 104, 113, 126, 205, 81, 113, 112, 116, 195, 89, 99, 126, 105, 204, 74, 106, 119, 129, 205, 89, 96, 125, 121, 203, 95, 102, 115, 127] targets=[205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 204, 204, 204, 204, 204, 204, 204, 204]
+[CONDITIONS] fingertip= 99.80% | contact_frame= 51.26% | established= 25.33% | axis/rotation= 61.34% | horizontal= 41.95% | height= 88.47% | all_frame= 28.97% | contacts=2.24/5 | force mean= 0.438N active_mean= 0.977N max=77.490N | tilt mean=13.43deg max=89.97deg
+[FINGERS] thumb:contact= 55.1%,force=0.415N,max=15.83N,window= 52.3%,dist= 5.2cm | index:contact= 47.0%,force=0.654N,max=46.48N,window= 42.8%,dist= 5.7cm | middle:contact= 39.5%,force=0.275N,max=11.68N,window= 38.0%,dist= 5.9cm | ring:contact= 43.1%,force=0.339N,max=13.06N,window= 40.9%,dist= 5.7cm | little:contact= 39.6%,force=0.508N,max=77.49N,window= 35.6%,dist= 5.7cm
+[PROGRESS]   5253/8192 ( 64.12%) | attempts=234633 | success=  2.24% | rate=  21.63/s (recent=  19.92/s) | elapsed=00:04:02 | ETA=00:02:15
+[COVERAGE] accepted=[205, 83, 104, 125, 125, 205, 100, 100, 131, 134, 201, 91, 109, 118, 134, 205, 85, 115, 118, 124, 200, 96, 111, 132, 113, 205, 78, 111, 128, 136, 205, 93, 106, 129, 127, 204, 96, 107, 124, 140] targets=[205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 204, 204, 204, 204, 204, 204, 204, 204]
+[CONDITIONS] fingertip= 99.80% | contact_frame= 52.70% | established= 25.88% | axis/rotation= 60.82% | horizontal= 42.22% | height= 88.85% | all_frame= 29.16% | contacts=2.28/5 | force mean= 0.443N active_mean= 0.970N max=53.261N | tilt mean=13.38deg max=89.97deg
+[FINGERS] thumb:contact= 56.6%,force=0.432N,max=13.74N,window= 53.7%,dist= 5.2cm | index:contact= 47.1%,force=0.651N,max=39.15N,window= 42.7%,dist= 5.7cm | middle:contact= 41.3%,force=0.292N,max= 8.92N,window= 39.8%,dist= 5.8cm | ring:contact= 44.6%,force=0.349N,max=15.12N,window= 42.1%,dist= 5.7cm | little:contact= 38.5%,force=0.488N,max=53.26N,window= 34.6%,dist= 5.7cm
+[PROGRESS]   5427/8192 ( 66.25%) | attempts=244243 | success=  2.22% | rate=  21.45/s (recent=  17.21/s) | elapsed=00:04:12 | ETA=00:02:08
+[COVERAGE] accepted=[205, 87, 105, 131, 131, 205, 104, 104, 137, 135, 202, 97, 114, 125, 140, 205, 91, 120, 123, 132, 204, 103, 119, 136, 120, 205, 83, 114, 135, 140, 205, 95, 116, 133, 134, 204, 101, 110, 132, 145] targets=[205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 204, 204, 204, 204, 204, 204, 204, 204]
+[CONDITIONS] fingertip= 99.77% | contact_frame= 51.47% | established= 25.63% | axis/rotation= 60.80% | horizontal= 41.90% | height= 88.58% | all_frame= 29.06% | contacts=2.26/5 | force mean= 0.440N active_mean= 0.975N max=111.195N | tilt mean=13.65deg max=89.97deg
+[FINGERS] thumb:contact= 55.3%,force=0.427N,max=16.34N,window= 52.5%,dist= 5.3cm | index:contact= 45.9%,force=0.647N,max=111.19N,window= 41.8%,dist= 5.8cm | middle:contact= 40.8%,force=0.286N,max=12.04N,window= 39.5%,dist= 5.9cm | ring:contact= 44.7%,force=0.351N,max=104.11N,window= 42.5%,dist= 5.7cm | little:contact= 39.1%,force=0.491N,max=46.53N,window= 35.0%,dist= 5.7cm
+[PROGRESS]   5650/8192 ( 68.97%) | attempts=254419 | success=  2.22% | rate=  21.47/s (recent=  22.01/s) | elapsed=00:04:23 | ETA=00:01:58
+[COVERAGE] accepted=[205, 94, 115, 138, 139, 205, 107, 114, 140, 144, 204, 104, 119, 131, 146, 205, 99, 128, 127, 144, 205, 109, 130, 140, 130, 205, 92, 117, 142, 147, 205, 99, 120, 141, 142, 204, 106, 118, 139, 151] targets=[205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 204, 204, 204, 204, 204, 204, 204, 204]
+[CONDITIONS] fingertip= 99.75% | contact_frame= 52.40% | established= 25.87% | axis/rotation= 60.94% | horizontal= 42.11% | height= 88.64% | all_frame= 29.14% | contacts=2.26/5 | force mean= 0.442N active_mean= 0.979N max=76.296N | tilt mean=13.78deg max=89.97deg
+[FINGERS] thumb:contact= 55.2%,force=0.424N,max=29.75N,window= 52.5%,dist= 5.3cm | index:contact= 46.6%,force=0.662N,max=76.30N,window= 42.3%,dist= 5.8cm | middle:contact= 40.1%,force=0.278N,max=15.79N,window= 38.7%,dist= 5.9cm | ring:contact= 44.6%,force=0.358N,max=59.73N,window= 42.2%,dist= 5.7cm | little:contact= 39.3%,force=0.490N,max=37.21N,window= 35.0%,dist= 5.7cm
+[PROGRESS]   5835/8192 ( 71.23%) | attempts=264108 | success=  2.21% | rate=  21.36/s (recent=  18.34/s) | elapsed=00:04:33 | ETA=00:01:50
+[COVERAGE] accepted=[205, 105, 121, 143, 149, 205, 110, 119, 146, 149, 204, 108, 122, 137, 152, 205, 108, 133, 131, 154, 205, 120, 136, 146, 132, 205, 98, 122, 148, 154, 205, 102, 123, 146, 151, 204, 113, 122, 142, 155] targets=[205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 204, 204, 204, 204, 204, 204, 204, 204]
+[CONDITIONS] fingertip= 99.79% | contact_frame= 52.25% | established= 25.32% | axis/rotation= 60.69% | horizontal= 41.85% | height= 88.93% | all_frame= 28.96% | contacts=2.27/5 | force mean= 0.433N active_mean= 0.955N max=56.177N | tilt mean=13.77deg max=89.99deg
+[FINGERS] thumb:contact= 56.2%,force=0.428N,max= 9.33N,window= 53.6%,dist= 5.3cm | index:contact= 45.6%,force=0.625N,max=56.18N,window= 41.4%,dist= 5.8cm | middle:contact= 41.1%,force=0.282N,max=11.42N,window= 39.5%,dist= 5.8cm | ring:contact= 44.4%,force=0.356N,max=27.46N,window= 42.3%,dist= 5.7cm | little:contact= 39.3%,force=0.474N,max=40.28N,window= 35.1%,dist= 5.7cm
+[PROGRESS]   6032/8192 ( 73.63%) | attempts=273938 | success=  2.20% | rate=  21.29/s (recent=  19.47/s) | elapsed=00:04:43 | ETA=00:01:41
+[COVERAGE] accepted=[205, 112, 126, 151, 152, 205, 113, 125, 154, 156, 204, 115, 130, 141, 160, 205, 117, 139, 139, 162, 205, 126, 140, 152, 138, 205, 107, 132, 151, 157, 205, 108, 128, 150, 154, 204, 119, 131, 148, 161] targets=[205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 204, 204, 204, 204, 204, 204, 204, 204]
+[CONDITIONS] fingertip= 99.79% | contact_frame= 52.60% | established= 25.87% | axis/rotation= 61.26% | horizontal= 42.89% | height= 88.71% | all_frame= 29.71% | contacts=2.27/5 | force mean= 0.433N active_mean= 0.956N max=82.525N | tilt mean=13.61deg max=89.95deg
+[FINGERS] thumb:contact= 56.1%,force=0.430N,max=41.88N,window= 53.2%,dist= 5.3cm | index:contact= 45.5%,force=0.616N,max=82.52N,window= 41.5%,dist= 5.8cm | middle:contact= 40.1%,force=0.287N,max=17.03N,window= 38.5%,dist= 5.9cm | ring:contact= 44.6%,force=0.350N,max=14.36N,window= 42.4%,dist= 5.7cm | little:contact= 40.2%,force=0.482N,max=47.76N,window= 36.0%,dist= 5.6cm
+[PROGRESS]   6226/8192 ( 76.00%) | attempts=283687 | success=  2.19% | rate=  21.21/s (recent=  18.89/s) | elapsed=00:04:53 | ETA=00:01:32
+[COVERAGE] accepted=[205, 118, 133, 158, 158, 205, 121, 129, 163, 163, 204, 121, 137, 146, 167, 205, 120, 148, 146, 168, 205, 132, 144, 157, 151, 205, 115, 140, 152, 160, 205, 115, 135, 153, 161, 204, 122, 133, 151, 171] targets=[205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 204, 204, 204, 204, 204, 204, 204, 204]
+[CONDITIONS] fingertip= 99.79% | contact_frame= 52.27% | established= 26.64% | axis/rotation= 61.38% | horizontal= 42.98% | height= 88.75% | all_frame= 30.20% | contacts=2.26/5 | force mean= 0.430N active_mean= 0.951N max=71.818N | tilt mean=13.51deg max=89.97deg
+[FINGERS] thumb:contact= 56.2%,force=0.432N,max=28.97N,window= 53.6%,dist= 5.2cm | index:contact= 44.5%,force=0.613N,max=61.76N,window= 40.5%,dist= 5.9cm | middle:contact= 40.4%,force=0.287N,max=11.48N,window= 38.9%,dist= 5.9cm | ring:contact= 44.5%,force=0.345N,max=17.98N,window= 42.4%,dist= 5.7cm | little:contact= 40.3%,force=0.473N,max=71.82N,window= 36.2%,dist= 5.6cm
+[PROGRESS]   6419/8192 ( 78.36%) | attempts=293447 | success=  2.19% | rate=  21.14/s (recent=  19.20/s) | elapsed=00:05:03 | ETA=00:01:23
+[COVERAGE] accepted=[205, 126, 134, 165, 162, 205, 132, 140, 171, 170, 204, 125, 145, 153, 168, 205, 127, 153, 152, 175, 205, 142, 147, 164, 162, 205, 121, 146, 155, 167, 205, 120, 144, 158, 163, 204, 125, 141, 154, 174] targets=[205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 204, 204, 204, 204, 204, 204, 204, 204]
+[CONDITIONS] fingertip= 99.75% | contact_frame= 51.73% | established= 25.94% | axis/rotation= 61.70% | horizontal= 43.16% | height= 88.31% | all_frame= 29.38% | contacts=2.24/5 | force mean= 0.422N active_mean= 0.942N max=45.958N | tilt mean=13.37deg max=89.99deg
+[FINGERS] thumb:contact= 57.2%,force=0.439N,max= 8.36N,window= 54.5%,dist= 5.2cm | index:contact= 43.7%,force=0.595N,max=37.18N,window= 39.6%,dist= 5.9cm | middle:contact= 40.1%,force=0.283N,max=12.50N,window= 38.6%,dist= 5.9cm | ring:contact= 44.1%,force=0.343N,max=18.27N,window= 41.9%,dist= 5.7cm | little:contact= 38.7%,force=0.449N,max=45.96N,window= 34.8%,dist= 5.6cm
+[PROGRESS]   6616/8192 ( 80.76%) | attempts=302893 | success=  2.18% | rate=  21.09/s (recent=  19.50/s) | elapsed=00:05:13 | ETA=00:01:14
+[COVERAGE] accepted=[205, 133, 141, 169, 173, 205, 137, 143, 174, 172, 205, 131, 154, 158, 174, 205, 137, 161, 161, 178, 205, 149, 151, 172, 167, 205, 126, 152, 162, 174, 205, 127, 152, 165, 166, 204, 132, 153, 156, 177] targets=[205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 204, 204, 204, 204, 204, 204, 204, 204]
+[CONDITIONS] fingertip= 99.75% | contact_frame= 51.21% | established= 25.09% | axis/rotation= 60.27% | horizontal= 41.00% | height= 88.50% | all_frame= 28.40% | contacts=2.23/5 | force mean= 0.439N active_mean= 0.983N max=67.590N | tilt mean=13.68deg max=89.96deg
+[FINGERS] thumb:contact= 54.7%,force=0.421N,max=13.58N,window= 52.0%,dist= 5.3cm | index:contact= 45.4%,force=0.642N,max=67.59N,window= 41.2%,dist= 5.9cm | middle:contact= 38.6%,force=0.277N,max=18.94N,window= 37.3%,dist= 6.0cm | ring:contact= 44.1%,force=0.354N,max=66.61N,window= 41.8%,dist= 5.7cm | little:contact= 40.5%,force=0.501N,max=33.17N,window= 36.2%,dist= 5.5cm
+[PROGRESS]   6803/8192 ( 83.04%) | attempts=312942 | success=  2.17% | rate=  21.01/s (recent=  18.54/s) | elapsed=00:05:23 | ETA=00:01:06
+[COVERAGE] accepted=[205, 141, 144, 178, 176, 205, 142, 150, 179, 180, 205, 142, 158, 163, 178, 205, 142, 166, 169, 184, 205, 152, 156, 181, 174, 205, 133, 155, 168, 182, 205, 131, 159, 170, 171, 204, 137, 158, 162, 183] targets=[205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 204, 204, 204, 204, 204, 204, 204, 204]
+[CONDITIONS] fingertip= 99.78% | contact_frame= 50.32% | established= 24.88% | axis/rotation= 60.49% | horizontal= 41.42% | height= 88.39% | all_frame= 28.31% | contacts=2.22/5 | force mean= 0.429N active_mean= 0.966N max=38.311N | tilt mean=13.65deg max=89.98deg
+[FINGERS] thumb:contact= 55.5%,force=0.422N,max= 9.89N,window= 52.6%,dist= 5.2cm | index:contact= 43.8%,force=0.617N,max=35.81N,window= 39.8%,dist= 6.0cm | middle:contact= 38.9%,force=0.278N,max=13.84N,window= 37.4%,dist= 6.0cm | ring:contact= 44.2%,force=0.350N,max=16.16N,window= 42.0%,dist= 5.7cm | little:contact= 39.5%,force=0.476N,max=38.31N,window= 35.3%,dist= 5.5cm
+[PROGRESS]   6980/8192 ( 85.21%) | attempts=322345 | success=  2.17% | rate=  20.90/s (recent=  17.37/s) | elapsed=00:05:34 | ETA=00:00:57
+[COVERAGE] accepted=[205, 146, 150, 180, 177, 205, 144, 154, 183, 183, 205, 147, 167, 164, 181, 205, 148, 175, 176, 189, 205, 158, 166, 191, 185, 205, 138, 158, 172, 189, 205, 141, 165, 172, 173, 204, 147, 165, 168, 189] targets=[205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 204, 204, 204, 204, 204, 204, 204, 204]
+[CONDITIONS] fingertip= 99.76% | contact_frame= 51.25% | established= 25.25% | axis/rotation= 60.76% | horizontal= 41.81% | height= 88.44% | all_frame= 28.70% | contacts=2.23/5 | force mean= 0.431N active_mean= 0.968N max=60.560N | tilt mean=13.45deg max=89.92deg
+[FINGERS] thumb:contact= 55.3%,force=0.421N,max= 7.91N,window= 52.5%,dist= 5.2cm | index:contact= 43.8%,force=0.630N,max=46.75N,window= 39.7%,dist= 6.0cm | middle:contact= 38.7%,force=0.276N,max=14.28N,window= 37.2%,dist= 6.0cm | ring:contact= 44.7%,force=0.354N,max=35.02N,window= 42.4%,dist= 5.7cm | little:contact= 40.2%,force=0.475N,max=60.56N,window= 36.3%,dist= 5.4cm
+[PROGRESS]   7162/8192 ( 87.43%) | attempts=331702 | success=  2.16% | rate=  20.82/s (recent=  18.20/s) | elapsed=00:05:44 | ETA=00:00:49
+[COVERAGE] accepted=[205, 155, 157, 185, 185, 205, 149, 160, 186, 185, 205, 156, 176, 175, 184, 205, 156, 178, 180, 191, 205, 161, 172, 197, 190, 205, 144, 163, 175, 193, 205, 145, 173, 181, 175, 204, 156, 173, 177, 190] targets=[205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 204, 204, 204, 204, 204, 204, 204, 204]
+[CONDITIONS] fingertip= 99.74% | contact_frame= 51.05% | established= 25.28% | axis/rotation= 60.39% | horizontal= 41.46% | height= 88.13% | all_frame= 28.31% | contacts=2.22/5 | force mean= 0.418N active_mean= 0.941N max=52.835N | tilt mean=13.53deg max=89.96deg
+[FINGERS] thumb:contact= 55.9%,force=0.428N,max=12.51N,window= 53.3%,dist= 5.2cm | index:contact= 43.2%,force=0.592N,max=37.62N,window= 39.4%,dist= 6.0cm | middle:contact= 39.3%,force=0.279N,max=12.53N,window= 37.6%,dist= 6.0cm | ring:contact= 43.5%,force=0.332N,max=52.83N,window= 41.3%,dist= 5.7cm | little:contact= 40.1%,force=0.458N,max=38.30N,window= 36.0%,dist= 5.4cm
+[PROGRESS]   7355/8192 ( 89.78%) | attempts=341788 | success=  2.15% | rate=  20.76/s (recent=  18.80/s) | elapsed=00:05:54 | ETA=00:00:40
+[COVERAGE] accepted=[205, 159, 162, 193, 188, 205, 158, 172, 189, 187, 205, 163, 179, 180, 188, 205, 164, 189, 185, 193, 205, 165, 179, 201, 198, 205, 151, 171, 182, 198, 205, 153, 182, 185, 177, 204, 165, 181, 186, 193] targets=[205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 204, 204, 204, 204, 204, 204, 204, 204]
+[CONDITIONS] fingertip= 99.73% | contact_frame= 50.58% | established= 25.40% | axis/rotation= 61.43% | horizontal= 41.99% | height= 88.28% | all_frame= 29.20% | contacts=2.23/5 | force mean= 0.425N active_mean= 0.955N max=68.769N | tilt mean=13.37deg max=90.00deg
+[FINGERS] thumb:contact= 55.9%,force=0.429N,max=13.92N,window= 53.3%,dist= 5.2cm | index:contact= 44.1%,force=0.622N,max=68.77N,window= 40.1%,dist= 6.1cm | middle:contact= 39.0%,force=0.275N,max=12.96N,window= 37.6%,dist= 6.0cm | ring:contact= 44.9%,force=0.352N,max=37.47N,window= 42.7%,dist= 5.6cm | little:contact= 38.8%,force=0.448N,max=68.07N,window= 34.8%,dist= 5.5cm
+[PROGRESS]   7529/8192 ( 91.91%) | attempts=350396 | success=  2.15% | rate=  20.65/s (recent=  16.76/s) | elapsed=00:06:04 | ETA=00:00:32
+[COVERAGE] accepted=[205, 167, 167, 196, 192, 205, 164, 182, 195, 191, 205, 166, 181, 185, 193, 205, 172, 195, 190, 197, 205, 174, 187, 202, 201, 205, 158, 178, 186, 200, 205, 165, 186, 193, 179, 204, 167, 184, 197, 200] targets=[205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 204, 204, 204, 204, 204, 204, 204, 204]
+[CONDITIONS] fingertip= 99.76% | contact_frame= 50.36% | established= 25.51% | axis/rotation= 59.98% | horizontal= 42.19% | height= 87.93% | all_frame= 28.58% | contacts=2.21/5 | force mean= 0.419N active_mean= 0.948N max=48.976N | tilt mean=13.94deg max=89.99deg
+[FINGERS] thumb:contact= 56.0%,force=0.426N,max= 8.53N,window= 53.4%,dist= 5.2cm | index:contact= 41.6%,force=0.590N,max=47.32N,window= 38.0%,dist= 6.2cm | middle:contact= 39.2%,force=0.274N,max=10.75N,window= 37.7%,dist= 6.0cm | ring:contact= 45.5%,force=0.360N,max=48.98N,window= 43.3%,dist= 5.5cm | little:contact= 38.5%,force=0.445N,max=39.98N,window= 34.6%,dist= 5.5cm
+[PROGRESS]   7683/8192 ( 93.79%) | attempts=359302 | success=  2.14% | rate=  20.50/s (recent=  15.13/s) | elapsed=00:06:14 | ETA=00:00:24
+[COVERAGE] accepted=[205, 173, 171, 200, 196, 205, 168, 188, 198, 196, 205, 173, 186, 188, 199, 205, 178, 202, 196, 198, 205, 179, 196, 205, 203, 205, 166, 185, 190, 202, 205, 171, 189, 199, 184, 204, 172, 188, 203, 202] targets=[205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 204, 204, 204, 204, 204, 204, 204, 204]
+[CONDITIONS] fingertip= 99.71% | contact_frame= 50.74% | established= 25.24% | axis/rotation= 59.93% | horizontal= 41.14% | height= 87.81% | all_frame= 28.59% | contacts=2.21/5 | force mean= 0.423N active_mean= 0.957N max=45.274N | tilt mean=13.73deg max=90.00deg
+[FINGERS] thumb:contact= 55.6%,force=0.429N,max= 8.78N,window= 53.1%,dist= 5.2cm | index:contact= 39.8%,force=0.595N,max=45.27N,window= 36.3%,dist= 6.4cm | middle:contact= 40.3%,force=0.287N,max=13.55N,window= 38.5%,dist= 5.9cm | ring:contact= 45.6%,force=0.357N,max=34.75N,window= 43.2%,dist= 5.5cm | little:contact= 39.4%,force=0.447N,max=43.64N,window= 35.7%,dist= 5.4cm
+[PROGRESS]   7870/8192 ( 96.07%) | attempts=370191 | success=  2.13% | rate=  20.44/s (recent=  18.44/s) | elapsed=00:06:24 | ETA=00:00:15
+[COVERAGE] accepted=[205, 184, 183, 205, 199, 205, 179, 194, 204, 199, 205, 179, 194, 195, 204, 205, 185, 205, 204, 201, 205, 185, 202, 205, 205, 205, 172, 193, 196, 203, 205, 179, 199, 204, 191, 204, 182, 193, 204, 204] targets=[205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 204, 204, 204, 204, 204, 204, 204, 204]
+[CONDITIONS] fingertip= 99.70% | contact_frame= 49.41% | established= 24.52% | axis/rotation= 60.46% | horizontal= 41.43% | height= 87.08% | all_frame= 27.95% | contacts=2.16/5 | force mean= 0.401N active_mean= 0.928N max=58.965N | tilt mean=13.54deg max=89.99deg
+[FINGERS] thumb:contact= 56.9%,force=0.447N,max=58.97N,window= 54.4%,dist= 5.2cm | index:contact= 37.0%,force=0.548N,max=43.77N,window= 33.5%,dist= 6.6cm | middle:contact= 39.0%,force=0.266N,max=16.88N,window= 37.3%,dist= 5.9cm | ring:contact= 46.1%,force=0.350N,max=21.99N,window= 43.9%,dist= 5.3cm | little:contact= 37.0%,force=0.395N,max=47.20N,window= 33.5%,dist= 5.4cm
+[PROGRESS]   8027/8192 ( 97.99%) | attempts=381341 | success=  2.10% | rate=  20.32/s (recent=  15.68/s) | elapsed=00:06:34 | ETA=00:00:08
+[COVERAGE] accepted=[205, 196, 194, 205, 204, 205, 191, 198, 205, 204, 205, 188, 198, 201, 205, 205, 195, 205, 205, 203, 205, 189, 205, 205, 205, 205, 182, 205, 201, 205, 205, 191, 204, 204, 200, 204, 192, 195, 204, 204] targets=[205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 204, 204, 204, 204, 204, 204, 204, 204]
+[CONDITIONS] fingertip= 99.71% | contact_frame= 49.97% | established= 24.68% | axis/rotation= 60.05% | horizontal= 41.29% | height= 86.65% | all_frame= 28.02% | contacts=2.16/5 | force mean= 0.391N active_mean= 0.905N max=51.119N | tilt mean=13.59deg max=89.87deg
+[FINGERS] thumb:contact= 58.4%,force=0.463N,max=10.64N,window= 56.2%,dist= 5.1cm | index:contact= 33.0%,force=0.493N,max=51.12N,window= 30.0%,dist= 7.0cm | middle:contact= 40.8%,force=0.277N,max=13.19N,window= 39.0%,dist= 5.8cm | ring:contact= 47.1%,force=0.358N,max=47.52N,window= 44.5%,dist= 5.2cm | little:contact= 36.5%,force=0.362N,max=33.02N,window= 33.0%,dist= 5.4cm
+[PROGRESS]   8136/8192 ( 99.32%) | attempts=391833 | success=  2.08% | rate=  20.08/s (recent=  10.65/s) | elapsed=00:06:45 | ETA=00:00:02
+[COVERAGE] accepted=[205, 205, 197, 205, 205, 205, 198, 204, 205, 204, 205, 195, 201, 205, 205, 205, 205, 205, 205, 205, 205, 198, 205, 205, 205, 205, 193, 205, 205, 205, 205, 205, 204, 204, 204, 204, 201, 201, 204, 204] targets=[205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 204, 204, 204, 204, 204, 204, 204, 204]
+[CONDITIONS] fingertip= 99.66% | contact_frame= 48.29% | established= 24.08% | axis/rotation= 59.88% | horizontal= 41.01% | height= 85.63% | all_frame= 27.04% | contacts=2.10/5 | force mean= 0.378N active_mean= 0.899N max=100.393N | tilt mean=13.60deg max=89.99deg
+[FINGERS] thumb:contact= 57.9%,force=0.467N,max=37.23N,window= 55.8%,dist= 5.1cm | index:contact= 29.8%,force=0.480N,max=100.39N,window= 27.1%,dist= 7.4cm | middle:contact= 39.1%,force=0.264N,max=14.93N,window= 37.3%,dist= 5.9cm | ring:contact= 47.8%,force=0.351N,max=21.60N,window= 45.5%,dist= 5.0cm | little:contact= 35.3%,force=0.326N,max=24.70N,window= 32.0%,dist= 5.2cm
+[PROGRESS]   8192/8192 (100.00%) | attempts=401364 | success=  2.04% | rate=  19.86/s (recent=   7.68/s) | elapsed=00:06:52 | ETA=00:00:00
+[COVERAGE] accepted=[205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 204, 204, 204, 204, 204, 204, 204, 204] targets=[205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 204, 204, 204, 204, 204, 204, 204, 204]
+[CONDITIONS] fingertip= 99.68% | contact_frame= 48.05% | established= 23.52% | axis/rotation= 59.75% | horizontal= 40.21% | height= 85.60% | all_frame= 27.06% | contacts=2.10/5 | force mean= 0.386N active_mean= 0.919N max=108.202N | tilt mean=13.84deg max=90.00deg
+[FINGERS] thumb:contact= 56.0%,force=0.446N,max=108.20N,window= 53.9%,dist= 5.1cm | index:contact= 31.7%,force=0.533N,max=72.10N,window= 29.0%,dist= 7.4cm | middle:contact= 35.5%,force=0.238N,max=12.52N,window= 33.8%,dist= 6.1cm | ring:contact= 51.3%,force=0.388N,max=15.17N,window= 48.8%,dist= 4.8cm | little:contact= 35.1%,force=0.322N,max=29.63N,window= 31.7%,dist= 5.2cm
+
+[INFO] Saved 8192 grasps -> cache/revo3_right_grasp_octagonal_prism.npy
+       shape=(8192, 28)  dtype=float32
