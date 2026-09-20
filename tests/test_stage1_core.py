@@ -3,6 +3,7 @@ import tempfile
 import unittest
 from pathlib import Path
 from types import SimpleNamespace
+from unittest.mock import patch
 
 import gymnasium as gym
 import numpy as np
@@ -102,6 +103,59 @@ class CacheTests(unittest.TestCase):
                     load_grasp_cache(path, 21)
 
 
+class RolloutLoggingTests(unittest.TestCase):
+    def test_batched_metrics_preserve_scaling_counts_and_reused_buffers(self):
+        env = SimpleNamespace(
+            action_space=gym.spaces.Box(-1., 1., shape=(21,), dtype=np.float32),
+            observation_space=gym.spaces.Box(-np.inf, np.inf, shape=(141,), dtype=np.float32))
+        config = OmegaConf.load(Path(__file__).resolve().parents[1] / 'configs/train/Revo3HandHora.yaml')
+        config.ppo.num_actors = 2
+        config.ppo.horizon_length = 2
+        config.ppo.minibatch_size = 4
+        full = OmegaConf.create({'rl_device': 'cpu', 'test': False, 'train': config})
+        observation = {'obs': torch.zeros(2, 141), 'priv_info': torch.zeros(2, 18)}
+        shared = torch.tensor(0.)
+        calls = []
+        def step(actions):
+            calls.append(actions.clone())
+            t = len(calls)
+            shared.fill_(10*t)
+            info = {'rew/example': shared, 'plain': shared, 'python_value': t,
+                    'vector_ignored': torch.ones(2),
+                    'gait/completed_count': torch.tensor(1. if t == 1 else 3.),
+                    'gait/completed_one_turn_count': torch.tensor(1. if t == 1 else 0.),
+                    'gait/completed_net_turns_sum': torch.tensor(2. if t == 1 else 6.),
+                    'gait/completed_turns_sum': torch.tensor(1.)}
+            return observation, torch.ones(2), torch.zeros(2, dtype=torch.uint8), info
+        env.step = step
+        with tempfile.TemporaryDirectory() as directory:
+            agent = PPO(env, directory, full)
+            try:
+                agent.obs = observation
+                original_act = agent.model_act
+                def act(obs):
+                    result = original_act(obs)
+                    result['actions'].fill_(2. if not calls else .5)
+                    return result
+                agent.model_act = act
+                with torch.no_grad():
+                    agent.play_steps()
+                metrics = agent.extra_info
+                self.assertAlmostEqual(metrics['rew/example'], .15, places=6)
+                self.assertAlmostEqual(metrics['plain'], 15.)
+                self.assertAlmostEqual(metrics['python_value'], 1.5)
+                self.assertAlmostEqual(metrics['gait/completed_one_turn_rate'], .25)
+                self.assertAlmostEqual(metrics['gait/completed_mean_net_turns'], 2.)
+                self.assertAlmostEqual(metrics['gait/completed_mean_turns'], .5)
+                self.assertAlmostEqual(metrics['policy/action_saturation_rate'], .5)
+                self.assertNotIn('vector_ignored', metrics)
+                self.assertTrue(all(isinstance(v, float) for v in metrics.values()))
+                torch.testing.assert_close(calls[0], torch.ones(2, 21))
+                self.assertEqual(agent.agent_steps, 4)
+            finally:
+                agent.writer.close()
+
+
 class CheckpointTests(unittest.TestCase):
     def test_roundtrip_rejects_changed_cache_or_pose(self):
         env = SimpleNamespace(
@@ -120,13 +174,26 @@ class CheckpointTests(unittest.TestCase):
                 agent.agent_steps = 128
                 agent.best_rewards = 4.0
                 agent.save(path)
+                original_bytes = Path(path + '.pth').read_bytes()
+                with patch('hora.algo.ppo.ppo.torch.save', side_effect=OSError('simulated write failure')):
+                    with self.assertRaises(OSError):
+                        agent.save(path)
+                self.assertEqual(Path(path + '.pth').read_bytes(), original_bytes)
+                self.assertFalse(list(Path(directory).glob('*.tmp')))
                 agent.agent_steps = 0
                 agent.restore_train(path + '.pth')
                 self.assertEqual(agent.agent_steps, 128)
                 self.assertEqual(agent.best_rewards, 4.0)
+                agent.restore_test(path + '.pth')
+                agent.env_runtime['finger_gait'] = {'enabled': True, 'version': 1}
+                with self.assertRaisesRegex(RuntimeError, 'reward mismatch'):
+                    agent.restore_train(path + '.pth')
+                agent.env_runtime.pop('finger_gait')
                 agent.env_runtime['grasp_cache_sha256'] = 'changed'
                 with self.assertRaisesRegex(RuntimeError, 'mismatch'):
                     agent.restore_train(path + '.pth')
+                with self.assertRaisesRegex(RuntimeError, 'mismatch'):
+                    agent.restore_test(path + '.pth')
                 agent.env_runtime['grasp_cache_sha256'] = 'original'
                 agent.env_runtime['object']['scale'] = 2.0
                 with self.assertRaisesRegex(RuntimeError, 'mismatch'):
@@ -138,6 +205,33 @@ class CheckpointTests(unittest.TestCase):
                 agent.restore_train(path + '.legacy.pth')
                 self.assertEqual(agent.best_rewards, -10000)
                 self.assertEqual(agent.full_gravity_epochs, 0)
+                # One final non-periodic update must still reach last.pth.
+                agent.agent_steps = 0
+                agent.epoch_num = 0
+                agent.max_agent_steps = 1
+                agent.save_freq = 50
+                agent.save_best_after = 1000
+                agent.env.reset = lambda: {}
+                def train_epoch():
+                    agent.agent_steps += agent.batch_size
+                    return [], [], [], [], [], .1, .1
+                agent.train_epoch = train_epoch
+                agent.write_stats = lambda *a: None
+                agent._print_epoch_log = lambda **k: None
+                agent.train()
+                final = torch.load(Path(directory) / 'stage1_nn/last.pth', weights_only=True)
+                self.assertEqual(final['epoch_num'], 1)
+                self.assertEqual(final['agent_steps'], agent.batch_size)
+                # Resume after two updates collected with a larger historical batch.
+                # A four-iteration cap still means exactly two further updates.
+                agent.epoch_num = 2
+                agent.agent_steps = 128
+                agent.max_iterations = 4
+                agent.max_agent_steps = 1  # stale transition cap must not win
+                agent.train()
+                resumed = torch.load(Path(directory) / 'stage1_nn/last.pth', weights_only=True)
+                self.assertEqual(resumed['epoch_num'], 4)
+                self.assertEqual(resumed['agent_steps'], 128 + 2 * agent.batch_size)
             finally:
                 agent.writer.close()
 

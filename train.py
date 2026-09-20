@@ -34,6 +34,9 @@ parser.add_argument('--algo', type=str, default='PPO', choices=['PPO', 'ProprioA
 parser.add_argument('--train_cfg', type=str, default='Revo3HandHora')
 parser.add_argument('--output_name', type=str, default='debug')
 parser.add_argument('--checkpoint', type=str, default='')
+parser.add_argument('--object_orientation', choices=('auto', 'none', 'rotation6d'), default='auto',
+                    help='Stage1 privileged object orientation. Auto enables 6D orientation for new duck '
+                         'policies and duck weights-only warm starts; eval/strict resume/Stage2 follow the checkpoint.')
 parser.add_argument(
     '--weights_only',
     action='store_true',
@@ -46,11 +49,21 @@ parser.add_argument('--cache_file', type=str, default='', help='Override grasp c
 parser.add_argument('--usd', type=str, default='', help='Override hand USD path.')
 parser.add_argument('--num_envs', type=int, default=None, help='Default: 2048 for PPO, 16384 for Stage2.')
 parser.add_argument('--minibatch_size', type=int, default=None, help='PPO minibatch override; must divide num_envs * horizon_length.')
+parser.add_argument('--horizon_length', type=int, default=None, help='PPO rollout steps per environment.')
+parser.add_argument('--gamma', type=float, default=None, help='PPO reward discount in (0, 1).')
+parser.add_argument('--episode_length_s', type=float, default=None, help='Episode time limit in seconds; also applies to evaluation.')
+parser.add_argument('--physics_hz', type=int, choices=(120, 240), default=240,
+                    help='Physics/PD frequency; decimation is adjusted to keep the policy at 20 Hz.')
 parser.add_argument('--seed', type=int, default=42)
-parser.add_argument(
+budget_args = parser.add_mutually_exclusive_group()
+budget_args.add_argument(
     '--max_agent_steps', type=int, default=None,
     help='Override train.ppo.max_agent_steps (useful when resuming beyond the original training budget).',
 )
+budget_args.add_argument('--max_iterations', type=int, default=None,
+                         help='Total PPO iterations; budget is num_envs * horizon_length * max_iterations.')
+parser.add_argument('--save_frequency', type=int, default=None,
+                    help='Save a numbered checkpoint and last.pth every N PPO iterations.')
 gravity_args = parser.add_mutually_exclusive_group()
 gravity_args.add_argument(
     '--fixed_train_gravity',
@@ -67,6 +80,10 @@ gravity_args.add_argument(
     help='Explicit PPO curriculum starting gravity for fresh/weights-only runs; overrides the strawberry full-gravity default.',
 )
 parser.add_argument('--test', action='store_true')
+parser.add_argument('--finger_gait', action='store_true',
+                    help='Opt in to support-gated rotation, persistent blocked-action cost and full-turn bonus (PPO).')
+parser.add_argument('--rotation_speed', type=float, default=None,
+                    help='Positive speed target (rad/s) for --finger_gait; includes overspeed attenuation.')
 parser.add_argument(
     '--test_steps', type=int, default=0,
     help='Finite full-gravity checkpoint evaluation length in policy steps; 0 keeps interactive play.',
@@ -96,12 +113,30 @@ parser.add_argument('--force_overwrite', action='store_true')
 AppLauncher.add_app_launcher_args(parser)
 args = parser.parse_args()
 
+if args.finger_gait and args.algo != 'PPO':
+    parser.error('--finger_gait is currently a PPO Stage1 reward option')
+if args.rotation_speed is not None:
+    if not args.finger_gait or not math.isfinite(args.rotation_speed) or args.rotation_speed <= 0:
+        parser.error('--rotation_speed requires --finger_gait and a finite positive value')
+
 if args.num_envs is None:
     args.num_envs = 2048 if args.algo == 'PPO' else 16384
 if args.num_envs <= 0:
     parser.error('--num_envs must be positive')
 if args.minibatch_size is not None and args.minibatch_size <= 0:
     parser.error('--minibatch_size must be positive')
+if args.horizon_length is not None and args.horizon_length <= 0:
+    parser.error('--horizon_length must be positive')
+if args.gamma is not None and (not math.isfinite(args.gamma) or not 0 < args.gamma < 1):
+    parser.error('--gamma must be finite and in (0, 1)')
+if (args.horizon_length is not None or args.gamma is not None) and args.algo != 'PPO':
+    parser.error('--horizon_length and --gamma are PPO options')
+if args.episode_length_s is not None and (not math.isfinite(args.episode_length_s) or args.episode_length_s <= 0):
+    parser.error('--episode_length_s must be finite and positive')
+if args.max_iterations is not None and (args.max_iterations <= 0 or args.algo != 'PPO'):
+    parser.error('--max_iterations requires PPO and a positive iteration count')
+if args.save_frequency is not None and (args.save_frequency <= 0 or args.algo != 'PPO'):
+    parser.error('--save_frequency requires PPO and a positive interval')
 if args.initial_train_gravity is not None:
     if not math.isfinite(args.initial_train_gravity) or not 0.0 < args.initial_train_gravity <= 9.81:
         parser.error('--initial_train_gravity must be finite and in (0, 9.81]')
@@ -162,6 +197,7 @@ from hora.tasks.isaaclab.assets import (
     configure_env_for_object_task,
 )
 from hora.utils.misc import set_np_formatting, set_seed
+from hora.utils.privileged_observations import checkpoint_privileged_dim, resolve_privileged_dim
 
 
 _ALGO_MAP = {
@@ -176,6 +212,10 @@ def _build_full_config(seed: int):
     train_cfg.load_path = os.path.abspath(args.checkpoint) if args.checkpoint else ''
     train_cfg.resume_mode = 'weights_only' if args.weights_only else 'strict'
     train_cfg.ppo.output_name = args.output_name
+    if args.horizon_length is not None:
+        train_cfg.ppo.horizon_length = args.horizon_length
+    if args.gamma is not None:
+        train_cfg.ppo.gamma = args.gamma
     if args.minibatch_size is not None:
         train_cfg.ppo.minibatch_size = args.minibatch_size
     minibatch = train_cfg.ppo.minibatch_size
@@ -190,10 +230,17 @@ def _build_full_config(seed: int):
             f"by minibatch_size ({minibatch}); use --minibatch_size for smaller runs."
         )
     train_cfg.ppo.num_actors = args.num_envs
+    if args.rotation_speed is not None:
+        train_cfg.ppo.full_gravity_min_target_angvel = .5 * args.rotation_speed
     if args.max_agent_steps is not None:
         if args.max_agent_steps <= 0:
             raise ValueError('--max_agent_steps must be positive')
         train_cfg.ppo.max_agent_steps = args.max_agent_steps
+    if args.max_iterations is not None:
+        train_cfg.ppo.max_iterations = args.max_iterations
+        train_cfg.ppo.max_agent_steps = args.num_envs * train_cfg.ppo.horizon_length * args.max_iterations
+    if args.save_frequency is not None:
+        train_cfg.ppo.save_frequency = args.save_frequency
     train_cfg.ppo.priv_info = True
     train_cfg.ppo.proprio_adapt = args.algo == 'ProprioAdapt'
 
@@ -209,6 +256,14 @@ def _build_full_config(seed: int):
 def _build_env_cfg(seed: int):
     env_cfg = Revo3HandHoraEnvCfg()
     configure_env_for_object_task(env_cfg, args.task)
+    env_cfg.sim.dt = 1.0 / args.physics_hz
+    env_cfg.decimation = args.physics_hz // 20
+    if args.episode_length_s is not None:
+        env_cfg.episode_length_s = args.episode_length_s
+    env_cfg.finger_gait = args.finger_gait
+    if args.rotation_speed is not None:
+        env_cfg.target_angvel = args.rotation_speed
+        env_cfg.stable_rotation_min_angvel = .5 * args.rotation_speed
     if args.cache_file:
         env_cfg.grasp_cache_path = f"cache/{args.cache_file.replace('.npy', '')}"
     if args.usd:
@@ -265,11 +320,36 @@ def _attach_env_runtime_to_config(full_config, env_cfg) -> None:
             'grasp_cache_sha256': cache_sha256,
             'enable_tactile': bool(env_cfg.enable_tactile),
             'enable_contact_in_obs': bool(env_cfg.enable_contact_in_obs),
+            'privileged_observation': {
+                'dim': int(env_cfg.priv_info_dim),
+                'object_orientation': 'rotation6d_world_xy' if env_cfg.priv_info_dim == 24 else 'none',
+            },
             'contact_order': ['thumb_DIP', 'index_DIP', 'middle_DIP', 'ring_DIP', 'little_DIP'],
             'policy_dt': float(env_cfg.decimation * env_cfg.sim.dt),
+            'physics_dt': float(env_cfg.sim.dt),
+            'decimation': int(env_cfg.decimation),
+            'episode_length_s': float(env_cfg.episode_length_s),
             'gravity': tuple(float(v) for v in env_cfg.sim.gravity),
             'action_scale': float(env_cfg.action_scale),
             'force_scale': float(env_cfg.force_scale),
+            'finger_gait': {
+                'enabled': bool(env_cfg.finger_gait),
+                'version': 2,
+                'blocked_push_scale': float(env_cfg.gait_blocked_push_scale),
+                'limit_grace_steps': int(env_cfg.gait_limit_grace_steps),
+                'limit_recovery_margin': float(env_cfg.gait_limit_recovery_margin),
+                'contact_debounce_steps': int(env_cfg.gait_contact_debounce_steps),
+                'speed_reward': 'peaked' if env_cfg.finger_gait else 'saturating',
+                'safe_z_m': float(env_cfg.gait_safe_z_m),
+                'max_z_m': float(env_cfg.gait_max_z_m),
+                'max_down_speed': float(env_cfg.gait_max_down_speed),
+                'full_turn_bonus': float(env_cfg.gait_full_turn_bonus),
+                'contact_threshold_n': float(env_cfg.contact_threshold),
+                'axis_tilt_tolerance': float(env_cfg.object_axis_tilt_tolerance),
+                'action_scale': float(env_cfg.action_scale),
+                'rotate_scale': float(env_cfg.rotate_reward_scale),
+                'target_angvel': float(env_cfg.target_angvel),
+            },
             'reward': {
                 'target_angvel': float(env_cfg.target_angvel),
                 'stable_rotation_min_angvel': float(env_cfg.stable_rotation_min_angvel),
@@ -318,6 +398,15 @@ def main():
 
     cprint('Start Building the Environment', 'green', attrs=['bold'])
     env_cfg = _build_env_cfg(seed)
+    checkpoint_dim = None
+    if args.checkpoint:
+        import torch
+        checkpoint_dim = checkpoint_privileged_dim(torch.load(args.checkpoint, map_location='cpu', weights_only=True))
+    env_cfg.priv_info_dim = resolve_privileged_dim(
+        args.object_orientation, args.task, checkpoint_dim, args.weights_only)
+    full_config.train.ppo.priv_info_dim = env_cfg.priv_info_dim
+    print(f'[INFO] Privileged observation: {env_cfg.priv_info_dim} dims; '
+          f'object orientation={"rotation6d_world_xy" if env_cfg.priv_info_dim == 24 else "none"}', flush=True)
     if args.initial_train_gravity is not None:
         env_cfg.sim.gravity = (0.0, 0.0, -float(args.initial_train_gravity))
     if args.camera_eye is not None:
@@ -382,6 +471,8 @@ def main():
 
     if args.test:
         try:
+            _attach_env_runtime_to_config(full_config, env_cfg)
+            agent.env_runtime = OmegaConf.to_container(full_config.env_runtime, resolve=True)
             agent.restore_test(full_config.train.load_path)
             agent.test(
                 max_steps=video_steps if args.video else args.test_steps,
@@ -423,11 +514,15 @@ def main():
 
         _attach_env_runtime_to_config(full_config, env_cfg)
         agent.env_runtime = OmegaConf.to_container(full_config.env_runtime, resolve=True)
-        _save_run_metadata(output_dif, full_config)
         if args.weights_only:
             agent.restore_weights_only(full_config.train.load_path)
         else:
             agent.restore_train(full_config.train.load_path)
+        if args.algo == 'PPO' and args.max_iterations is not None:
+            remaining = max(0, args.max_iterations - agent.epoch_num)
+            agent.max_agent_steps = agent.agent_steps + remaining * agent.batch_size
+            full_config.train.ppo.max_agent_steps = agent.max_agent_steps
+        _save_run_metadata(output_dif, full_config)
         if args.fixed_train_gravity is not None:
             fixed_gravity = float(args.fixed_train_gravity)
             base_env = env._base_env

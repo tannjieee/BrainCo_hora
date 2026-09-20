@@ -25,7 +25,7 @@ class Revo3HandHoraEnvCfg(DirectRLEnvCfg):
     prop_hist_len = 30
     # [object_pos_delta(3), friction(1), mass(1), com(3), gravity_magnitude(1),
     #  configured_object_axis_world(3), object_angular_velocity(3), object_linear_velocity(3)]
-    priv_info_dim = 18
+    priv_info_dim = 18  # train.py selects 24 (+ absolute object rotation 6D) for new duck policies.
     state_space = 0
     asymmetric_obs = False
     decimation = 12
@@ -200,6 +200,17 @@ class Revo3HandHoraEnvCfg(DirectRLEnvCfg):
     torque_penalty_scale = -2.0
     work_penalty_scale = -0.1
 
+    # Opt-in reward shaping. Observation/action dimensions remain unchanged.
+    finger_gait = False
+    gait_blocked_push_scale = -2.0
+    gait_limit_grace_steps = 4       # 0.2 s at the 20 Hz policy rate
+    gait_limit_recovery_margin = 0.05  # target must retreat this far to regain grace
+    gait_safe_z_m = 0.005
+    gait_max_z_m = 0.020
+    gait_max_down_speed = 0.05
+    gait_full_turn_bonus = 5.0
+    gait_contact_debounce_steps = 2
+
     grasp_cache_path = 'cache/revo3_right_grasp_cylinder'
     grasp_cache_sequential = False
 
@@ -267,6 +278,18 @@ class Revo3HandHoraEnvCfg(DirectRLEnvCfg):
             raise ValueError('self_collision_force_threshold must be non-negative')
         if self.self_collision_force_tolerance <= 0.0:
             raise ValueError('self_collision_force_tolerance must be greater than zero')
+        if not 0 <= self.gait_safe_z_m < self.gait_max_z_m <= (self.reset_height_upper - self.reset_height_lower) / 2 + 1e-8:
+            raise ValueError('Gait support height ramp must fit within the reset height half-width')
+        if not math.isfinite(self.gait_max_down_speed) or self.gait_max_down_speed <= 0:
+            raise ValueError('Gait downward speed must be finite and positive')
+        if self.gait_contact_debounce_steps < 1 or self.gait_limit_grace_steps < 0:
+            raise ValueError('Invalid gait contact debounce/limit grace steps')
+        if not math.isfinite(self.gait_limit_recovery_margin) or self.gait_limit_recovery_margin <= 0:
+            raise ValueError('Gait limit recovery margin must be finite and positive')
+        if not math.isfinite(self.gait_blocked_push_scale) or self.gait_blocked_push_scale > 0:
+            raise ValueError('Gait blocked-action scale must be a finite nonpositive cost')
+        if not math.isfinite(self.gait_full_turn_bonus) or self.gait_full_turn_bonus < 0:
+            raise ValueError('Gait full-turn bonus must be finite and nonnegative')
         # These are class-level config defaults, so rebuild the lists for each
         # instance instead of accumulating duplicate sensors across env builds.
         self.contact_sensor = []

@@ -1,0 +1,9 @@
+{
+  "synced_at": "2026-09-20T17:28:37.047191+08:00",
+  "rsync_exit_code": 0,
+  "last_epoch": 2400,
+  "agent_steps": 644087808,
+  "checkpoint_sha256_verified": 48,
+  "last_model_matches_numbered_checkpoint": "outputs/revo3_right/run_rubber_duck_gait_h16_p120_16384_i4000_s42_20260920/stage1_nn/ep_2400_step_0644M_g_9.81_reward_32.94.pth",
+  "remaining_other_duck_outputs": []
+}

@@ -15,6 +15,7 @@ Gotcha — reward_scale: total reward × 0.01 before GAE. Env extras (scalar mea
 import os
 import time
 import math
+import tempfile
 import torch
 
 from hora.algo.ppo.experience import ExperienceBuffer
@@ -22,6 +23,7 @@ from hora.algo.models.models import ActorCritic
 from hora.algo.models.running_mean_std import RunningMeanStd
 
 from hora.utils.misc import AverageScalarMeter, tprint
+from hora.utils.privileged_observations import checkpoint_privileged_dim, warmstart_privileged_state
 
 from tensorboardX import SummaryWriter
 
@@ -144,6 +146,7 @@ class PPO(object):
         self.dones = torch.ones((batch_size,), dtype=torch.uint8, device=self.device)
         self.agent_steps = 0
         self.max_agent_steps = self.ppo_config['max_agent_steps']
+        self.max_iterations = self.ppo_config.get('max_iterations')
         self.best_rewards = -10000
         self.best_curriculum_rewards = -10000
         self.full_gravity_epochs = 0
@@ -241,8 +244,17 @@ class PPO(object):
     def train(self):
         _t = time.time()
         _last_t = time.time()
+        start_steps = self.agent_steps
+        self._training_start_epoch = self.epoch_num
         self.obs = self.env.reset()
-        total_iters = max(1, math.ceil(self.max_agent_steps / self.batch_size))
+        if self.max_iterations is not None:
+            # Restoring a checkpoint made with another rollout length must not
+            # reinterpret already collected transitions as additional PPO updates.
+            remaining = max(0, int(self.max_iterations) - self.epoch_num)
+            self.max_agent_steps = self.agent_steps + remaining * self.batch_size
+            total_iters = int(self.max_iterations)
+        else:
+            total_iters = max(1, math.ceil(self.max_agent_steps / self.batch_size))
 
         while self.agent_steps < self.max_agent_steps:
             self.epoch_num += 1
@@ -250,7 +262,7 @@ class PPO(object):
             a_losses, c_losses, b_losses, entropies, kls, collect_t, learn_t = self.train_epoch()
             self.storage.data_dict = None
 
-            all_fps = self.agent_steps / (time.time() - _t)
+            all_fps = (self.agent_steps - start_steps) / (time.time() - _t)
             last_fps = self.batch_size / (time.time() - _last_t)
             _last_t = time.time()
             self.write_stats(a_losses, c_losses, b_losses, entropies, kls)
@@ -320,6 +332,10 @@ class PPO(object):
                 self.save(os.path.join(self.nn_dir, checkpoint_name))
                 self.save(os.path.join(self.nn_dir, 'last'))
 
+        # A budget need not be a multiple of save_frequency. Preserve the actual
+        # last update (e.g. epoch 1145, not only periodic epoch 1100).
+        self.save(os.path.join(self.nn_dir, 'last'))
+        self.writer.flush()
         print('max steps achieved')
 
     def save(self, name):
@@ -331,6 +347,10 @@ class PPO(object):
             'optimizer': self.optimizer.state_dict(),
             'agent_steps': int(self.agent_steps),
             'epoch_num': int(self.epoch_num),
+            'horizon_length': int(self.horizon_length),
+            'num_actors': int(self.num_actors),
+            'max_iterations': self.max_iterations,
+            'planned_agent_steps': int(self.max_agent_steps),
             'best_rewards': float(self.best_rewards),
             'best_curriculum_rewards': float(self.best_curriculum_rewards),
             'full_gravity_epochs': int(self.full_gravity_epochs),
@@ -343,21 +363,27 @@ class PPO(object):
             weights['running_mean_std'] = self.running_mean_std.state_dict()
         if self.value_mean_std:
             weights['value_mean_std'] = self.value_mean_std.state_dict()
-        torch.save(weights, f'{name}.pth')
+        # Interrupted writes must not corrupt the last usable checkpoint.
+        with tempfile.NamedTemporaryFile(dir=os.path.dirname(name) or '.', suffix='.tmp', delete=False) as tmp:
+            temporary = tmp.name
+        try:
+            torch.save(weights, temporary)
+            os.replace(temporary, f'{name}.pth')
+        finally:
+            if os.path.exists(temporary):
+                os.unlink(temporary)
 
     def restore_train(self, fn):
         if not fn:
             return
         checkpoint = torch.load(fn, map_location=self.device)
         previous_runtime = checkpoint.get('env_runtime', {})
-        if previous_runtime and self.env_runtime:
-            old_object = previous_runtime.get('object', {})
-            new_object = self.env_runtime.get('object', {})
-            keys = ('task', 'scale', 'object_init_pos_m', 'object_init_quat_wxyz',
-                    'rotation_axis_local', 'target_axis_world', 'hand_joint_pos_rad')
-            if (any(old_object.get(key) != new_object.get(key) for key in keys)
-                    or previous_runtime.get('grasp_cache_sha256') != self.env_runtime.get('grasp_cache_sha256')):
-                raise RuntimeError('Strict Stage1 resume task/pose/cache mismatch; use a new run or explicit --weights_only transfer')
+        from hora.utils.grasp_cache import validate_object_runtime
+        validate_object_runtime(previous_runtime, self.env_runtime)
+        old_gait = previous_runtime.get('finger_gait', {})
+        new_gait = self.env_runtime.get('finger_gait', {})
+        if (old_gait.get('enabled', False) or new_gait.get('enabled', False)) and old_gait != new_gait:
+            raise RuntimeError('Finger-gait reward mismatch on strict resume; start a new run or use --weights_only')
         required_keys = [
             'model',
             'running_mean_std',
@@ -373,11 +399,11 @@ class PPO(object):
             raise RuntimeError(
                 f"Strict Stage1 resume failed: missing keys {missing} in checkpoint: {fn}"
             )
-        checkpoint_priv_dim = checkpoint.get('priv_info_dim')
-        if checkpoint_priv_dim is not None and int(checkpoint_priv_dim) != self.priv_info_dim:
+        checkpoint_priv_dim = checkpoint_privileged_dim(checkpoint)
+        if checkpoint_priv_dim != self.priv_info_dim:
             raise RuntimeError(
                 f"Stage1 checkpoint privileged-observation mismatch: checkpoint={checkpoint_priv_dim}, "
-                f"current={self.priv_info_dim}. Retrain Stage1 after changing privileged observations."
+                f"current={self.priv_info_dim}. Use --weights_only to add orientation in a new run."
             )
 
         self.model.load_state_dict(checkpoint['model'], strict=True)
@@ -426,16 +452,15 @@ class PPO(object):
             raise RuntimeError(
                 f"Policy warm start failed: missing keys {missing} in checkpoint: {fn}"
             )
-        checkpoint_priv_dim = checkpoint.get('priv_info_dim')
-        if checkpoint_priv_dim is not None and int(checkpoint_priv_dim) != self.priv_info_dim:
-            raise RuntimeError(
-                f"Stage1 checkpoint privileged-observation mismatch: checkpoint={checkpoint_priv_dim}, "
-                f"current={self.priv_info_dim}. Retrain Stage1 after changing privileged observations."
-            )
+        source_dim = checkpoint_privileged_dim(checkpoint)
+        migrated_state = warmstart_privileged_state(checkpoint, self.priv_info_dim)
+        if source_dim != self.priv_info_dim:
+            print(f'[INFO] Expanded privileged input {source_dim} -> {self.priv_info_dim}; '
+                  'new orientation columns start at zero, preserving the initial actor.', flush=True)
 
         actor_state = {
             key: value
-            for key, value in checkpoint['model'].items()
+            for key, value in migrated_state.items()
             if key not in {'value.weight', 'value.bias'}
         }
         incompatible = self.model.load_state_dict(actor_state, strict=False)
@@ -477,6 +502,10 @@ class PPO(object):
 
     def restore_test(self, fn):
         checkpoint = torch.load(fn, map_location=self.device)
+        if checkpoint_privileged_dim(checkpoint) != self.priv_info_dim:
+            raise RuntimeError('Evaluation observation layout mismatch; use --object_orientation auto')
+        from hora.utils.grasp_cache import validate_object_runtime
+        validate_object_runtime(checkpoint.get('env_runtime', {}), self.env_runtime)
         self.model.load_state_dict(checkpoint['model'], strict=True)
         if self.normalize_input:
             self.running_mean_std.load_state_dict(checkpoint['running_mean_std'])
@@ -503,6 +532,10 @@ class PPO(object):
         self_collision_rate_sum = 0.0
         self_collision_force_sum = 0.0
         step_dt = float(getattr(self.env, 'step_dt', 0.0))
+        first_failure = torch.full((self.num_actors,), float('inf'), device=self.device)
+        completed_count = completed_turns = completed_one_turn = 0.0
+        completed_net_turns = 0.0
+        recontacts = blocked_push_sum = 0.0
         while max_steps <= 0 or step < max_steps:
             step_start = time.time()
             input_dict = {
@@ -513,6 +546,15 @@ class PPO(object):
             mu = torch.clamp(mu, -1.0, 1.0)
             obs_dict, r, done, info = self.env.step(mu)
             step += 1
+            base_env = getattr(self.env, '_base_env', self.env)
+            failed = base_env.reset_terminated.bool()
+            first_failure = torch.where(failed & torch.isinf(first_failure), float(step), first_failure)
+            completed_count += self._info_scalar(info, 'gait/completed_count')
+            completed_turns += self._info_scalar(info, 'gait/completed_turns_sum')
+            completed_net_turns += self._info_scalar(info, 'gait/completed_net_turns_sum')
+            completed_one_turn += self._info_scalar(info, 'gait/completed_one_turn_count')
+            recontacts += self._info_scalar(info, 'gait/recontacts')
+            blocked_push_sum += self._info_scalar(info, 'gait/blocked_push')
             reward_sum += float(r.mean().item())
             height_reset_count += self._info_scalar(info, 'height_reset_lower') * self.num_actors
             height_reset_count += self._info_scalar(info, 'height_reset_upper') * self.num_actors
@@ -531,6 +573,19 @@ class PPO(object):
 
         if max_steps > 0:
             transitions = max_steps * self.num_actors
+            print('[FINGER-GAIT EVAL]', flush=True)
+            print(f'  first-drop mean (capped at {max_steps * step_dt:.2f}s): '
+                  f'{float(first_failure.clamp_max(max_steps).mean()) * step_dt:.3f}s', flush=True)
+            for seconds in (5, 10, 20, 40, 60):
+                if max_steps * step_dt >= seconds:
+                    print(f'  first-episode survival {seconds}s: '
+                          f'{float((first_failure > seconds / step_dt).float().mean()):.2%}', flush=True)
+            if completed_count:
+                print(f'  completed mean turns: {completed_turns / completed_count:.3f}; '
+                      f'completed >=1 turn: {completed_one_turn / completed_count:.2%}', flush=True)
+                print(f'  completed mean net angle: {360 * completed_net_turns / completed_count:.1f} deg', flush=True)
+            print(f'  mean recontacts/step: {recontacts / max_steps:.4f}; '
+                  f'blocked push: {blocked_push_sum / max_steps:.4f}', flush=True)
             print(
                 "[FULL-GRAVITY EVAL]\n"
                 f"  gravity       : {float(getattr(self.env, '_gravity_magnitude', 9.81)):.3f} m/s^2\n"
@@ -645,7 +700,11 @@ class PPO(object):
         width = 100
         pad = 30
         fps = int(self.batch_size / max(1e-6, collect_t + learn_t))
-        eta_sec = max(0.0, (total_iters - self.epoch_num) * (elapsed / max(1, self.epoch_num)))
+        updates_this_run = self.epoch_num - getattr(self, '_training_start_epoch', 0)
+        eta_sec = max(0.0, (total_iters - self.epoch_num) * (elapsed / max(1, updates_this_run)))
+        def duration(seconds):
+            days, seconds = divmod(int(seconds), 86400)
+            return (f'{days}d ' if days else '') + time.strftime('%H:%M:%S', time.gmtime(seconds))
 
         rew_items = []
         for k in sorted(self.extra_info.keys()):
@@ -670,8 +729,8 @@ class PPO(object):
             "-" * width,
             f"{'Total timesteps:':>{pad}} {self.agent_steps}",
             f"{'Iteration time:':>{pad}} {iter_t:.2f}s",
-            f"{'Time elapsed:':>{pad}} {time.strftime('%H:%M:%S', time.gmtime(elapsed))}",
-            f"{'ETA:':>{pad}} {time.strftime('%H:%M:%S', time.gmtime(eta_sec))}",
+            f"{'Time elapsed:':>{pad}} {duration(elapsed)}",
+            f"{'ETA:':>{pad}} {duration(eta_sec)}",
         ])
         print("\n".join(lines))
 
@@ -688,7 +747,7 @@ class PPO(object):
                 self.storage.update_data(k, n, res_dict[k])
             # do env step
             sampled_actions = res_dict['actions']
-            action_saturation_sum += float((sampled_actions.abs() > 1.0).float().mean().item())
+            action_saturation_sum = action_saturation_sum + (sampled_actions.abs() > 1.0).float().mean()
             actions = torch.clamp(sampled_actions, -1.0, 1.0)
             self.obs, rewards, self.dones, infos = self.env.step(actions)
             rewards = rewards.unsqueeze(1)
@@ -711,11 +770,11 @@ class PPO(object):
                 # only log scalars
                 if isinstance(v, float) or isinstance(v, int) or (isinstance(v, torch.Tensor) and len(v.shape) == 0):
                     if isinstance(v, torch.Tensor):
-                        v = v.item()
+                        v = v.detach()
                     if isinstance(k, str) and k.startswith("rew/"):
-                        v = float(v) * self.reward_scale
-                    else:
-                        v = float(v)
+                        v = v * self.reward_scale
+                    # Out-of-place addition owns the value even if the environment
+                    # reuses an in-place scalar buffer on the following step.
                     extra_sums[k] = extra_sums.get(k, 0.0) + v
                     extra_counts[k] = extra_counts.get(k, 0) + 1
 
@@ -725,11 +784,24 @@ class PPO(object):
             self.current_raw_rewards = self.current_raw_rewards * not_dones.unsqueeze(1)
             self.current_lengths = self.current_lengths * not_dones
 
+        # One batched device-to-host read per rollout, rather than one blocking
+        # .item() per metric per control step. Keep weighted episode statistics.
+        extra_sums['policy/action_saturation_rate'] = action_saturation_sum
+        extra_counts['policy/action_saturation_rate'] = self.horizon_length
+        keys = list(extra_sums)
+        values_cpu = torch.stack([
+            torch.as_tensor(extra_sums[k], device=self.device, dtype=torch.float64) for k in keys
+        ]).cpu().tolist()
+        extra_sums = dict(zip(keys, values_cpu))
         self.extra_info = {
             k: extra_sums[k] / extra_counts[k]
             for k in extra_sums
         }
-        self.extra_info['policy/action_saturation_rate'] = action_saturation_sum / self.horizon_length
+        completed = extra_sums.get('gait/completed_count', 0.)
+        if completed > 0:
+            self.extra_info['gait/completed_one_turn_rate'] = extra_sums.get('gait/completed_one_turn_count', 0.) / completed
+            self.extra_info['gait/completed_mean_turns'] = extra_sums.get('gait/completed_turns_sum', 0.) / completed
+            self.extra_info['gait/completed_mean_net_turns'] = extra_sums.get('gait/completed_net_turns_sum', 0.) / completed
         with torch.no_grad():
             action_std = self.model.sigma.exp()
             self.extra_info['policy/action_std_mean'] = float(action_std.mean().item())

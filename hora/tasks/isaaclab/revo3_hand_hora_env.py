@@ -20,6 +20,11 @@ from isaaclab.sim.spawners.from_files import GroundPlaneCfg, spawn_ground_plane
 from isaaclab.sensors import ContactSensor
 from isaaclab.utils.math import quat_conjugate, quat_mul, saturate
 from hora.utils.grasp_cache import load_grasp_cache
+from hora.utils.privileged_observations import object_rotation_6d
+from hora.utils.finger_gait import (
+    signed_axis_increment, new_turns, blocked_push, support_gate, debounce_contacts,
+    directed_speed_reward,
+)
 
 if TYPE_CHECKING:
     from .revo3_hand_hora_env_cfg import Revo3HandHoraEnvCfg
@@ -33,9 +38,11 @@ class Revo3HandHoraEnv(DirectRLEnv):
       [21:42]  current joint targets (delta-accumulated, clamped to joint limits)
       [42:47]  object-filtered resultant forces on 5 DIP fingertips, sampled at 20 Hz
 
-    Privileged observation (18 dims): object position delta (3), friction (1),
+    Privileged observation (18 legacy / 24 orientation dims): object position delta (3), friction (1),
       mass (1), COM (3), gravity magnitude (1), configured object-axis in world (3),
-      object angular velocity (3), and object linear velocity (3).
+      object angular velocity (3), and object linear velocity (3). The 24-dim
+      layout appends world directions of object-local X and Y (6), exposing
+      absolute yaw even when the configured rotation axis remains vertical.
 
     Action (21 dims) — delta position control:
       action ∈ [-1,1] → target = prev_target + (1/24)*action → clamp(joint_limits)
@@ -63,6 +70,8 @@ class Revo3HandHoraEnv(DirectRLEnv):
     cfg: Revo3HandHoraEnvCfg
 
     def __init__(self, cfg: Revo3HandHoraEnvCfg, render_mode: str | None = None, **kwargs):
+        if cfg.priv_info_dim not in (18, 24):
+            raise ValueError('priv_info_dim must be 18 (legacy) or 24 (object rotation 6D)')
         self.reset_height_lower = torch.zeros(cfg.scene.num_envs, device=cfg.sim.device)
         self.reset_height_upper = torch.zeros(cfg.scene.num_envs, device=cfg.sim.device)
 
@@ -230,6 +239,17 @@ class Revo3HandHoraEnv(DirectRLEnv):
         self._gravity_window_steps = 0
         self._gravity_window_reset_rate = 1.0
 
+        # Diagnostic state is reset per environment; never advance in observation
+        # getters (timeout snapshots and ordinary observations share those).
+        self.gait_angle = torch.zeros(self.num_envs, device=self.device)
+        self.gait_high_water = torch.zeros_like(self.gait_angle)
+        self.gait_previous_quat = self.object.data.root_quat_w.clone()
+        self.gait_limit_age = torch.zeros_like(self.cur_targets, dtype=torch.long)
+        self.gait_push_penalty = torch.zeros_like(self.gait_angle)
+        self.gait_contacts = torch.zeros(self.num_envs, 5, dtype=torch.bool, device=self.device)
+        self.gait_contact_age = torch.zeros_like(self.gait_contacts, dtype=torch.long)
+        self.gait_first_contact_seen = torch.zeros_like(self.gait_contacts)
+
     def _setup_scene(self):
         # add hand, in-hand object, and goal object
         self.hand = Articulation(self.cfg.robot_cfg)
@@ -265,6 +285,12 @@ class Revo3HandHoraEnv(DirectRLEnv):
         actions = saturate(actions, torch.tensor(-self.cfg.clip_actions), torch.tensor(self.cfg.clip_actions))
         self.actions = actions.clone()
         targets = self.prev_targets + self.cfg.action_scale * self.actions
+        self.gait_limit_age, self.gait_push_penalty = blocked_push(
+            self.prev_targets, targets, self.hand_dof_lower_limits,
+            self.hand_dof_upper_limits, self.gait_limit_age,
+            self.cfg.action_scale, self.cfg.gait_limit_grace_steps,
+            self.cfg.gait_limit_recovery_margin,
+        )
         self.cur_targets[:, self.actuated_dof_indices] = saturate(
             targets,
             self.hand_dof_lower_limits[:, self.actuated_dof_indices],
@@ -323,6 +349,8 @@ class Revo3HandHoraEnv(DirectRLEnv):
             min=-1.0,
             max=1.0,
         )
+        if self.cfg.finger_gait:
+            rotate_reward = directed_speed_reward(target_axis_angvel, self.cfg.target_angvel)
 
         # Rotate the task-specific local object axis into world coordinates and
         # compare it with the independently configured target world axis.
@@ -413,6 +441,55 @@ class Revo3HandHoraEnv(DirectRLEnv):
             torque_penalty, self.cfg.torque_penalty_scale,
             work_penalty, self.cfg.work_penalty_scale,
         )
+
+        # Measure actual orientation change, not angular speed times episode
+        # length. Signed high-water marks prevent reverse/forward bonus farming.
+        self.gait_angle += signed_axis_increment(
+            self.gait_previous_quat, self.object_rot, self.target_rotation_axis_world)
+        self.gait_previous_quat.copy_(self.object_rot)
+        self.gait_high_water, gained_turns = new_turns(self.gait_angle, self.gait_high_water)
+        forces = self._raw_object_contact_forces()
+        self.gait_contacts, self.gait_contact_age, recontacts, releases = debounce_contacts(
+            forces, self.gait_contacts, self.gait_contact_age,
+            self.cfg.contact_threshold, self.cfg.contact_threshold * .5,
+            self.cfg.gait_contact_debounce_steps)
+        # Initial contact establishment is not a regrasp.
+        recontacts &= self.gait_first_contact_seen
+        self.gait_first_contact_seen |= self.gait_contacts
+        gate = support_gate(z_drift, -self.object_linvel[:, 2],
+            self.gait_contacts.sum(-1), self.cfg.gait_safe_z_m,
+            self.cfg.gait_max_z_m, self.cfg.gait_max_down_speed) * (1 - drop_penalty)
+        gait_bonus = gained_turns * gate * (object_axis_tilt <= self.cfg.object_axis_tilt_tolerance)
+        # Never attenuate reverse-rotation penalties. Contact transitions are
+        # metrics only: switching contacts without useful motion earns nothing.
+        gait_adjustment = (rotate_reward.clamp_min(0) * (gate - 1) * self.cfg.rotate_reward_scale
+                           + self.gait_push_penalty * self.cfg.gait_blocked_push_scale
+                           + gait_bonus * self.cfg.gait_full_turn_bonus)
+        if self.cfg.finger_gait:
+            total_reward = total_reward + gait_adjustment
+        self.extras['rew/gait_adjustment'] = gait_adjustment.mean() if self.cfg.finger_gait else 0.0
+        self.extras['gait/support_gate'] = gate.mean()
+        self.extras['gait/blocked_push'] = self.gait_push_penalty.mean()
+        self.extras['gait/target_tracking_error_rad'] = (self.cur_targets - self.hand_dof_pos).abs().mean()
+        actual_margin = torch.minimum(self.hand_dof_pos - self.hand_dof_lower_limits,
+                                      self.hand_dof_upper_limits - self.hand_dof_pos)
+        target_margin = torch.minimum(self.cur_targets - self.hand_dof_lower_limits,
+                                      self.hand_dof_upper_limits - self.cur_targets)
+        self.extras['gait/actual_near_limit_rate'] = (actual_margin < .05).float().mean()
+        self.extras['gait/target_near_limit_rate'] = (target_margin < .05).float().mean()
+        self.extras['gait/net_turns'] = (self.gait_angle / (2 * torch.pi)).mean()
+        self.extras['gait/new_full_turns'] = gained_turns.mean()
+        self.extras['gait/recontacts'] = recontacts.float().sum(-1).mean()
+        self.extras['gait/releases'] = releases.float().sum(-1).mean()
+        end = (drop_penalty > 0) | (self.episode_length_buf >= self.max_episode_length)
+        self.extras['gait/completed_count'] = end.float().sum()
+        self.extras['gait/completed_one_turn_count'] = (end & (self.gait_high_water >= 1)).float().sum()
+        self.extras['gait/completed_turns_sum'] = (self.gait_high_water * end).sum()
+        self.extras['gait/completed_net_turns_sum'] = (self.gait_angle / (2 * torch.pi) * end).sum()
+        for i, name in enumerate(('thumb', 'index', 'middle', 'ring', 'little')):
+            self.extras[f'gait/contact_{name}'] = self.gait_contacts[:, i].float().mean()
+        for i, name in enumerate(self.hand.joint_names):
+            self.extras[f'gait/blocked_{name}'] = (self.gait_limit_age[:, i] > self.cfg.gait_limit_grace_steps).float().mean()
 
         self.extras["rew/rotate"] = (rotate_reward * self.cfg.rotate_reward_scale).mean()
         self.extras["rew/stable_rotation"] = (
@@ -616,6 +693,15 @@ class Revo3HandHoraEnv(DirectRLEnv):
         # reset data buffers
         self.last_contacts[env_ids] = 0
         self.at_reset_buf[env_ids] = 1
+        if hasattr(self, 'gait_angle'):
+            self.gait_angle[env_ids] = 0
+            self.gait_high_water[env_ids] = 0
+            self.gait_previous_quat[env_ids] = self.object_rot[env_ids]
+            self.gait_limit_age[env_ids] = 0
+            self.gait_push_penalty[env_ids] = 0
+            self.gait_contacts[env_ids] = False
+            self.gait_contact_age[env_ids] = 0
+            self.gait_first_contact_seen[env_ids] = False
 
     def _refresh_lab(self):
         # data for hand
@@ -646,16 +732,18 @@ class Revo3HandHoraEnv(DirectRLEnv):
             except Exception:
                 pass
 
-    def _sample_contacts(self, env_ids=slice(None)):
-        # Object-filtered resultant force for each fingertip, sampled exactly
-        # once per policy step (20 Hz / 0.05 s).  force_matrix_w excludes
-        # self-collision and contacts with anything except the target object.
+    def _raw_object_contact_forces(self, env_ids=slice(None)):
+        # Reading sensor forces has no history/noise/latency side effects.
         object_contact_forces = torch.stack(
             [sensor.data.force_matrix_w[env_ids, 0, 0, :] for sensor in self._contact_sensor],
             dim=1,
         )
         contact_forces = torch.nan_to_num(torch.norm(object_contact_forces, dim=-1))
         contact_forces[:, self._contact_body_ids_disable] = 0.0
+        return contact_forces
+
+    def _sample_contacts(self, env_ids=slice(None)):
+        contact_forces = self._raw_object_contact_forces(env_ids)
         readings = (contact_forces > self.cfg.contact_threshold).float() if self.cfg.binary_contact else contact_forces
         if self.cfg.contact_latency > 0.0:
             delayed = torch.rand_like(readings) < self.cfg.contact_latency
@@ -684,6 +772,8 @@ class Revo3HandHoraEnv(DirectRLEnv):
         priv[:, 9:12] = rotate_axis_by_quat(self.object_rotation_axis_local[env_ids], self.object_rot[env_ids])
         priv[:, 12:15] = self.object_angvel[env_ids]
         priv[:, 15:18] = self.object_linvel[env_ids]
+        if self.cfg.priv_info_dim == 24:
+            priv[:, 18:24] = object_rotation_6d(self.object_rot[env_ids])
         return priv
 
     def _capture_timeout_observations(self):

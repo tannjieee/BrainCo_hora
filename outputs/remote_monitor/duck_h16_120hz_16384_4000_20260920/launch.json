@@ -1,0 +1,33 @@
+{
+  "started_utc": "2026-09-20T05:55:58.206044+00:00",
+  "gpu": 2,
+  "num_envs": 16384,
+  "horizon_length": 16,
+  "gamma": 0.995,
+  "episode_length_s": 40,
+  "policy_hz": 20,
+  "physics_hz": 120,
+  "decimation": 6,
+  "max_iterations": 4000,
+  "max_agent_steps": 1063518208,
+  "save_frequency": 50,
+  "minibatch_size": 32768,
+  "rotation_speed": 0.5,
+  "gravity": 9.81,
+  "seed": 42,
+  "output": "outputs/revo3_right/run_rubber_duck_gait_h16_p120_16384_i4000_s42_20260920",
+  "checkpoint": "remote_runs/duck_rate_check_20260920/source_policy.pth",
+  "checkpoint_sha256": "b178901c894576cd0548a2c060465c63163a00631c3589c8514ad93fbc7122f0",
+  "resume_epoch": 19,
+  "resume_agent_steps": 19922944,
+  "source_sha256": {
+    "train.py": "a7fb4c9a4a84c5b7698e6f7d54ba4f7bf1f2acd48596d769af072064a0e43e05",
+    "scripts/duck_gait_large.sh": "98aa0a342d18d7b81a937b876a9b5547bd90d320e8a093a8d2c59eb05eb27a0d",
+    "scripts/duck_gait.sh": "164e89df5b077b471dab9df257e87c8fe8b7146c913ef2b8de895a269ea0b450",
+    "hora/algo/ppo/ppo.py": "fb937599cfda5ff53f9346ae8644b384fe01f0723b837c2259f3ebcfb0b7dc3b",
+    "configs/train/Revo3HandHora.yaml": "592ff4515bbbf49c366eb3c4337bdd67af778d6c026b21fca5157efc1e32d9c1",
+    "hora/tasks/isaaclab/revo3_hand_hora_env.py": "cae3974f9809f02e9fd1480a6e89138902986f00a3196454514479223c2ee294",
+    "hora/tasks/isaaclab/revo3_hand_hora_env_cfg.py": "0d9c84ffe775aab28d00e409f2922268676077d8f45802b23d41384b154cc475",
+    "hora/utils/finger_gait.py": "b8b85020188bb04b7665bd54af6d9afe83642c084225458bd82435b61f682456"
+  }
+}

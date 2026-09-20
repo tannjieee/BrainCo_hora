@@ -4,6 +4,20 @@ from pathlib import Path
 import numpy as np
 
 
+def validate_object_runtime(previous, current):
+    """Reject accidental checkpoint/task/cache mixing, ignoring machine paths."""
+    if not previous or not current:
+        return
+    old_object, new_object = previous.get('object', {}), current.get('object', {})
+    keys = ('task', 'scale', 'object_init_pos_m', 'object_init_quat_wxyz',
+            'rotation_axis_local', 'target_axis_world', 'hand_joint_pos_rad',
+            'axis_bidirectional', 'enforce_axis_alignment', 'axis_tilt_tolerance_deg')
+    if (any(old_object.get(k) != new_object.get(k) for k in keys)
+            or previous.get('grasp_cache_sha256') != current.get('grasp_cache_sha256')):
+        raise RuntimeError('Checkpoint task/pose/cache mismatch; select the matching --task and --cache_file. '
+                           'For intentional training transfer use --weights_only in a new run.')
+
+
 def load_grasp_cache(path, num_dofs):
     path = Path(path)
     data = np.load(path, allow_pickle=False)

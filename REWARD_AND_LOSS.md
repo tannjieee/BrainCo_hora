@@ -2,6 +2,8 @@
 
 本文档对应当前 `Revo3HandHoraEnv` 和 `PPO` 实现。环境以 20 Hz 输出原始单步奖励，PPO 在计算 GAE 前统一乘以 `reward_scale = 0.01`。
 
+以下是默认奖励。显式传入 `--finger_gait` 时叠加支撑门控、持续无效限位动作惩罚和首次整圈奖励，具体公式与兼容性见 [FINGER_GAIT.md](FINGER_GAIT.md)。接触切换次数本身不奖励。
+
 ## 1. 记号
 
 - `ω`：物体世界坐标系角速度，单位 rad/s。

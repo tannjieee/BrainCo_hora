@@ -45,7 +45,7 @@ ppo:
   save_frequency: 50
   max_agent_steps: 300000000
   priv_info: True
-  priv_info_dim: 18
+  priv_info_dim: 18  # train.py resolves 18/24 from task, orientation option, and checkpoint.
   priv_info_embed_dim: 8
   proprio_adapt: False
   full_gravity_magnitude: 9.81

@@ -24,9 +24,13 @@ Gotcha — timeout check: uses >= max_episode_length (NOT -1), must match env's 
 
 import argparse
 import copy
+import hashlib
+import json
+import math
 import os
 import sys
 import time
+from pathlib import Path
 from collections.abc import Sequence
 
 from isaaclab.app import AppLauncher
@@ -41,6 +45,14 @@ parser.add_argument("--seed", type=int, default=42, help="Random seed for grasp 
 parser.add_argument("--cache_file", type=str, default="", help="Override output cache filename under cache/.")
 parser.add_argument("--usd", type=str, default="", help="Override hand USD path.")
 parser.add_argument("--noise_scale", type=float, default=0.15, help="±noise added to init_joint_pos")
+parser.add_argument("--seed_cache", default="", help="Existing cache filename under cache/ used for joint seeds only.")
+parser.add_argument("--yaw_bins", type=int, default=1, help="Balanced rotation bins about the target world axis.")
+parser.add_argument("--yaw_span_deg", type=float, default=360., help="Range of positive axis rotations; one bin keeps the original pose.")
+parser.add_argument("--free_fingers", nargs="*", choices=["thumb", "index", "middle", "ring", "little"], default=[],
+                    help="Balance original grasps and grasps with each selected finger kept out of contact.")
+parser.add_argument("--finger_open_fraction", type=float, default=.7, help="Fraction of flexion target moved toward extension for a free finger.")
+parser.add_argument("--max_steps", type=int, default=0, help="Stop unsuccessful collection after this many policy steps; 0 is unlimited.")
+parser.add_argument("--force_overwrite", action="store_true", help="Allow replacing this output cache and its report.")
 parser.add_argument("--progress_interval", type=float, default=10.0, help="Seconds between progress updates.")
 parser.add_argument(
     "--episode_length_s",
@@ -119,6 +131,19 @@ parser.add_argument(
 AppLauncher.add_app_launcher_args(parser)
 args = parser.parse_args()
 
+if args.yaw_bins < 1 or not math.isfinite(args.yaw_span_deg) or not 0 < args.yaw_span_deg <= 360:
+    parser.error("yaw_bins must be positive and yaw_span_deg in (0, 360]")
+if len(set(args.free_fingers)) != len(args.free_fingers):
+    parser.error("free_fingers must not contain duplicates")
+if args.target_count < args.yaw_bins * (1 + len(args.free_fingers)):
+    parser.error("target_count must cover every yaw/free-finger group")
+if not math.isfinite(args.finger_open_fraction) or not 0 < args.finger_open_fraction <= 1:
+    parser.error("finger_open_fraction must be in (0, 1]")
+if args.max_steps < 0 or not math.isfinite(args.noise_scale) or args.noise_scale < 0:
+    parser.error("max_steps and noise_scale must be nonnegative and noise_scale finite")
+for filename in (args.cache_file, args.seed_cache):
+    if filename and Path(filename).name != filename:
+        parser.error("cache filenames must be basenames under cache/")
 if args.num_envs <= 0:
     parser.error("--num_envs must be greater than 0")
 if args.target_count <= 0:
@@ -178,6 +203,8 @@ from isaaclab.utils.math import quat_apply, quat_conjugate, quat_mul, saturate
 from hora.tasks.isaaclab import Revo3HandHoraEnv, Revo3HandHoraEnvCfg
 from hora.tasks.isaaclab.assets import configure_env_for_object_task
 from hora.utils.misc import set_seed
+from hora.utils.grasp_cache import load_grasp_cache
+from hora.utils.grasp_sampling import GraspQuota, rotate_about_axis, valid_grasp_success
 
 
 class GraspGenEnv(Revo3HandHoraEnv):
@@ -205,12 +232,30 @@ class GraspGenEnv(Revo3HandHoraEnv):
         gravity_interval: int = 40,
         gravity_settle_steps: int = 20,
         axis_validation_steps: int = 10,
+        yaw_bins: int = 1,
+        yaw_span_deg: float = 360.,
+        free_fingers: Sequence[str] = (),
+        finger_open_fraction: float = .7,
+        seed_cache: str = "",
         **kwargs,
     ):
         self._noise_scale = noise_scale
         if target_count is None:
             raise ValueError("target_count must be provided explicitly from CLI.")
         self._target_count = int(target_count)
+        self._yaw_bins = yaw_bins
+        self._yaw_span = math.radians(yaw_span_deg)
+        self._free_fingers = tuple(free_fingers)
+        self._group_count = 1 + len(free_fingers)
+        self._finger_open_fraction = finger_open_fraction
+        self._quota = GraspQuota(self._target_count, yaw_bins, self._group_count)
+        self._candidate_bucket = torch.zeros(cfg.scene.num_envs, dtype=torch.long, device=cfg.sim.device)
+        self._candidate_free_id = torch.full_like(self._candidate_bucket, -1)
+        self._candidate_valid = torch.zeros(cfg.scene.num_envs, dtype=torch.bool, device=cfg.sim.device)
+        self._seed_joints = None
+        if seed_cache:
+            self._seed_joints = torch.as_tensor(load_grasp_cache(seed_cache, cfg.action_space)[:, :cfg.action_space],
+                                                device=cfg.sim.device)
         self._collected: list[np.ndarray] = []
         self._collected_count = 0
         self._progress_interval = float(progress_interval)
@@ -262,6 +307,10 @@ class GraspGenEnv(Revo3HandHoraEnv):
         )
         self._reset_condition_stats()
         super().__init__(cfg, render_mode, **kwargs)
+        if self._seed_joints is not None:
+            if ((self._seed_joints < self.hand_dof_lower_limits[:1] - 1e-4)
+                    | (self._seed_joints > self.hand_dof_upper_limits[:1] + 1e-4)).any():
+                raise ValueError('Seed cache joints exceed current hand limits')
         # The state that must be cached is the candidate at the start of its
         # validation episode.  Saving the terminal state can reintroduce a
         # settled pose with incompatible zero velocity/contact penetration.
@@ -342,6 +391,8 @@ class GraspGenEnv(Revo3HandHoraEnv):
             f" | elapsed={self._format_duration(elapsed)} | ETA={eta}",
             flush=True,
         )
+        if len(self._quota.targets) > 1:
+            print(f"[COVERAGE] accepted={self._quota.counts.tolist()} targets={self._quota.targets.tolist()}", flush=True)
 
         if self._condition_samples > 0:
             samples = self._condition_samples
@@ -472,9 +523,11 @@ class GraspGenEnv(Revo3HandHoraEnv):
         self._refresh_lab()
         if self._gravity_mode == "six_axis":
             self._gravity_steps_in_direction += 1
-        # cond1: all 5 fingertips within 0.1m of object
+        # A deliberately released finger may move outside the grasp envelope.
+        # Keep the proximity guard for every other finger.
         fingertip_distances = torch.norm(self.fingertip_pos - self.object_pos.unsqueeze(1), dim=-1)
-        cond1 = (fingertip_distances < self._fingertip_near_threshold).all(-1)
+        exempt = torch.arange(5, device=self.device).unsqueeze(0) == self._candidate_free_id.unsqueeze(-1)
+        cond1 = ((fingertip_distances < self._fingertip_near_threshold) | exempt).all(-1)
         # cond2: use object-filtered forces, excluding self and unrelated contacts
         object_contact_forces = torch.stack(
             [sensor.data.force_matrix_w[:, 0, 0, :] for sensor in self._contact_sensor],
@@ -537,6 +590,11 @@ class GraspGenEnv(Revo3HandHoraEnv):
         # contact floor, and (when enabled) tight object-axis alignment.
         settling = self.episode_length_buf <= self._settle_steps
         stable = contact_established & live_contact & cond3 & cond_height & cond_horizontal
+        # A requested free finger must actually remain free after settling.
+        free_force = torch.norm(object_contact_forces, dim=-1).gather(
+            1, self._candidate_free_id.clamp_min(0).unsqueeze(-1)).squeeze(-1)
+        free_ok = (self._candidate_free_id < 0) | (free_force < self._contact_force_threshold * .5)
+        stable &= free_ok
         if self._gravity_mode == "six_axis":
             gravity_settling = self._gravity_steps_in_direction <= self._gravity_settle_steps
             if gravity_settling:
@@ -557,6 +615,7 @@ class GraspGenEnv(Revo3HandHoraEnv):
                 cond = cond1 & (stable | settling)
         else:
             cond = cond1 & (stable | settling)
+        self._candidate_valid.copy_(cond & stable)
         self.reset_buf[~cond] = 1
 
         # Switch only after evaluating the final state under the current
@@ -586,14 +645,18 @@ class GraspGenEnv(Revo3HandHoraEnv):
             self._attempt_count += len(env_ids)
 
         # collect states that survived full episode (successful grasps)
-        success = self.episode_length_buf >= self.max_episode_length
+        success = valid_grasp_success(self.episode_length_buf, self.max_episode_length,
+                                      self.reset_terminated, self._candidate_valid, env_ids)
         if self._gravity_mode == "six_axis":
             success &= self._axis_pass_mask == self._required_axis_mask
-        n_success = success.sum().item()
+        success_ids = success.nonzero(as_tuple=False).flatten()
+        keep = self._quota.accept(self._candidate_bucket[success_ids].cpu().numpy())
+        success_ids = success_ids[torch.as_tensor(keep, device=self.device)]
+        n_success = len(success_ids)
         if n_success > 0:
-            joint_pos = self._candidate_joint_pos[success].cpu().numpy()
-            obj_local = self._candidate_object_pos[success].cpu().numpy()
-            obj_quat_wxyz = self._candidate_object_quat[success].cpu().numpy()
+            joint_pos = self._candidate_joint_pos[success_ids].cpu().numpy()
+            obj_local = self._candidate_object_pos[success_ids].cpu().numpy()
+            obj_quat_wxyz = self._candidate_object_quat[success_ids].cpu().numpy()
             obj_quat_xyzw = np.concatenate([obj_quat_wxyz[:, 1:], obj_quat_wxyz[:, :1]], axis=-1)
             entry = np.concatenate([joint_pos, obj_local, obj_quat_xyzw], axis=-1)
             self._collected.append(entry)
@@ -617,11 +680,34 @@ class GraspGenEnv(Revo3HandHoraEnv):
         self._contact_window_counts[env_ids] = 0
         self._axis_pass_mask[env_ids] = 0
         self._axis_stable_steps[env_ids] = 0
+        self._candidate_valid[env_ids] = False
+
+        # Sample only unfinished strata; successful easy poses cannot crowd out
+        # the harder orientations/contact groups. All still require validation.
+        remaining = self._quota.targets - self._quota.counts
+        bucket_weights = torch.as_tensor(remaining, dtype=torch.float32, device=self.device)
+        buckets = torch.multinomial(bucket_weights, len(env_ids), replacement=True)
+        self._candidate_bucket[env_ids] = buckets
+        groups = buckets % self._group_count
+        finger_ids = [-1] + [("thumb", "index", "middle", "ring", "little").index(f) for f in self._free_fingers]
+        self._candidate_free_id[env_ids] = torch.tensor(finger_ids, device=self.device)[groups]
 
         # Random joint exploration around the manifest/default grasp.
         ndof = self.num_hand_dofs
         rand_floats = 2.0 * torch.rand((len(env_ids), ndof), device=self.device) - 1.0
-        dof_pos = self.init_joint_pos.expand(len(env_ids), -1) + self._noise_scale * rand_floats
+        seed_positions = self.init_joint_pos.expand(len(env_ids), -1)
+        if self._seed_joints is not None:
+            seed_positions = self._seed_joints[torch.randint(len(self._seed_joints), (len(env_ids),), device=self.device)]
+        dof_pos = seed_positions + self._noise_scale * rand_floats
+        for group, finger in enumerate(self._free_fingers, start=1):
+            # Only flexion joints: preserve finger spread/opposition. For this
+            # hand, the lower limit of MCP/PIP/DIP is the extension direction.
+            joints = [i for i, name in enumerate(self.hand.joint_names)
+                      if name in [f"right_{finger}_{j}_joint" for j in ("MCP", "PIP", "DIP")]]
+            rows = (groups == group).nonzero(as_tuple=False).flatten()
+            for joint in joints:
+                lo = self.hand_dof_lower_limits[env_ids[rows], joint]
+                dof_pos[rows, joint] += self._finger_open_fraction * (lo - dof_pos[rows, joint])
         dof_pos = saturate(dof_pos, self.hand_dof_lower_limits[env_ids], self.hand_dof_upper_limits[env_ids])
         dof_vel = torch.zeros_like(self.hand.data.default_joint_vel[env_ids])
 
@@ -632,6 +718,9 @@ class GraspGenEnv(Revo3HandHoraEnv):
 
         # reset object to default state
         obj_default = self.object.data.default_root_state.clone()[env_ids]
+        if self._yaw_bins > 1:
+            angles = ((buckets // self._group_count).float() + torch.rand(len(env_ids), device=self.device)) * self._yaw_span / self._yaw_bins
+            obj_default[:, 3:7] = rotate_about_axis(obj_default[:, 3:7], self.target_rotation_axis_world[env_ids], angles)
         obj_default[:, 0:3] += self.scene.env_origins[env_ids]
         obj_default[:, 7:] = 0.0
         self.object.write_root_pose_to_sim(obj_default[:, :7], env_ids)
@@ -663,12 +752,33 @@ class GraspGenEnv(Revo3HandHoraEnv):
         all_states = np.concatenate(self._collected, axis=0)[: self._target_count]
         os.makedirs("cache", exist_ok=True)
         path = f"{self.cfg.grasp_cache_path}.npy"
-        np.save(path, all_states.astype(np.float32))
+        temporary = f'{path}.tmp'
+        with open(temporary, 'wb') as stream:
+            np.save(stream, all_states.astype(np.float32))
+        os.replace(temporary, path)
+        self.save_report(complete=True)
         print(f"\n[INFO] Saved {len(all_states)} grasps -> {path}")
         print(f"       shape={all_states.shape}  dtype={all_states.dtype}")
         self.close()
         simulation_app.close()
         sys.exit(0)
+
+    def save_report(self, complete=False):
+        report = {
+            "complete": complete, "accepted": self._quota.counts.tolist(),
+            "targets": self._quota.targets.tolist(), "yaw_bins": self._yaw_bins,
+            "yaw_span_deg": math.degrees(self._yaw_span),
+            "groups": ["original"] + list(self._free_fingers),
+            "bucket_order": "yaw_bin * len(groups) + group",
+            "cache_semantics": "Initial zero-velocity state validated for the entire hold episode; seed cache supplies joints only",
+            "collection_args": vars(args), "object": object_spec.metadata(),
+            "policy_dt": self.step_dt, "validation_seconds": self.cfg.episode_length_s,
+        }
+        if args.seed_cache:
+            report['seed_cache_sha256'] = hashlib.sha256(Path('cache', args.seed_cache).read_bytes()).hexdigest()
+        if complete:
+            report['cache_sha256'] = hashlib.sha256(Path(f'{self.cfg.grasp_cache_path}.npy').read_bytes()).hexdigest()
+        Path(f'{self.cfg.grasp_cache_path}.report.json').write_text(json.dumps(report, indent=2) + '\n')
 
 
 seed = set_seed(args.seed)
@@ -685,6 +795,12 @@ if args.cache_file:
     env_cfg.grasp_cache_path = f"cache/{args.cache_file.replace('.npy', '')}"
 
 cache_path = f"{env_cfg.grasp_cache_path}.npy"
+for destination in (cache_path, f"{env_cfg.grasp_cache_path}.report.json"):
+    if Path(destination).exists() and not args.force_overwrite:
+        raise FileExistsError(f'{destination} already exists; use a new --cache_file or explicit --force_overwrite')
+if args.seed_cache and Path('cache', args.seed_cache).resolve() == Path(cache_path).resolve():
+    raise ValueError('seed_cache and output cache must differ')
+Path(cache_path).parent.mkdir(parents=True, exist_ok=True)
 
 if args.usd:
     usd_path = os.path.abspath(args.usd)
@@ -719,13 +835,17 @@ elif args.gravity_mode == "six_axis":
     env_cfg.episode_length_s = minimum_six_axis_episode_s
 else:
     env_cfg.episode_length_s = 5.0
+if env_cfg.episode_length_s <= args.settle_steps * policy_dt:
+    raise ValueError('Validation episode must contain post-settling hold steps')
+if args.yaw_bins > 1 and not env_cfg.enforce_object_axis_alignment:
+    raise ValueError('Multi-angle collection requires an axis-aligned object task')
 env_cfg.randomize_pd_gains = False
 env_cfg.randomize_com = False
 env_cfg.randomize_friction = False
 env_cfg.randomize_mass = False  # use cfg default 0.10 kg
 env_cfg.force_scale = 0.0
 env_cfg.random_force_prob_scalar = 0.0
-env_cfg.sim.device = "cuda:0"
+env_cfg.sim.device = args.device or "cuda:0"
 
 env = GraspGenEnv(
     env_cfg,
@@ -748,6 +868,11 @@ env = GraspGenEnv(
     gravity_interval=args.gravity_interval,
     gravity_settle_steps=args.gravity_settle_steps,
     axis_validation_steps=args.axis_validation_steps,
+    yaw_bins=args.yaw_bins,
+    yaw_span_deg=args.yaw_span_deg,
+    free_fingers=args.free_fingers,
+    finger_open_fraction=args.finger_open_fraction,
+    seed_cache=str(Path('cache', args.seed_cache)) if args.seed_cache else '',
 )
 env.reset()
 env.start_progress_tracking()
@@ -763,6 +888,8 @@ print(f"  target axis : {object_spec.target_axis_world}")
 print(f"  num_envs    : {args.num_envs}")
 print(f"  seed        : {seed}")
 print(f"  noise_scale : ±{args.noise_scale} rad")
+print(f"  coverage    : {args.yaw_bins} axis-angle bins x {1 + len(args.free_fingers)} contact groups")
+print(f"  free fingers: {args.free_fingers}; extension fraction={args.finger_open_fraction:g}")
 print(f"  episode_len : {env_cfg.episode_length_s}s  ({env.max_episode_length} steps)")
 print(f"  target      : {args.target_count} grasps")
 print(f"  progress    : every {args.progress_interval:g}s")
@@ -797,6 +924,17 @@ if args.usd:
 
 zero_actions = torch.zeros((args.num_envs, env_cfg.action_space), device=env.device)
 
+collection_steps = 0
 while simulation_app.is_running():
     with torch.inference_mode():
         env.step(zero_actions)
+    collection_steps += 1
+    if args.max_steps and collection_steps >= args.max_steps:
+        env._print_progress(force=True)
+        env.save_report(complete=False)
+        print('[INCOMPLETE] Collection budget exhausted; no training cache written. Inspect .report.json coverage.', flush=True)
+        env.close()
+        import omni.kit.app
+        omni.kit.app.get_app().post_quit(2)
+        simulation_app.close()
+        sys.exit(2)

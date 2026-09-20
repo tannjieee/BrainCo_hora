@@ -18,6 +18,7 @@ from omegaconf import OmegaConf
 from hora.algo.ppo.ppo import PPO
 from hora.tasks.isaaclab import HoraCompatWrapper, Revo3HandHoraEnv, Revo3HandHoraEnvCfg
 from hora.tasks.isaaclab.assets import configure_env_for_object_task
+from hora.utils.privileged_observations import object_rotation_6d
 
 env = None
 agent = None
@@ -27,9 +28,11 @@ try:
     configure_env_for_object_task(cfg, 'strawberry')
     cfg.scene.num_envs = 8
     cfg.prop_hist_len = 3
+    cfg.priv_info_dim = 24
     cfg.sim.render_interval = cfg.decimation
     cfg.sim.gravity = (0.0, 0.0, -9.81)
     cfg.gravity_curriculum = False
+    cfg.finger_gait = True
     cfg.joint_noise_scale = 0.0
     cache_path = ROOT / f'{cfg.grasp_cache_path}.npy'
     cache_hash = hashlib.sha256(cache_path.read_bytes()).hexdigest()
@@ -44,11 +47,17 @@ try:
             torch.testing.assert_close(mats[..., 0], expected[:, None].expand_as(mats[..., 0]))
             torch.testing.assert_close(mats[..., 1], mats[..., 0])
         assert obs['obs'].shape == (8, 141)
-        assert obs['priv_info'].shape == (8, 18)
+        assert obs['priv_info'].shape == (8, 24)
+        torch.testing.assert_close(obs['priv_info'][:, 18:], object_rotation_6d(env.object_rot))
         assert obs['proprio_hist'].shape == (8, 3, 47)
         actions = torch.zeros(8, 21, device=env.device)
         for _ in range(3):
             obs, _, _, _ = wrapper.step(actions)
+        assert torch.isfinite(env.gait_angle).all()
+        gait_before = env.gait_angle.clone()
+        env._get_observations()
+        torch.testing.assert_close(env.gait_angle, gait_before)
+        assert 'gait/support_gate' in env.extras
         previous_history = env.proprio_hist_buf.clone()
         previous_index = env._obs_history_index
         pose = env.object.data.root_state_w[:, :7].clone()
@@ -59,7 +68,13 @@ try:
         assert info['time_outs'].tolist() == [True, False, False, False, False, False, False, False]
         assert bool(env.reset_terminated[1]) and bool(env.reset_time_outs[1])
         assert bool(env.reset_terminated[2]) and not bool(env.reset_time_outs[2])
+        assert not env.gait_angle[:3].any()
+        assert not env.gait_limit_age[:3].any()
+        assert not env.gait_contacts[:3].any()
         terminal = info['terminal_observation']
+        assert terminal['priv_info'].shape == (1, 24)
+        torch.testing.assert_close(terminal['priv_info'][:, 18:].reshape(-1, 2, 3).norm(dim=-1), torch.ones(1, 2, device=env.device))
+        torch.testing.assert_close(obs['priv_info'][:, 18:], object_rotation_6d(env.object_rot))
         assert terminal['env_ids'].tolist() == [0]
         final_history = terminal['obs'].reshape(1, 3, 47)
         torch.testing.assert_close(final_history[0, :2], previous_history[0, -2:])
@@ -75,6 +90,7 @@ try:
 
     train_cfg = OmegaConf.load(ROOT / 'configs/train/Revo3HandHora.yaml')
     train_cfg.ppo.num_actors = 8
+    train_cfg.ppo.priv_info_dim = cfg.priv_info_dim
     train_cfg.ppo.minibatch_size = 64
     train_cfg.ppo.horizon_length = 16
     full_cfg = OmegaConf.create({'rl_device': env.device, 'test': False, 'train': train_cfg})

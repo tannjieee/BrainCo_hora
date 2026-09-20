@@ -1,5 +1,7 @@
 # BrainCo-hora In-hand Reorientation
 
+连续旋转/换指优化的显式开关、诊断指标和验证方法见 [FINGER_GAIT.md](FINGER_GAIT.md)。默认旧奖励不变。
+
 ### 环境要求
 
 | 组件 | 版本 |

@@ -1,0 +1,5 @@
+{
+  "http_available_during_ssh_outage": true,
+  "automatic_ssh_reconnect": true,
+  "sync_resumed": "2026-09-20T17:00:26+08:00"
+}

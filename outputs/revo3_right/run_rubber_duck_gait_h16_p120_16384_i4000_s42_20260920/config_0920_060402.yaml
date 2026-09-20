@@ -1,0 +1,193 @@
+rl_device: cuda:2
+test: false
+seed: 42
+train:
+  algo: PPO
+  network:
+    mlp:
+      units:
+      - 512
+      - 256
+      - 128
+    priv_mlp:
+      units:
+      - 256
+      - 128
+      - 8
+  load_path: /home/tanjie/BrainCo_hora/remote_runs/duck_rate_check_20260920/source_policy.pth
+  ppo:
+    output_name: run_rubber_duck_gait_h16_p120_16384_i4000_s42_20260920
+    normalize_input: true
+    normalize_value: true
+    value_bootstrap: true
+    num_actors: 16384
+    normalize_advantage: true
+    reward_scale: 0.01
+    gamma: 0.995
+    tau: 0.95
+    learning_rate: 0.0003
+    warmstart_learning_rate: 0.0001
+    kl_threshold: 0.01
+    horizon_length: 16
+    minibatch_size: 32768
+    mini_epochs: 3
+    clip_value: true
+    critic_coef: 1
+    entropy_coef: 0.0001
+    initial_log_std: -1.0
+    min_log_std: -2.3
+    max_log_std: -0.7
+    e_clip: 0.2
+    bounds_loss_coef: 0.001
+    truncate_grads: true
+    grad_norm: 1.0
+    save_best_after: 0
+    save_frequency: 50
+    max_agent_steps: 1063518208
+    priv_info: true
+    priv_info_dim: 18
+    priv_info_embed_dim: 8
+    proprio_adapt: false
+    full_gravity_magnitude: 9.81
+    full_gravity_tolerance: 0.02
+    full_gravity_max_reset_rate: 0.003
+    full_gravity_eval_epochs: 25
+    full_gravity_min_target_angvel: 0.25
+    full_gravity_min_stable_rotation_rate: 0.3
+    max_iterations: 4000
+  stage2:
+    learning_rate: 0.0003
+    latent_loss_coef: 1.0
+    action_loss_coef: 0.25
+    grad_norm: 1.0
+    teacher_warmup_steps: 10000000
+    teacher_mix_steps: 40000000
+    best_after_steps: 50000000
+    best_min_episodes: 4096
+    save_interval_steps: 25000000
+    log_interval: 20
+  resume_mode: strict
+env_runtime:
+  object:
+    task: rubber_duck
+    display_name: Rubber duck
+    kind: usd
+    usd_path: /home/tanjie/BrainCo_hora/assets/usd/objects/rubber_duck/training.usda
+    scale: 0.9680000000000002
+    source_size_m:
+    - 0.088739969
+    - 0.064999998
+    - 0.093310829
+    scaled_size_m:
+    - 0.08590028999200001
+    - 0.06291999806400002
+    - 0.09032488247200002
+    hand_pose: custom
+    hand_joint_pos_rad:
+      right_thumb_CMP_joint: 1.63
+      right_thumb_CMR_joint: 1.16
+      right_thumb_MCP_joint: 0.36
+      right_thumb_PIP_joint: 0.18
+      right_thumb_DIP_joint: 0.14
+      right_index_MPR_joint: 0.22
+      right_index_MCP_joint: 1.14
+      right_index_PIP_joint: 0.27
+      right_index_DIP_joint: 0.17
+      right_middle_MPR_joint: 0.1
+      right_middle_MCP_joint: 0.98
+      right_middle_PIP_joint: 0.33
+      right_middle_DIP_joint: 0.17
+      right_ring_MPR_joint: -0.05
+      right_ring_MCP_joint: 0.95
+      right_ring_PIP_joint: 0.25
+      right_ring_DIP_joint: 0.25
+      right_little_MPR_joint: -0.2
+      right_little_MCP_joint: 1.12
+      right_little_PIP_joint: 0.17
+      right_little_DIP_joint: 0.22
+    object_init_pos_m:
+    - -0.003
+    - -0.077
+    - 1.68
+    object_init_quat_wxyz:
+    - 1.0
+    - -0.0
+    - 0.0
+    - 0.0
+    rotation_axis_local:
+    - 0.0
+    - 0.0
+    - 1.0
+    target_axis_world:
+    - 0.0
+    - 0.0
+    - 1.0
+    axis_bidirectional: false
+    enforce_axis_alignment: true
+    axis_tilt_tolerance_deg: 10.0
+    grasp_cache_path: cache/revo3_right_grasp_rubber_duck
+  grasp_cache_path: cache/revo3_right_grasp_rubber_duck_gait_v2
+  grasp_cache_sha256: d1ac6a8939037d9ec1fea193ecf77962438669df2e3b004d78e3abf91ffd4f05
+  enable_tactile: true
+  enable_contact_in_obs: true
+  contact_order:
+  - thumb_DIP
+  - index_DIP
+  - middle_DIP
+  - ring_DIP
+  - little_DIP
+  policy_dt: 0.05
+  physics_dt: 0.008333333333333333
+  decimation: 6
+  episode_length_s: 40.0
+  gravity:
+  - 0.0
+  - 0.0
+  - -9.81
+  action_scale: 0.041666666666666664
+  force_scale: 0.0
+  finger_gait:
+    enabled: true
+    version: 2
+    blocked_push_scale: -2.0
+    limit_grace_steps: 4
+    limit_recovery_margin: 0.05
+    contact_debounce_steps: 2
+    speed_reward: peaked
+    safe_z_m: 0.005
+    max_z_m: 0.02
+    max_down_speed: 0.05
+    full_turn_bonus: 5.0
+    contact_threshold_n: 0.05
+    axis_tilt_tolerance: 0.17453292519943295
+    action_scale: 0.041666666666666664
+    rotate_scale: 10.0
+    target_angvel: 0.5
+  reward:
+    target_angvel: 0.5
+    stable_rotation_min_angvel: 0.25
+    rotate: 10.0
+    stable_rotation_bonus: 0.5
+    alive: 0.2
+    drop: -20.0
+    xy_drift_deadzone_m: 0.01
+    self_collision_force_threshold_n: 0.5
+    self_collision_force_tolerance_n: 5.0
+    self_collision: -1.0
+    torque_normalization: 1.0
+    torque: -2.0
+    work: -0.1
+  domain_randomization:
+    friction_mode: multiply_authored_static_dynamic
+    pd_gain_scale:
+    - 0.8
+    - 1.2
+    friction_scale:
+    - 0.8
+    - 1.2
+    com_m:
+    - -0.003
+    - 0.003
+    mass_kg:
+    - 0.07
+    - 0.13

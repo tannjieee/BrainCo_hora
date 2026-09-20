@@ -1,0 +1,83 @@
+{
+  "timestamp": "2026-09-20T17:26:26.836351+08:00",
+  "preserved_run": "/home/tan/hora2/BrainCo_hora/outputs/revo3_right/run_rubber_duck_gait_h16_p120_16384_i4000_s42_20260920",
+  "local_deleted": [
+    {
+      "path": "/home/tan/hora2/BrainCo_hora/outputs/revo3_right/_eval_duck_ep1350_20260920",
+      "bytes": 40
+    },
+    {
+      "path": "/home/tan/hora2/BrainCo_hora/outputs/revo3_right/_eval_duck_ep1550_20260920",
+      "bytes": 40
+    },
+    {
+      "path": "/home/tan/hora2/BrainCo_hora/outputs/revo3_right/_eval_duck_ep1750_20260920",
+      "bytes": 40
+    },
+    {
+      "path": "/home/tan/hora2/BrainCo_hora/outputs/revo3_right/_eval_duck_ep450_20260920",
+      "bytes": 40
+    },
+    {
+      "path": "/home/tan/hora2/BrainCo_hora/outputs/revo3_right/_play_duck_last_20260920",
+      "bytes": 0
+    },
+    {
+      "path": "/home/tan/hora2/BrainCo_hora/outputs/revo3_right/_smoke_duck_gait_v2_20260920",
+      "bytes": 6972868
+    },
+    {
+      "path": "/home/tan/hora2/BrainCo_hora/outputs/revo3_right/_smoke_duck_legacy_eval_20260920",
+      "bytes": 40
+    },
+    {
+      "path": "/home/tan/hora2/BrainCo_hora/outputs/revo3_right/_smoke_duck_orientation_20260920",
+      "bytes": 13893723
+    },
+    {
+      "path": "/home/tan/hora2/BrainCo_hora/outputs/revo3_right/_smoke_duck_orientation_eval_20260920",
+      "bytes": 40
+    },
+    {
+      "path": "/home/tan/hora2/BrainCo_hora/outputs/revo3_right/_smoke_duck_orientation_resume_20260920",
+      "bytes": 10405989
+    },
+    {
+      "path": "/home/tan/hora2/BrainCo_hora/outputs/revo3_right/run_rubber_duck_s1_v2",
+      "bytes": 88677231
+    },
+    {
+      "path": "/home/tan/hora2/BrainCo_hora/outputs/remote_monitor/duck_collect_20260920",
+      "bytes": 1676624
+    },
+    {
+      "path": "/home/tan/hora2/BrainCo_hora/outputs/remote_monitor/duck_compare_20260920",
+      "bytes": 917531
+    },
+    {
+      "path": "/home/tan/hora2/BrainCo_hora/outputs/remote_monitor/duck_eval_1350_vs_1750_20260920",
+      "bytes": 3433166
+    },
+    {
+      "path": "/home/tan/hora2/BrainCo_hora/outputs/remote_monitor/duck_eval_1550_20260920",
+      "bytes": 3435714
+    },
+    {
+      "path": "/home/tan/hora2/BrainCo_hora/outputs/remote_monitor/duck_eval_450_vs_1350_20260920",
+      "bytes": 6862590
+    },
+    {
+      "path": "/home/tan/hora2/BrainCo_hora/outputs/remote_monitor/duck_large_16384_4000_20260920",
+      "bytes": 248378
+    },
+    {
+      "path": "/home/tan/hora2/BrainCo_hora/outputs/remote_monitor/duck_play_last_20260920",
+      "bytes": 3457446
+    },
+    {
+      "path": "/home/tan/hora2/BrainCo_hora/outputs/remote_monitor/duck_rate_check_20260920",
+      "bytes": 29274544
+    }
+  ],
+  "local_bytes_removed": 169256044
+}

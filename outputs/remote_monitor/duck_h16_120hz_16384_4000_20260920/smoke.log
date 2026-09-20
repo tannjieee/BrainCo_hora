@@ -1,0 +1,220 @@
+[INFO][AppLauncher]: Using device: cuda:3
+[INFO][AppLauncher]: Loading experience file: /home/tanjie/IsaacLab/apps/isaaclab.python.headless.kit
+Loading user config located at: '/home/tanjie/.venvs/hora/lib/python3.11/site-packages/isaacsim/kit/data/Kit/Isaac-Sim/5.1/user.config.json'
+[Info] [carb] Logging to file: /home/tanjie/.venvs/hora/lib/python3.11/site-packages/isaacsim/kit/logs/Kit/Isaac-Sim/5.1/kit_20260920_055446.log
+2026-09-20T05:54:46Z [114ms] [Warning] [omni.usd_config.extension] Enable omni.materialx.libs extension to use MaterialX
+2026-09-20T05:54:46Z [450ms] [Warning] [omni.platforminfo.plugin] failed to open the default display.  Can't verify X Server version.
+2026-09-20T05:54:46Z [550ms] [Warning] [carb] Acquiring non optional plugin interface which is not listed as dependency: [omni::physx::IPhysxBenchmarks v1.0] (plugin: <default plugin>), by client: omni.physics.physx.plugin. Add it to CARB_PLUGIN_IMPL_DEPS() macro of a client.
+2026-09-20T05:54:46Z [558ms] [Warning] [omni.isaac.dynamic_control] omni.isaac.dynamic_control is deprecated as of Isaac Sim 4.5. No action is needed from end-users.
+
+|---------------------------------------------------------------------------------------------|
+| Driver Version: 580.178.04    | Graphics API: Vulkan
+|=============================================================================================|
+| GPU | Name                             | Active | LDA | GPU Memory | Vendor-ID | LUID       |
+|     |                                  |        |     |            | Device-ID | UUID       |
+|     |                                  |        |     |            | Bus-ID    |            |
+|---------------------------------------------------------------------------------------------|
+| 0   | NVIDIA GeForce RTX 5090          |        |     | 32607   MB | 10de      | 0          |
+|     |                                  |        |     |            | 2b85      | c6939fca.. |
+|     |                                  |        |     |            | 1         |            |
+|---------------------------------------------------------------------------------------------|
+| 1   | NVIDIA GeForce RTX 5090          |        |     | 32607   MB | 10de      | 0          |
+|     |                                  |        |     |            | 2b85      | 93961777.. |
+|     |                                  |        |     |            | 21        |            |
+|---------------------------------------------------------------------------------------------|
+| 2   | NVIDIA GeForce RTX 5090          |        |     | 32607   MB | 10de      | 0          |
+|     |                                  |        |     |            | 2b85      | ef94a1e3.. |
+|     |                                  |        |     |            | 41        |            |
+|---------------------------------------------------------------------------------------------|
+| 3   | NVIDIA GeForce RTX 5090          | Yes: 0 |     | 32607   MB | 10de      | 0          |
+|     |                                  |        |     |            | 2b85      | 6584b11d.. |
+|     |                                  |        |     |            | 61        |            |
+|---------------------------------------------------------------------------------------------|
+| 4   | NVIDIA GeForce RTX 5090          |        |     | 32607   MB | 10de      | 0          |
+|     |                                  |        |     |            | 2b85      | b08473ca.. |
+|     |                                  |        |     |            | 81        |            |
+|---------------------------------------------------------------------------------------------|
+| 5   | NVIDIA GeForce RTX 5090          |        |     | 32607   MB | 10de      | 0          |
+|     |                                  |        |     |            | 2b85      | c990a98b.. |
+|     |                                  |        |     |            | a1        |            |
+|---------------------------------------------------------------------------------------------|
+| 6   | NVIDIA GeForce RTX 5090          |        |     | 32607   MB | 10de      | 0          |
+|     |                                  |        |     |            | 2b85      | 02a503ac.. |
+|     |                                  |        |     |            | c1        |            |
+|---------------------------------------------------------------------------------------------|
+| 7   | NVIDIA GeForce RTX 5090          |        |     | 32607   MB | 10de      | 0          |
+|     |                                  |        |     |            | 2b85      | a25bb953.. |
+|     |                                  |        |     |            | e1        |            |
+|=============================================================================================|
+| OS: 24.04.3 LTS (Noble Numbat) ubuntu, Version: 24.04.3, Kernel: 6.8.0-139-generic
+| Processor: AMD EPYC 9554 64-Core Processor
+| Cores: 128 | Logical Cores: 256
+|---------------------------------------------------------------------------------------------|
+| Total Memory (MB): 257516 | Free Memory: 235917
+| Total Page/Swap (MB): 8191 | Free Page/Swap: 8190
+|---------------------------------------------------------------------------------------------|
+2026-09-20T05:54:53Z [7,628ms] [Warning] [gpu.foundation.plugin] IOMMU is enabled.
+2026-09-20T05:54:53Z [7,629ms] [Warning] [gpu.foundation.plugin] Detected IOMMU is enabled. Running CUDA peer-to-peer bandwidth and latency validation.
+Unidirectional P2P=Enabled Bandwidth (P2P Writes) Matrix (GB/s)
+   D\D     0      1      2      3      4      5      6      7 
+     0 1522.95  42.39  42.06  42.37  42.68  42.67  42.72  42.68 
+     1  42.47 1562.45  42.41  41.45  42.63  42.70  42.78  42.73 
+     2  41.38  42.47 1556.27  40.84  42.77  42.76  42.74  42.73 
+     3  42.24  40.07  42.16 1562.50  42.72  42.65  42.55  42.66 
+     4  43.37  43.39  43.05  43.13 1556.27  43.28  43.27  43.21 
+     5  43.40  43.04  43.09  43.04  43.34 1559.38  43.21  43.41 
+     6  43.42  43.10  42.90  43.07  43.36  43.44 1553.18  43.44 
+     7  43.48  43.33  43.24  43.47  43.36  43.39  43.39 1556.27 
+P2P=Enabled Latency (P2P Writes) Matrix (us)
+   GPU     0      1      2      3      4      5      6      7 
+     0   2.07  14.44  14.33  14.33  14.31  14.31  14.32  14.31 
+     1  14.45   2.07  14.34  14.34  14.35  14.34  14.34  14.34 
+     2  14.32  14.32   2.07  14.32  14.31  14.31  14.32  14.32 
+     3  14.32  14.33  14.33   2.07  14.32  14.32  14.34  14.33 
+     4  14.25  14.25  14.32  13.92   2.07  14.31  12.79  14.32 
+     5  14.25  14.35  14.35  14.32  14.32   2.07  14.14  14.30 
+     6  14.16  14.32  14.33  14.32  12.50  14.32   2.07  12.52 
+     7  14.88  14.34  14.35  14.25  14.33  14.31  14.30   2.07 
+
+   CPU     0      1      2      3      4      5      6      7 
+     0   2.52   7.63   7.41   9.15   6.61   6.54   6.48   6.47 
+     1   7.55   2.32   7.30   7.32   6.37   6.36   6.29   6.28 
+     2   7.50   7.26   2.31   7.28   6.40   6.45   6.40   6.33 
+     3   7.65   7.35   7.22   2.36   6.51   6.43   6.44   6.40 
+     4   6.89   6.68   6.61   6.74   2.10   5.89   5.85   5.87 
+     5   6.80   6.58   6.58   6.64   5.81   2.06   5.90   5.82 
+     6   6.81   6.57   6.62   6.67   5.77   5.79   2.09   5.91 
+     7   6.75   6.59   6.66   6.92   5.90   5.83   5.82   2.06 
+2026-09-20T05:54:55Z [9,020ms] [Warning] [gpu.foundation.plugin] CUDA peer-to-peer observed bandwidth: 40.1 GB/s.
+2026-09-20T05:54:55Z [9,020ms] [Warning] [gpu.foundation.plugin] CUDA peer-to-peer observed latency: 14.9 us.
+2026-09-20T05:54:55Z [9,020ms] [Warning] [gpu.foundation.plugin] Please verify if observed bandwidth and latency are expected.
+Start Building the Environment
+
+[36m==============================================================================================================[0m
+[36m[1m[INFO][IsaacLab]: Logging to file: /home/tanjie/.cache/hora/tmp/isaaclab/logs/isaaclab_2026-09-20_05-54-56.log[0m
+[36m==============================================================================================================[0m
+
+[INFO]: Base environment:
+	Environment device    : cuda:3
+	Environment seed      : 42
+	Physics step-size     : 0.008333333333333333
+	Rendering step-size   : 0.05
+	Environment step-size : 0.05
+[INFO]: Time taken for scene creation : 1.670779 seconds
+[INFO]: Scene manager:  <class InteractiveScene>
+	Number of environments: 128
+	Environment spacing   : 0.75
+	Source prim name      : /World/envs/env_0
+	Global prim paths     : ['/World/ground']
+	Replicate physics     : False
+[INFO]: Starting the simulation. This may take a few seconds. Please wait...
+[INFO]: Time taken for simulation start : 3.305031 seconds
+[INFO]: Completed setting up the environment...
+RunningMeanStd:  (141,)
+RunningMeanStd:  (1,)
+[INFO] Restored train state: agent_steps=19922944, epoch_num=19, best_rewards=-10000.0000, lr=0.00341719
+[INFO] Fixed PPO training gravity: 9.810 m/s^2 downward (checkpoint gravity overridden; curriculum metrics retained)
+[WARN] Remaining budget is below the optimistic full-gravity qualification bound (204,800 agent steps); best.pth may not be produced.
+
+Agent Steps: 0019M | FPS: 1005.3 | Last FPS: 1005.3 | Full-g Best: -10000.00 | Curriculum Best: -1.43
+
+####################################################################################################
+                                      Learning iteration 20/20                                      
+
+                  Computation: 1130 steps/s (collection: 1.693s, learning: 0.119s)
+                  Mean reward: -1.1325
+          Mean episode length: 7.2332
+                      angvelX: 0.000193
+                      angvelY: -0.195360
+                      angvelZ: 0.374619
+            axis_aligned_rate: 0.554688
+  gait/actual_near_limit_rate: 0.154576
+            gait/blocked_push: 0.000514
+gait/blocked_right_index_DIP_joint: 0.024902
+gait/blocked_right_index_MCP_joint: 0.000000
+gait/blocked_right_index_MPR_joint: 0.013672
+gait/blocked_right_index_PIP_joint: 0.001953
+gait/blocked_right_little_DIP_joint: 0.003418
+gait/blocked_right_little_MCP_joint: 0.029297
+gait/blocked_right_little_MPR_joint: 0.010254
+gait/blocked_right_little_PIP_joint: 0.000000
+gait/blocked_right_middle_DIP_joint: 0.001953
+gait/blocked_right_middle_MCP_joint: 0.000000
+gait/blocked_right_middle_MPR_joint: 0.005371
+gait/blocked_right_middle_PIP_joint: 0.002441
+gait/blocked_right_ring_DIP_joint: 0.000000
+gait/blocked_right_ring_MCP_joint: 0.000000
+gait/blocked_right_ring_MPR_joint: 0.014160
+gait/blocked_right_ring_PIP_joint: 0.000000
+gait/blocked_right_thumb_CMP_joint: 0.007324
+gait/blocked_right_thumb_CMR_joint: 0.000000
+gait/blocked_right_thumb_DIP_joint: 0.000000
+gait/blocked_right_thumb_MCP_joint: 0.000000
+gait/blocked_right_thumb_PIP_joint: 0.008301
+         gait/completed_count: 10.125000
+gait/completed_mean_net_turns: 0.028929
+    gait/completed_mean_turns: 0.000000
+ gait/completed_net_turns_sum: 0.292910
+gait/completed_one_turn_count: 0.000000
+ gait/completed_one_turn_rate: 0.000000
+     gait/completed_turns_sum: 0.000000
+           gait/contact_index: 0.499023
+          gait/contact_little: 0.502441
+          gait/contact_middle: 0.345215
+            gait/contact_ring: 0.395020
+           gait/contact_thumb: 0.743164
+               gait/net_turns: 0.017586
+          gait/new_full_turns: 0.000000
+              gait/recontacts: 0.010254
+                gait/releases: 0.069824
+            gait/support_gate: 0.359099
+  gait/target_near_limit_rate: 0.147531
+gait/target_tracking_error_rad: 0.009669
+          gravity_full_stable: 0.000000
+            gravity_magnitude: 9.810000
+   gravity_reset_rate_instant: 0.079102
+    gravity_reset_rate_window: 1.000000
+                    gravity_z: -9.810000
+           height_reset_lower: 0.079102
+           height_reset_upper: 0.000000
+         object_axis_tilt_deg: 12.868442
+policy/action_saturation_rate: 0.009254
+        policy/action_std_max: 0.370902
+       policy/action_std_mean: 0.358173
+        policy/action_std_min: 0.342507
+        reverse_rotation_rate: 0.276367
+                    rew/alive: 0.001842
+                     rew/drop: -0.015820
+          rew/gait_adjustment: -0.016000
+         rew/object_axis_tilt: -0.032678
+          rew/off_axis_angvel: -0.042102
+                   rew/rotate: 0.013201
+           rew/self_collision: -0.000003
+          rew/stable_rotation: 0.001011
+                   rew/torque: -0.000004
+                     rew/work: -0.000002
+                 rew/xy_drift: -0.000405
+                  rew/z_drift: -0.002949
+            rotation_progress: 0.132011
+   self_collision_force_max_n: 1.560084
+  self_collision_force_mean_n: 0.045831
+          self_collision_rate: 0.036133
+         stable_rotation_rate: 0.202148
+         tactile/contact_rate: 0.562500
+          tactile/force_max_n: 2.827571
+         tactile/force_mean_n: 0.255038
+                target_angvel: 0.374619
+                     time_out: 0.000000
+                 total_reward: -9.391163
+                  xy_drift_mm: 7.817684
+                   z_drift_mm: 7.906079
+----------------------------------------------------------------------------------------------------
+              Total timesteps: 19924992
+               Iteration time: 1.82s
+                 Time elapsed: 00:00:02
+                          ETA: 00:00:00
+max steps achieved
+[INFO] Skip simulation_app.close() due to HORA_SKIP_SIM_CLOSE=1
+2026-09-20T05:55:04Z [17,742ms] [Warning] [omni.physx.plugin] USD stage detach not called, holding a loose ptr to a stage!
+2026-09-20T05:55:04Z [18,222ms] [Warning] [carb] Recursive unloadAllPlugins() detected!
+SMOKE_VERIFIED: resumed iteration 19 -> 20, rollout 16, 120 Hz physics, 20 Hz policy
