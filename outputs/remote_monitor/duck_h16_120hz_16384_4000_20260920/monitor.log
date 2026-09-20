@@ -6278,3 +6278,47 @@ GPU index, memory used, utilization:
 6, 5652 MiB, 93 %
 7, 3517 MiB, 90 %
 [2026-09-20T17:33:45+08:00] Monitor connection error: Command '['ssh', '-S', '/tmp/brainco-collect.sock', '-o', 'BatchMode=yes', '-o', 'ConnectTimeout=10', '-p', '22020', 'tanjie@127.0.0.1', 'python3', '-']' timed out after 45 seconds
+[2026-09-20T17:35:00+08:00] training
+Iteration: 2512/4000
+Computation: 67769 steps/s (collection: 3.699s, learning: 0.169s)
+Mean reward: 33.5733
+Mean episode length: 619.4298
+gait/blocked_push: 0.030030
+gait/completed_mean_net_turns: 1.699933
+gait/completed_mean_turns: 1.439276
+gait/completed_one_turn_rate: 0.788114
+gait/support_gate: 0.972003
+stable_rotation_rate: 0.332642
+Total timesteps: 673447936
+ETA (recent FPS): 0d 01:35:55
+GPU index, memory used, utilization:
+0, 27117 MiB, 36 %
+1, 10790 MiB, 68 %
+2, 13107 MiB, 68 %
+3, 3161 MiB, 93 %
+4, 2245 MiB, 88 %
+5, 9387 MiB, 72 %
+6, 5652 MiB, 94 %
+7, 3517 MiB, 89 %
+[2026-09-20T17:35:55+08:00] training
+Iteration: 2521/4000
+Computation: 39053 steps/s (collection: 6.491s, learning: 0.222s)
+Mean reward: 37.8494
+Mean episode length: 670.3425
+gait/blocked_push: 0.029521
+gait/completed_mean_net_turns: 1.842977
+gait/completed_mean_turns: 1.570332
+gait/completed_one_turn_rate: 0.836317
+gait/support_gate: 0.973003
+stable_rotation_rate: 0.340405
+Total timesteps: 675807232
+ETA (recent FPS): 0d 02:45:27
+GPU index, memory used, utilization:
+0, 27117 MiB, 38 %
+1, 10790 MiB, 84 %
+2, 14414 MiB, 93 %
+3, 3113 MiB, 90 %
+4, 2493 MiB, 90 %
+5, 8777 MiB, 27 %
+6, 3826 MiB, 87 %
+7, 3467 MiB, 90 %

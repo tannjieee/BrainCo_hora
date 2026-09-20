@@ -242209,3 +242209,3142 @@ policy/action_saturation_rate: 0.018865
                Iteration time: 6.32s
                  Time elapsed: 03:28:42
                           ETA: 02:07:40
+
+Agent Steps: 0667M | FPS: 51704.3 | Last FPS: 45152.4 | Full-g Best: 36.80 | Curriculum Best: 36.80
+
+####################################################################################################
+                                    Learning iteration 2490/4000                                    
+
+                  Computation: 45282 steps/s (collection: 5.633s, learning: 0.156s)
+                  Mean reward: 32.0184
+          Mean episode length: 594.9569
+                      angvelX: 0.036387
+                      angvelY: 0.049394
+                      angvelZ: 0.369060
+            axis_aligned_rate: 0.958000
+  gait/actual_near_limit_rate: 0.300922
+            gait/blocked_push: 0.031378
+gait/blocked_right_index_DIP_joint: 0.241676
+gait/blocked_right_index_MCP_joint: 0.025345
+gait/blocked_right_index_MPR_joint: 0.505280
+gait/blocked_right_index_PIP_joint: 0.051872
+gait/blocked_right_little_DIP_joint: 0.952991
+gait/blocked_right_little_MCP_joint: 0.005394
+gait/blocked_right_little_MPR_joint: 0.015305
+gait/blocked_right_little_PIP_joint: 0.513275
+gait/blocked_right_middle_DIP_joint: 0.941242
+gait/blocked_right_middle_MCP_joint: 0.000000
+gait/blocked_right_middle_MPR_joint: 0.281479
+gait/blocked_right_middle_PIP_joint: 0.028343
+gait/blocked_right_ring_DIP_joint: 0.020187
+gait/blocked_right_ring_MCP_joint: 0.001942
+gait/blocked_right_ring_MPR_joint: 0.052155
+gait/blocked_right_ring_PIP_joint: 0.211571
+gait/blocked_right_thumb_CMP_joint: 0.519550
+gait/blocked_right_thumb_CMR_joint: 0.001530
+gait/blocked_right_thumb_DIP_joint: 0.040283
+gait/blocked_right_thumb_MCP_joint: 0.001919
+gait/blocked_right_thumb_PIP_joint: 0.053162
+         gait/completed_count: 25.625000
+gait/completed_mean_net_turns: 1.609183
+    gait/completed_mean_turns: 1.339024
+ gait/completed_net_turns_sum: 41.235324
+gait/completed_one_turn_count: 18.750000
+ gait/completed_one_turn_rate: 0.731707
+     gait/completed_turns_sum: 34.312500
+           gait/contact_index: 0.580715
+          gait/contact_little: 0.732601
+          gait/contact_middle: 0.786972
+            gait/contact_ring: 0.395153
+           gait/contact_thumb: 0.632179
+               gait/net_turns: 0.988157
+          gait/new_full_turns: 0.002213
+              gait/recontacts: 0.096756
+                gait/releases: 0.099873
+            gait/support_gate: 0.970889
+  gait/target_near_limit_rate: 0.291282
+gait/target_tracking_error_rad: 0.014081
+          gravity_full_stable: 1.000000
+            gravity_magnitude: 9.810000
+   gravity_reset_rate_instant: 0.000504
+    gravity_reset_rate_window: 0.000464
+                    gravity_z: -9.810000
+           height_reset_lower: 0.000504
+           height_reset_upper: 0.000000
+         object_axis_tilt_deg: 5.342777
+policy/action_saturation_rate: 0.018995
+        policy/action_std_max: 0.237457
+       policy/action_std_mean: 0.132921
+        policy/action_std_min: 0.100259
+        reverse_rotation_rate: 0.068596
+                    rew/alive: 0.001999
+                     rew/drop: -0.000101
+          rew/gait_adjustment: -0.001733
+         rew/object_axis_tilt: -0.003782
+          rew/off_axis_angvel: -0.000774
+                   rew/rotate: 0.058340
+           rew/self_collision: -0.000377
+          rew/stable_rotation: 0.001645
+                   rew/torque: -0.000007
+                     rew/work: -0.000002
+                 rew/xy_drift: -0.000437
+                  rew/z_drift: -0.000392
+            rotation_progress: 0.583404
+   self_collision_force_max_n: 113.387661
+  self_collision_force_mean_n: 0.392084
+          self_collision_rate: 0.105217
+         stable_rotation_rate: 0.328911
+         tactile/contact_rate: 0.618322
+          tactile/force_max_n: 2.482906
+         tactile/force_mean_n: 0.354989
+                target_angvel: 0.369060
+                     time_out: 0.001060
+                 total_reward: 5.437982
+                  xy_drift_mm: 10.655147
+                   z_drift_mm: 2.383673
+----------------------------------------------------------------------------------------------------
+              Total timesteps: 667680768
+               Iteration time: 5.80s
+                 Time elapsed: 03:28:48
+                          ETA: 02:07:35
+
+Agent Steps: 0667M | FPS: 51699.8 | Last FPS: 42491.3 | Full-g Best: 36.80 | Curriculum Best: 36.80
+
+####################################################################################################
+                                    Learning iteration 2491/4000                                    
+
+                  Computation: 42593 steps/s (collection: 5.976s, learning: 0.178s)
+                  Mean reward: 34.9059
+          Mean episode length: 644.6174
+                      angvelX: 0.035831
+                      angvelY: 0.046567
+                      angvelZ: 0.366032
+            axis_aligned_rate: 0.957901
+  gait/actual_near_limit_rate: 0.300450
+            gait/blocked_push: 0.031497
+gait/blocked_right_index_DIP_joint: 0.239254
+gait/blocked_right_index_MCP_joint: 0.028374
+gait/blocked_right_index_MPR_joint: 0.503967
+gait/blocked_right_index_PIP_joint: 0.049690
+gait/blocked_right_little_DIP_joint: 0.952461
+gait/blocked_right_little_MCP_joint: 0.005039
+gait/blocked_right_little_MPR_joint: 0.015137
+gait/blocked_right_little_PIP_joint: 0.507385
+gait/blocked_right_middle_DIP_joint: 0.940037
+gait/blocked_right_middle_MCP_joint: 0.000019
+gait/blocked_right_middle_MPR_joint: 0.284714
+gait/blocked_right_middle_PIP_joint: 0.028107
+gait/blocked_right_ring_DIP_joint: 0.019531
+gait/blocked_right_ring_MCP_joint: 0.001972
+gait/blocked_right_ring_MPR_joint: 0.053173
+gait/blocked_right_ring_PIP_joint: 0.212021
+gait/blocked_right_thumb_CMP_joint: 0.514496
+gait/blocked_right_thumb_CMR_joint: 0.001587
+gait/blocked_right_thumb_DIP_joint: 0.039230
+gait/blocked_right_thumb_MCP_joint: 0.001717
+gait/blocked_right_thumb_PIP_joint: 0.052742
+         gait/completed_count: 27.000000
+gait/completed_mean_net_turns: 1.715734
+    gait/completed_mean_turns: 1.437500
+ gait/completed_net_turns_sum: 46.324831
+gait/completed_one_turn_count: 21.312500
+ gait/completed_one_turn_rate: 0.789352
+     gait/completed_turns_sum: 38.812500
+           gait/contact_index: 0.573692
+          gait/contact_little: 0.727779
+          gait/contact_middle: 0.786228
+            gait/contact_ring: 0.402416
+           gait/contact_thumb: 0.639931
+               gait/net_turns: 0.986367
+          gait/new_full_turns: 0.002155
+              gait/recontacts: 0.097366
+                gait/releases: 0.100872
+            gait/support_gate: 0.971046
+  gait/target_near_limit_rate: 0.290566
+gait/target_tracking_error_rad: 0.014120
+          gravity_full_stable: 1.000000
+            gravity_magnitude: 9.810000
+   gravity_reset_rate_instant: 0.000431
+    gravity_reset_rate_window: 0.000464
+                    gravity_z: -9.810000
+           height_reset_lower: 0.000431
+           height_reset_upper: 0.000000
+         object_axis_tilt_deg: 5.403483
+policy/action_saturation_rate: 0.019139
+        policy/action_std_max: 0.237404
+       policy/action_std_mean: 0.132907
+        policy/action_std_min: 0.100259
+        reverse_rotation_rate: 0.070866
+                    rew/alive: 0.001999
+                     rew/drop: -0.000086
+          rew/gait_adjustment: -0.001727
+         rew/object_axis_tilt: -0.003785
+          rew/off_axis_angvel: -0.000770
+                   rew/rotate: 0.058017
+           rew/self_collision: -0.000375
+          rew/stable_rotation: 0.001675
+                   rew/torque: -0.000007
+                     rew/work: -0.000002
+                 rew/xy_drift: -0.000419
+                  rew/z_drift: -0.000382
+            rotation_progress: 0.580171
+   self_collision_force_max_n: 117.004532
+  self_collision_force_mean_n: 0.389548
+          self_collision_rate: 0.103973
+         stable_rotation_rate: 0.335056
+         tactile/contact_rate: 0.618739
+          tactile/force_max_n: 2.577598
+         tactile/force_mean_n: 0.355457
+                target_angvel: 0.366032
+                     time_out: 0.001217
+                 total_reward: 5.413838
+                  xy_drift_mm: 10.524063
+                   z_drift_mm: 2.349494
+----------------------------------------------------------------------------------------------------
+              Total timesteps: 667942912
+               Iteration time: 6.17s
+                 Time elapsed: 03:28:54
+                          ETA: 02:07:31
+
+Agent Steps: 0668M | FPS: 51694.0 | Last FPS: 40568.1 | Full-g Best: 36.80 | Curriculum Best: 36.80
+
+####################################################################################################
+                                    Learning iteration 2492/4000                                    
+
+                  Computation: 40667 steps/s (collection: 6.245s, learning: 0.201s)
+                  Mean reward: 33.9922
+          Mean episode length: 629.6147
+                      angvelX: 0.039929
+                      angvelY: 0.048766
+                      angvelZ: 0.370836
+            axis_aligned_rate: 0.956367
+  gait/actual_near_limit_rate: 0.301475
+            gait/blocked_push: 0.031536
+gait/blocked_right_index_DIP_joint: 0.242893
+gait/blocked_right_index_MCP_joint: 0.028423
+gait/blocked_right_index_MPR_joint: 0.512608
+gait/blocked_right_index_PIP_joint: 0.047897
+gait/blocked_right_little_DIP_joint: 0.951015
+gait/blocked_right_little_MCP_joint: 0.005074
+gait/blocked_right_little_MPR_joint: 0.014412
+gait/blocked_right_little_PIP_joint: 0.515236
+gait/blocked_right_middle_DIP_joint: 0.939857
+gait/blocked_right_middle_MCP_joint: 0.000080
+gait/blocked_right_middle_MPR_joint: 0.274414
+gait/blocked_right_middle_PIP_joint: 0.027908
+gait/blocked_right_ring_DIP_joint: 0.018135
+gait/blocked_right_ring_MCP_joint: 0.001892
+gait/blocked_right_ring_MPR_joint: 0.054516
+gait/blocked_right_ring_PIP_joint: 0.214581
+gait/blocked_right_thumb_CMP_joint: 0.516529
+gait/blocked_right_thumb_CMR_joint: 0.001564
+gait/blocked_right_thumb_DIP_joint: 0.035393
+gait/blocked_right_thumb_MCP_joint: 0.001900
+gait/blocked_right_thumb_PIP_joint: 0.054157
+         gait/completed_count: 27.250000
+gait/completed_mean_net_turns: 1.672900
+    gait/completed_mean_turns: 1.396789
+ gait/completed_net_turns_sum: 45.586537
+gait/completed_one_turn_count: 21.125000
+ gait/completed_one_turn_rate: 0.775229
+     gait/completed_turns_sum: 38.062500
+           gait/contact_index: 0.570869
+          gait/contact_little: 0.724464
+          gait/contact_middle: 0.789677
+            gait/contact_ring: 0.395790
+           gait/contact_thumb: 0.644150
+               gait/net_turns: 0.983272
+          gait/new_full_turns: 0.002209
+              gait/recontacts: 0.096832
+                gait/releases: 0.100315
+            gait/support_gate: 0.971225
+  gait/target_near_limit_rate: 0.291654
+gait/target_tracking_error_rad: 0.014187
+          gravity_full_stable: 1.000000
+            gravity_magnitude: 9.810000
+   gravity_reset_rate_instant: 0.000462
+    gravity_reset_rate_window: 0.000464
+                    gravity_z: -9.810000
+           height_reset_lower: 0.000462
+           height_reset_upper: 0.000000
+         object_axis_tilt_deg: 5.439860
+policy/action_saturation_rate: 0.019380
+        policy/action_std_max: 0.237420
+       policy/action_std_mean: 0.132892
+        policy/action_std_min: 0.100259
+        reverse_rotation_rate: 0.067749
+                    rew/alive: 0.001999
+                     rew/drop: -0.000092
+          rew/gait_adjustment: -0.001709
+         rew/object_axis_tilt: -0.003911
+          rew/off_axis_angvel: -0.000789
+                   rew/rotate: 0.058540
+           rew/self_collision: -0.000332
+          rew/stable_rotation: 0.001658
+                   rew/torque: -0.000007
+                     rew/work: -0.000002
+                 rew/xy_drift: -0.000436
+                  rew/z_drift: -0.000378
+            rotation_progress: 0.585396
+   self_collision_force_max_n: 96.791665
+  self_collision_force_mean_n: 0.357199
+          self_collision_rate: 0.100231
+         stable_rotation_rate: 0.331608
+         tactile/contact_rate: 0.617915
+          tactile/force_max_n: 2.817594
+         tactile/force_mean_n: 0.356338
+                target_angvel: 0.370836
+                     time_out: 0.001202
+                 total_reward: 5.454123
+                  xy_drift_mm: 10.648439
+                   z_drift_mm: 2.327184
+----------------------------------------------------------------------------------------------------
+              Total timesteps: 668205056
+               Iteration time: 6.46s
+                 Time elapsed: 03:29:00
+                          ETA: 02:07:27
+
+Agent Steps: 0668M | FPS: 51686.3 | Last FPS: 37680.0 | Full-g Best: 36.80 | Curriculum Best: 36.80
+
+####################################################################################################
+                                    Learning iteration 2493/4000                                    
+
+                  Computation: 37770 steps/s (collection: 6.732s, learning: 0.208s)
+                  Mean reward: 36.6823
+          Mean episode length: 673.2570
+                      angvelX: 0.036279
+                      angvelY: 0.046579
+                      angvelZ: 0.371405
+            axis_aligned_rate: 0.955853
+  gait/actual_near_limit_rate: 0.301988
+            gait/blocked_push: 0.031446
+gait/blocked_right_index_DIP_joint: 0.239311
+gait/blocked_right_index_MCP_joint: 0.028996
+gait/blocked_right_index_MPR_joint: 0.508713
+gait/blocked_right_index_PIP_joint: 0.051579
+gait/blocked_right_little_DIP_joint: 0.952770
+gait/blocked_right_little_MCP_joint: 0.005440
+gait/blocked_right_little_MPR_joint: 0.015335
+gait/blocked_right_little_PIP_joint: 0.509186
+gait/blocked_right_middle_DIP_joint: 0.941132
+gait/blocked_right_middle_MCP_joint: 0.000111
+gait/blocked_right_middle_MPR_joint: 0.276936
+gait/blocked_right_middle_PIP_joint: 0.029327
+gait/blocked_right_ring_DIP_joint: 0.017075
+gait/blocked_right_ring_MCP_joint: 0.002167
+gait/blocked_right_ring_MPR_joint: 0.056000
+gait/blocked_right_ring_PIP_joint: 0.223358
+gait/blocked_right_thumb_CMP_joint: 0.523666
+gait/blocked_right_thumb_CMR_joint: 0.001640
+gait/blocked_right_thumb_DIP_joint: 0.040165
+gait/blocked_right_thumb_MCP_joint: 0.001640
+gait/blocked_right_thumb_PIP_joint: 0.050961
+         gait/completed_count: 27.687500
+gait/completed_mean_net_turns: 1.684174
+    gait/completed_mean_turns: 1.408578
+ gait/completed_net_turns_sum: 46.630567
+gait/completed_one_turn_count: 21.437500
+ gait/completed_one_turn_rate: 0.774266
+     gait/completed_turns_sum: 39.000000
+           gait/contact_index: 0.583717
+          gait/contact_little: 0.731686
+          gait/contact_middle: 0.788891
+            gait/contact_ring: 0.394745
+           gait/contact_thumb: 0.630867
+               gait/net_turns: 0.982128
+          gait/new_full_turns: 0.002361
+              gait/recontacts: 0.097469
+                gait/releases: 0.100128
+            gait/support_gate: 0.970352
+  gait/target_near_limit_rate: 0.292217
+gait/target_tracking_error_rad: 0.014153
+          gravity_full_stable: 1.000000
+            gravity_magnitude: 9.810000
+   gravity_reset_rate_instant: 0.000488
+    gravity_reset_rate_window: 0.000464
+                    gravity_z: -9.810000
+           height_reset_lower: 0.000488
+           height_reset_upper: 0.000000
+         object_axis_tilt_deg: 5.441665
+policy/action_saturation_rate: 0.019570
+        policy/action_std_max: 0.237228
+       policy/action_std_mean: 0.132866
+        policy/action_std_min: 0.100259
+        reverse_rotation_rate: 0.068405
+                    rew/alive: 0.001999
+                     rew/drop: -0.000098
+          rew/gait_adjustment: -0.001732
+         rew/object_axis_tilt: -0.003915
+          rew/off_axis_angvel: -0.000778
+                   rew/rotate: 0.058281
+           rew/self_collision: -0.000364
+          rew/stable_rotation: 0.001620
+                   rew/torque: -0.000007
+                     rew/work: -0.000002
+                 rew/xy_drift: -0.000444
+                  rew/z_drift: -0.000379
+            rotation_progress: 0.582810
+   self_collision_force_max_n: 115.663535
+  self_collision_force_mean_n: 0.383972
+          self_collision_rate: 0.104546
+         stable_rotation_rate: 0.324001
+         tactile/contact_rate: 0.618770
+          tactile/force_max_n: 2.511892
+         tactile/force_mean_n: 0.356878
+                target_angvel: 0.371405
+                     time_out: 0.001202
+                 total_reward: 5.418234
+                  xy_drift_mm: 10.714447
+                   z_drift_mm: 2.327057
+----------------------------------------------------------------------------------------------------
+              Total timesteps: 668467200
+               Iteration time: 6.96s
+                 Time elapsed: 03:29:07
+                          ETA: 02:07:23
+
+Agent Steps: 0668M | FPS: 51677.5 | Last FPS: 36410.4 | Full-g Best: 36.80 | Curriculum Best: 36.80
+
+####################################################################################################
+                                    Learning iteration 2494/4000                                    
+
+                  Computation: 36488 steps/s (collection: 6.977s, learning: 0.207s)
+                  Mean reward: 33.2121
+          Mean episode length: 619.5733
+                      angvelX: 0.036426
+                      angvelY: 0.045500
+                      angvelZ: 0.371187
+            axis_aligned_rate: 0.956703
+  gait/actual_near_limit_rate: 0.301195
+            gait/blocked_push: 0.031225
+gait/blocked_right_index_DIP_joint: 0.236546
+gait/blocked_right_index_MCP_joint: 0.028923
+gait/blocked_right_index_MPR_joint: 0.499531
+gait/blocked_right_index_PIP_joint: 0.050911
+gait/blocked_right_little_DIP_joint: 0.952068
+gait/blocked_right_little_MCP_joint: 0.005363
+gait/blocked_right_little_MPR_joint: 0.016090
+gait/blocked_right_little_PIP_joint: 0.494400
+gait/blocked_right_middle_DIP_joint: 0.938854
+gait/blocked_right_middle_MCP_joint: 0.000061
+gait/blocked_right_middle_MPR_joint: 0.283863
+gait/blocked_right_middle_PIP_joint: 0.030369
+gait/blocked_right_ring_DIP_joint: 0.018059
+gait/blocked_right_ring_MCP_joint: 0.002052
+gait/blocked_right_ring_MPR_joint: 0.055210
+gait/blocked_right_ring_PIP_joint: 0.215794
+gait/blocked_right_thumb_CMP_joint: 0.518463
+gait/blocked_right_thumb_CMR_joint: 0.001339
+gait/blocked_right_thumb_DIP_joint: 0.039433
+gait/blocked_right_thumb_MCP_joint: 0.001751
+gait/blocked_right_thumb_PIP_joint: 0.052216
+         gait/completed_count: 29.125000
+gait/completed_mean_net_turns: 1.652522
+    gait/completed_mean_turns: 1.390558
+ gait/completed_net_turns_sum: 48.129714
+gait/completed_one_turn_count: 22.187500
+ gait/completed_one_turn_rate: 0.761803
+     gait/completed_turns_sum: 40.500000
+           gait/contact_index: 0.582291
+          gait/contact_little: 0.723442
+          gait/contact_middle: 0.791756
+            gait/contact_ring: 0.405521
+           gait/contact_thumb: 0.630367
+               gait/net_turns: 0.978995
+          gait/new_full_turns: 0.002422
+              gait/recontacts: 0.097912
+                gait/releases: 0.101727
+            gait/support_gate: 0.970196
+  gait/target_near_limit_rate: 0.291014
+gait/target_tracking_error_rad: 0.014175
+          gravity_full_stable: 1.000000
+            gravity_magnitude: 9.810000
+   gravity_reset_rate_instant: 0.000523
+    gravity_reset_rate_window: 0.000464
+                    gravity_z: -9.810000
+           height_reset_lower: 0.000519
+           height_reset_upper: 0.000004
+         object_axis_tilt_deg: 5.423580
+policy/action_saturation_rate: 0.019665
+        policy/action_std_max: 0.237178
+       policy/action_std_mean: 0.132854
+        policy/action_std_min: 0.100259
+        reverse_rotation_rate: 0.068867
+                    rew/alive: 0.001999
+                     rew/drop: -0.000105
+          rew/gait_adjustment: -0.001725
+         rew/object_axis_tilt: -0.003869
+          rew/off_axis_angvel: -0.000798
+                   rew/rotate: 0.058294
+           rew/self_collision: -0.000394
+          rew/stable_rotation: 0.001628
+                   rew/torque: -0.000007
+                     rew/work: -0.000002
+                 rew/xy_drift: -0.000435
+                  rew/z_drift: -0.000376
+            rotation_progress: 0.582939
+   self_collision_force_max_n: 158.086702
+  self_collision_force_mean_n: 0.401749
+          self_collision_rate: 0.104340
+         stable_rotation_rate: 0.325607
+         tactile/contact_rate: 0.619439
+          tactile/force_max_n: 2.639759
+         tactile/force_mean_n: 0.356875
+                target_angvel: 0.371187
+                     time_out: 0.001255
+                 total_reward: 5.421120
+                  xy_drift_mm: 10.680092
+                   z_drift_mm: 2.317192
+----------------------------------------------------------------------------------------------------
+              Total timesteps: 668729344
+               Iteration time: 7.22s
+                 Time elapsed: 03:29:14
+                          ETA: 02:07:19
+
+Agent Steps: 0668M | FPS: 51669.2 | Last FPS: 36925.0 | Full-g Best: 36.80 | Curriculum Best: 36.80
+
+####################################################################################################
+                                    Learning iteration 2495/4000                                    
+
+                  Computation: 37092 steps/s (collection: 6.856s, learning: 0.211s)
+                  Mean reward: 35.5223
+          Mean episode length: 649.0462
+                      angvelX: 0.035766
+                      angvelY: 0.045434
+                      angvelZ: 0.369019
+            axis_aligned_rate: 0.956017
+  gait/actual_near_limit_rate: 0.301666
+            gait/blocked_push: 0.031312
+gait/blocked_right_index_DIP_joint: 0.245743
+gait/blocked_right_index_MCP_joint: 0.030437
+gait/blocked_right_index_MPR_joint: 0.504959
+gait/blocked_right_index_PIP_joint: 0.051338
+gait/blocked_right_little_DIP_joint: 0.952351
+gait/blocked_right_little_MCP_joint: 0.004612
+gait/blocked_right_little_MPR_joint: 0.014969
+gait/blocked_right_little_PIP_joint: 0.494598
+gait/blocked_right_middle_DIP_joint: 0.938316
+gait/blocked_right_middle_MCP_joint: 0.000000
+gait/blocked_right_middle_MPR_joint: 0.281399
+gait/blocked_right_middle_PIP_joint: 0.030670
+gait/blocked_right_ring_DIP_joint: 0.019199
+gait/blocked_right_ring_MCP_joint: 0.001900
+gait/blocked_right_ring_MPR_joint: 0.054184
+gait/blocked_right_ring_PIP_joint: 0.215027
+gait/blocked_right_thumb_CMP_joint: 0.514545
+gait/blocked_right_thumb_CMR_joint: 0.001343
+gait/blocked_right_thumb_DIP_joint: 0.041126
+gait/blocked_right_thumb_MCP_joint: 0.001492
+gait/blocked_right_thumb_PIP_joint: 0.052620
+         gait/completed_count: 27.000000
+gait/completed_mean_net_turns: 1.668033
+    gait/completed_mean_turns: 1.379630
+ gait/completed_net_turns_sum: 45.036882
+gait/completed_one_turn_count: 20.562500
+ gait/completed_one_turn_rate: 0.761574
+     gait/completed_turns_sum: 37.250000
+           gait/contact_index: 0.581402
+          gait/contact_little: 0.720978
+          gait/contact_middle: 0.793297
+            gait/contact_ring: 0.409367
+           gait/contact_thumb: 0.632164
+               gait/net_turns: 0.977059
+          gait/new_full_turns: 0.002140
+              gait/recontacts: 0.097752
+                gait/releases: 0.100277
+            gait/support_gate: 0.971060
+  gait/target_near_limit_rate: 0.291439
+gait/target_tracking_error_rad: 0.014188
+          gravity_full_stable: 1.000000
+            gravity_magnitude: 9.810000
+   gravity_reset_rate_instant: 0.000465
+    gravity_reset_rate_window: 0.000466
+                    gravity_z: -9.810000
+           height_reset_lower: 0.000465
+           height_reset_upper: 0.000000
+         object_axis_tilt_deg: 5.420414
+policy/action_saturation_rate: 0.018947
+        policy/action_std_max: 0.237338
+       policy/action_std_mean: 0.132849
+        policy/action_std_min: 0.100259
+        reverse_rotation_rate: 0.067905
+                    rew/alive: 0.001999
+                     rew/drop: -0.000093
+          rew/gait_adjustment: -0.001720
+         rew/object_axis_tilt: -0.003839
+          rew/off_axis_angvel: -0.000754
+                   rew/rotate: 0.058432
+           rew/self_collision: -0.000373
+          rew/stable_rotation: 0.001630
+                   rew/torque: -0.000007
+                     rew/work: -0.000002
+                 rew/xy_drift: -0.000443
+                  rew/z_drift: -0.000370
+            rotation_progress: 0.584324
+   self_collision_force_max_n: 140.854826
+  self_collision_force_mean_n: 0.385746
+          self_collision_rate: 0.101322
+         stable_rotation_rate: 0.326004
+         tactile/contact_rate: 0.620383
+          tactile/force_max_n: 2.427566
+         tactile/force_mean_n: 0.356571
+                target_angvel: 0.369019
+                     time_out: 0.001183
+                 total_reward: 5.446011
+                  xy_drift_mm: 10.704539
+                   z_drift_mm: 2.300128
+----------------------------------------------------------------------------------------------------
+              Total timesteps: 668991488
+               Iteration time: 7.08s
+                 Time elapsed: 03:29:22
+                          ETA: 02:07:15
+
+Agent Steps: 0669M | FPS: 51663.7 | Last FPS: 40998.2 | Full-g Best: 36.80 | Curriculum Best: 36.80
+
+####################################################################################################
+                                    Learning iteration 2496/4000                                    
+
+                  Computation: 41098 steps/s (collection: 6.200s, learning: 0.178s)
+                  Mean reward: 34.7700
+          Mean episode length: 634.6104
+                      angvelX: 0.036986
+                      angvelY: 0.047234
+                      angvelZ: 0.372309
+            axis_aligned_rate: 0.956093
+  gait/actual_near_limit_rate: 0.302231
+            gait/blocked_push: 0.031221
+gait/blocked_right_index_DIP_joint: 0.250813
+gait/blocked_right_index_MCP_joint: 0.032383
+gait/blocked_right_index_MPR_joint: 0.508335
+gait/blocked_right_index_PIP_joint: 0.049980
+gait/blocked_right_little_DIP_joint: 0.954903
+gait/blocked_right_little_MCP_joint: 0.004684
+gait/blocked_right_little_MPR_joint: 0.014309
+gait/blocked_right_little_PIP_joint: 0.500580
+gait/blocked_right_middle_DIP_joint: 0.938652
+gait/blocked_right_middle_MCP_joint: 0.000000
+gait/blocked_right_middle_MPR_joint: 0.283253
+gait/blocked_right_middle_PIP_joint: 0.029259
+gait/blocked_right_ring_DIP_joint: 0.020569
+gait/blocked_right_ring_MCP_joint: 0.001659
+gait/blocked_right_ring_MPR_joint: 0.051727
+gait/blocked_right_ring_PIP_joint: 0.220768
+gait/blocked_right_thumb_CMP_joint: 0.511833
+gait/blocked_right_thumb_CMR_joint: 0.001385
+gait/blocked_right_thumb_DIP_joint: 0.041187
+gait/blocked_right_thumb_MCP_joint: 0.001526
+gait/blocked_right_thumb_PIP_joint: 0.051952
+         gait/completed_count: 25.062500
+gait/completed_mean_net_turns: 1.705874
+    gait/completed_mean_turns: 1.451372
+ gait/completed_net_turns_sum: 42.753474
+gait/completed_one_turn_count: 19.875000
+ gait/completed_one_turn_rate: 0.793017
+     gait/completed_turns_sum: 36.375000
+           gait/contact_index: 0.582806
+          gait/contact_little: 0.723843
+          gait/contact_middle: 0.796387
+            gait/contact_ring: 0.407734
+           gait/contact_thumb: 0.632149
+               gait/net_turns: 0.975460
+          gait/new_full_turns: 0.002369
+              gait/recontacts: 0.098122
+                gait/releases: 0.101402
+            gait/support_gate: 0.970990
+  gait/target_near_limit_rate: 0.292211
+gait/target_tracking_error_rad: 0.014145
+          gravity_full_stable: 1.000000
+            gravity_magnitude: 9.810000
+   gravity_reset_rate_instant: 0.000423
+    gravity_reset_rate_window: 0.000466
+                    gravity_z: -9.810000
+           height_reset_lower: 0.000423
+           height_reset_upper: 0.000000
+         object_axis_tilt_deg: 5.438367
+policy/action_saturation_rate: 0.018790
+        policy/action_std_max: 0.237300
+       policy/action_std_mean: 0.132836
+        policy/action_std_min: 0.100259
+        reverse_rotation_rate: 0.066154
+                    rew/alive: 0.001999
+                     rew/drop: -0.000085
+          rew/gait_adjustment: -0.001718
+         rew/object_axis_tilt: -0.003848
+          rew/off_axis_angvel: -0.000730
+                   rew/rotate: 0.058791
+           rew/self_collision: -0.000327
+          rew/stable_rotation: 0.001648
+                   rew/torque: -0.000007
+                     rew/work: -0.000002
+                 rew/xy_drift: -0.000439
+                  rew/z_drift: -0.000370
+            rotation_progress: 0.587909
+   self_collision_force_max_n: 82.393902
+  self_collision_force_mean_n: 0.356061
+          self_collision_rate: 0.098980
+         stable_rotation_rate: 0.329525
+         tactile/contact_rate: 0.621468
+          tactile/force_max_n: 2.510175
+         tactile/force_mean_n: 0.355681
+                target_angvel: 0.372309
+                     time_out: 0.001106
+                 total_reward: 5.491215
+                  xy_drift_mm: 10.686731
+                   z_drift_mm: 2.297722
+----------------------------------------------------------------------------------------------------
+              Total timesteps: 669253632
+               Iteration time: 6.39s
+                 Time elapsed: 03:29:28
+                          ETA: 02:07:11
+
+Agent Steps: 0669M | FPS: 51659.7 | Last FPS: 43363.5 | Full-g Best: 36.80 | Curriculum Best: 36.80
+
+####################################################################################################
+                                    Learning iteration 2497/4000                                    
+
+                  Computation: 43475 steps/s (collection: 5.850s, learning: 0.179s)
+                  Mean reward: 36.7326
+          Mean episode length: 668.4782
+                      angvelX: 0.037490
+                      angvelY: 0.048245
+                      angvelZ: 0.368005
+            axis_aligned_rate: 0.955830
+  gait/actual_near_limit_rate: 0.302717
+            gait/blocked_push: 0.031384
+gait/blocked_right_index_DIP_joint: 0.247120
+gait/blocked_right_index_MCP_joint: 0.034794
+gait/blocked_right_index_MPR_joint: 0.510494
+gait/blocked_right_index_PIP_joint: 0.048542
+gait/blocked_right_little_DIP_joint: 0.954998
+gait/blocked_right_little_MCP_joint: 0.004997
+gait/blocked_right_little_MPR_joint: 0.013542
+gait/blocked_right_little_PIP_joint: 0.503475
+gait/blocked_right_middle_DIP_joint: 0.938385
+gait/blocked_right_middle_MCP_joint: 0.000000
+gait/blocked_right_middle_MPR_joint: 0.278111
+gait/blocked_right_middle_PIP_joint: 0.029057
+gait/blocked_right_ring_DIP_joint: 0.019245
+gait/blocked_right_ring_MCP_joint: 0.001755
+gait/blocked_right_ring_MPR_joint: 0.047695
+gait/blocked_right_ring_PIP_joint: 0.231697
+gait/blocked_right_thumb_CMP_joint: 0.517670
+gait/blocked_right_thumb_CMR_joint: 0.001602
+gait/blocked_right_thumb_DIP_joint: 0.038109
+gait/blocked_right_thumb_MCP_joint: 0.001377
+gait/blocked_right_thumb_PIP_joint: 0.052353
+         gait/completed_count: 26.562500
+gait/completed_mean_net_turns: 1.712075
+    gait/completed_mean_turns: 1.456471
+ gait/completed_net_turns_sum: 45.476989
+gait/completed_one_turn_count: 21.062500
+ gait/completed_one_turn_rate: 0.792941
+     gait/completed_turns_sum: 38.687500
+           gait/contact_index: 0.577713
+          gait/contact_little: 0.728016
+          gait/contact_middle: 0.797306
+            gait/contact_ring: 0.403477
+           gait/contact_thumb: 0.634651
+               gait/net_turns: 0.975582
+          gait/new_full_turns: 0.002110
+              gait/recontacts: 0.097141
+                gait/releases: 0.100777
+            gait/support_gate: 0.971583
+  gait/target_near_limit_rate: 0.292411
+gait/target_tracking_error_rad: 0.014127
+          gravity_full_stable: 1.000000
+            gravity_magnitude: 9.810000
+   gravity_reset_rate_instant: 0.000443
+    gravity_reset_rate_window: 0.000466
+                    gravity_z: -9.810000
+           height_reset_lower: 0.000443
+           height_reset_upper: 0.000000
+         object_axis_tilt_deg: 5.444495
+policy/action_saturation_rate: 0.018729
+        policy/action_std_max: 0.237247
+       policy/action_std_mean: 0.132810
+        policy/action_std_min: 0.100259
+        reverse_rotation_rate: 0.067398
+                    rew/alive: 0.001999
+                     rew/drop: -0.000089
+          rew/gait_adjustment: -0.001720
+         rew/object_axis_tilt: -0.003886
+          rew/off_axis_angvel: -0.000744
+                   rew/rotate: 0.058479
+           rew/self_collision: -0.000353
+          rew/stable_rotation: 0.001640
+                   rew/torque: -0.000007
+                     rew/work: -0.000002
+                 rew/xy_drift: -0.000436
+                  rew/z_drift: -0.000363
+            rotation_progress: 0.584788
+   self_collision_force_max_n: 196.989409
+  self_collision_force_mean_n: 0.360239
+          self_collision_rate: 0.094597
+         stable_rotation_rate: 0.327911
+         tactile/contact_rate: 0.620934
+          tactile/force_max_n: 2.524531
+         tactile/force_mean_n: 0.356245
+                target_angvel: 0.368005
+                     time_out: 0.001179
+                 total_reward: 5.451816
+                  xy_drift_mm: 10.676179
+                   z_drift_mm: 2.273992
+----------------------------------------------------------------------------------------------------
+              Total timesteps: 669515776
+               Iteration time: 6.04s
+                 Time elapsed: 03:29:34
+                          ETA: 02:07:06
+
+Agent Steps: 0669M | FPS: 51655.9 | Last FPS: 43534.0 | Full-g Best: 36.80 | Curriculum Best: 36.80
+
+####################################################################################################
+                                    Learning iteration 2498/4000                                    
+
+                  Computation: 43647 steps/s (collection: 5.821s, learning: 0.185s)
+                  Mean reward: 33.9390
+          Mean episode length: 636.5949
+                      angvelX: 0.038352
+                      angvelY: 0.047533
+                      angvelZ: 0.370117
+            axis_aligned_rate: 0.956627
+  gait/actual_near_limit_rate: 0.304259
+            gait/blocked_push: 0.031260
+gait/blocked_right_index_DIP_joint: 0.240471
+gait/blocked_right_index_MCP_joint: 0.037045
+gait/blocked_right_index_MPR_joint: 0.515186
+gait/blocked_right_index_PIP_joint: 0.049175
+gait/blocked_right_little_DIP_joint: 0.955448
+gait/blocked_right_little_MCP_joint: 0.004837
+gait/blocked_right_little_MPR_joint: 0.013405
+gait/blocked_right_little_PIP_joint: 0.506279
+gait/blocked_right_middle_DIP_joint: 0.939915
+gait/blocked_right_middle_MCP_joint: 0.000000
+gait/blocked_right_middle_MPR_joint: 0.273506
+gait/blocked_right_middle_PIP_joint: 0.029346
+gait/blocked_right_ring_DIP_joint: 0.019459
+gait/blocked_right_ring_MCP_joint: 0.001644
+gait/blocked_right_ring_MPR_joint: 0.050472
+gait/blocked_right_ring_PIP_joint: 0.242981
+gait/blocked_right_thumb_CMP_joint: 0.529415
+gait/blocked_right_thumb_CMR_joint: 0.001640
+gait/blocked_right_thumb_DIP_joint: 0.041302
+gait/blocked_right_thumb_MCP_joint: 0.001499
+gait/blocked_right_thumb_PIP_joint: 0.052414
+         gait/completed_count: 27.125000
+gait/completed_mean_net_turns: 1.634747
+    gait/completed_mean_turns: 1.359447
+ gait/completed_net_turns_sum: 44.342522
+gait/completed_one_turn_count: 20.000000
+ gait/completed_one_turn_rate: 0.737327
+     gait/completed_turns_sum: 36.875000
+           gait/contact_index: 0.578270
+          gait/contact_little: 0.730061
+          gait/contact_middle: 0.793640
+            gait/contact_ring: 0.401016
+           gait/contact_thumb: 0.634224
+               gait/net_turns: 0.974049
+          gait/new_full_turns: 0.002216
+              gait/recontacts: 0.097126
+                gait/releases: 0.100277
+            gait/support_gate: 0.971678
+  gait/target_near_limit_rate: 0.294173
+gait/target_tracking_error_rad: 0.014101
+          gravity_full_stable: 1.000000
+            gravity_magnitude: 9.810000
+   gravity_reset_rate_instant: 0.000488
+    gravity_reset_rate_window: 0.000466
+                    gravity_z: -9.810000
+           height_reset_lower: 0.000488
+           height_reset_upper: 0.000000
+         object_axis_tilt_deg: 5.394138
+policy/action_saturation_rate: 0.018552
+        policy/action_std_max: 0.237228
+       policy/action_std_mean: 0.132794
+        policy/action_std_min: 0.100259
+        reverse_rotation_rate: 0.066158
+                    rew/alive: 0.001999
+                     rew/drop: -0.000098
+          rew/gait_adjustment: -0.001722
+         rew/object_axis_tilt: -0.003805
+          rew/off_axis_angvel: -0.000758
+                   rew/rotate: 0.058864
+           rew/self_collision: -0.000367
+          rew/stable_rotation: 0.001647
+                   rew/torque: -0.000007
+                     rew/work: -0.000002
+                 rew/xy_drift: -0.000445
+                  rew/z_drift: -0.000355
+            rotation_progress: 0.588641
+   self_collision_force_max_n: 243.203815
+  self_collision_force_mean_n: 0.364060
+          self_collision_rate: 0.092663
+         stable_rotation_rate: 0.329441
+         tactile/contact_rate: 0.620329
+          tactile/force_max_n: 2.539094
+         tactile/force_mean_n: 0.356160
+                target_angvel: 0.370117
+                     time_out: 0.001167
+                 total_reward: 5.495170
+                  xy_drift_mm: 10.693808
+                   z_drift_mm: 2.241698
+----------------------------------------------------------------------------------------------------
+              Total timesteps: 669777920
+               Iteration time: 6.02s
+                 Time elapsed: 03:29:40
+                          ETA: 02:07:02
+
+Agent Steps: 0670M | FPS: 51651.4 | Last FPS: 42524.6 | Full-g Best: 36.80 | Curriculum Best: 36.80
+
+####################################################################################################
+                                    Learning iteration 2499/4000                                    
+
+                  Computation: 42629 steps/s (collection: 5.966s, learning: 0.184s)
+                  Mean reward: 34.6439
+          Mean episode length: 638.1426
+                      angvelX: 0.039462
+                      angvelY: 0.045259
+                      angvelZ: 0.372782
+            axis_aligned_rate: 0.959648
+  gait/actual_near_limit_rate: 0.303892
+            gait/blocked_push: 0.031554
+gait/blocked_right_index_DIP_joint: 0.241646
+gait/blocked_right_index_MCP_joint: 0.037136
+gait/blocked_right_index_MPR_joint: 0.515278
+gait/blocked_right_index_PIP_joint: 0.051170
+gait/blocked_right_little_DIP_joint: 0.954796
+gait/blocked_right_little_MCP_joint: 0.005112
+gait/blocked_right_little_MPR_joint: 0.013092
+gait/blocked_right_little_PIP_joint: 0.509930
+gait/blocked_right_middle_DIP_joint: 0.942513
+gait/blocked_right_middle_MCP_joint: 0.000000
+gait/blocked_right_middle_MPR_joint: 0.272297
+gait/blocked_right_middle_PIP_joint: 0.027996
+gait/blocked_right_ring_DIP_joint: 0.018181
+gait/blocked_right_ring_MCP_joint: 0.001797
+gait/blocked_right_ring_MPR_joint: 0.048786
+gait/blocked_right_ring_PIP_joint: 0.250233
+gait/blocked_right_thumb_CMP_joint: 0.537735
+gait/blocked_right_thumb_CMR_joint: 0.001560
+gait/blocked_right_thumb_DIP_joint: 0.040257
+gait/blocked_right_thumb_MCP_joint: 0.001476
+gait/blocked_right_thumb_PIP_joint: 0.052738
+         gait/completed_count: 25.250000
+gait/completed_mean_net_turns: 1.670355
+    gait/completed_mean_turns: 1.420792
+ gait/completed_net_turns_sum: 42.176454
+gait/completed_one_turn_count: 19.250000
+ gait/completed_one_turn_rate: 0.762376
+     gait/completed_turns_sum: 35.875000
+           gait/contact_index: 0.577370
+          gait/contact_little: 0.733200
+          gait/contact_middle: 0.793797
+            gait/contact_ring: 0.399895
+           gait/contact_thumb: 0.630836
+               gait/net_turns: 0.972977
+          gait/new_full_turns: 0.002327
+              gait/recontacts: 0.096558
+                gait/releases: 0.099583
+            gait/support_gate: 0.971549
+  gait/target_near_limit_rate: 0.293599
+gait/target_tracking_error_rad: 0.014165
+          gravity_full_stable: 1.000000
+            gravity_magnitude: 9.810000
+   gravity_reset_rate_instant: 0.000435
+    gravity_reset_rate_window: 0.000466
+                    gravity_z: -9.810000
+           height_reset_lower: 0.000435
+           height_reset_upper: 0.000000
+         object_axis_tilt_deg: 5.351036
+policy/action_saturation_rate: 0.018683
+        policy/action_std_max: 0.237204
+       policy/action_std_mean: 0.132788
+        policy/action_std_min: 0.100259
+        reverse_rotation_rate: 0.066036
+                    rew/alive: 0.001999
+                     rew/drop: -0.000087
+          rew/gait_adjustment: -0.001724
+         rew/object_axis_tilt: -0.003752
+          rew/off_axis_angvel: -0.000773
+                   rew/rotate: 0.059104
+           rew/self_collision: -0.000326
+          rew/stable_rotation: 0.001656
+                   rew/torque: -0.000007
+                     rew/work: -0.000002
+                 rew/xy_drift: -0.000453
+                  rew/z_drift: -0.000352
+            rotation_progress: 0.591039
+   self_collision_force_max_n: 102.819069
+  self_collision_force_mean_n: 0.342266
+          self_collision_rate: 0.091167
+         stable_rotation_rate: 0.331299
+         tactile/contact_rate: 0.619996
+          tactile/force_max_n: 2.455450
+         tactile/force_mean_n: 0.357442
+                target_angvel: 0.372782
+                     time_out: 0.001106
+                 total_reward: 5.528382
+                  xy_drift_mm: 10.770199
+                   z_drift_mm: 2.230924
+----------------------------------------------------------------------------------------------------
+              Total timesteps: 670040064
+               Iteration time: 6.16s
+                 Time elapsed: 03:29:46
+                          ETA: 02:06:57
+
+Agent Steps: 0670M | FPS: 51649.8 | Last FPS: 47935.4 | Full-g Best: 36.80 | Curriculum Best: 36.80
+
+####################################################################################################
+                                    Learning iteration 2500/4000                                    
+
+                  Computation: 48067 steps/s (collection: 5.276s, learning: 0.178s)
+                  Mean reward: 35.8373
+          Mean episode length: 648.5418
+                      angvelX: 0.039320
+                      angvelY: 0.046073
+                      angvelZ: 0.373906
+            axis_aligned_rate: 0.960258
+  gait/actual_near_limit_rate: 0.303960
+            gait/blocked_push: 0.031309
+gait/blocked_right_index_DIP_joint: 0.235546
+gait/blocked_right_index_MCP_joint: 0.037399
+gait/blocked_right_index_MPR_joint: 0.509289
+gait/blocked_right_index_PIP_joint: 0.054523
+gait/blocked_right_little_DIP_joint: 0.956043
+gait/blocked_right_little_MCP_joint: 0.005104
+gait/blocked_right_little_MPR_joint: 0.012794
+gait/blocked_right_little_PIP_joint: 0.499943
+gait/blocked_right_middle_DIP_joint: 0.945324
+gait/blocked_right_middle_MCP_joint: 0.000000
+gait/blocked_right_middle_MPR_joint: 0.274220
+gait/blocked_right_middle_PIP_joint: 0.029125
+gait/blocked_right_ring_DIP_joint: 0.018360
+gait/blocked_right_ring_MCP_joint: 0.001766
+gait/blocked_right_ring_MPR_joint: 0.050571
+gait/blocked_right_ring_PIP_joint: 0.255283
+gait/blocked_right_thumb_CMP_joint: 0.534649
+gait/blocked_right_thumb_CMR_joint: 0.001492
+gait/blocked_right_thumb_DIP_joint: 0.040550
+gait/blocked_right_thumb_MCP_joint: 0.002060
+gait/blocked_right_thumb_PIP_joint: 0.050552
+         gait/completed_count: 25.562500
+gait/completed_mean_net_turns: 1.654830
+    gait/completed_mean_turns: 1.391198
+ gait/completed_net_turns_sum: 42.301591
+gait/completed_one_turn_count: 19.312500
+ gait/completed_one_turn_rate: 0.755501
+     gait/completed_turns_sum: 35.562500
+           gait/contact_index: 0.583824
+          gait/contact_little: 0.730862
+          gait/contact_middle: 0.792278
+            gait/contact_ring: 0.406853
+           gait/contact_thumb: 0.622791
+               gait/net_turns: 0.976199
+          gait/new_full_turns: 0.002384
+              gait/recontacts: 0.096695
+                gait/releases: 0.100361
+            gait/support_gate: 0.971800
+  gait/target_near_limit_rate: 0.293600
+gait/target_tracking_error_rad: 0.014190
+          gravity_full_stable: 1.000000
+            gravity_magnitude: 9.810000
+   gravity_reset_rate_instant: 0.000450
+    gravity_reset_rate_window: 0.000466
+                    gravity_z: -9.810000
+           height_reset_lower: 0.000450
+           height_reset_upper: 0.000000
+         object_axis_tilt_deg: 5.291071
+policy/action_saturation_rate: 0.019110
+        policy/action_std_max: 0.237193
+       policy/action_std_mean: 0.132765
+        policy/action_std_min: 0.100259
+        reverse_rotation_rate: 0.064896
+                    rew/alive: 0.001999
+                     rew/drop: -0.000090
+          rew/gait_adjustment: -0.001713
+         rew/object_axis_tilt: -0.003692
+          rew/off_axis_angvel: -0.000745
+                   rew/rotate: 0.059104
+           rew/self_collision: -0.000340
+          rew/stable_rotation: 0.001640
+                   rew/torque: -0.000007
+                     rew/work: -0.000002
+                 rew/xy_drift: -0.000458
+                  rew/z_drift: -0.000351
+            rotation_progress: 0.591043
+   self_collision_force_max_n: 90.585169
+  self_collision_force_mean_n: 0.353601
+          self_collision_rate: 0.092823
+         stable_rotation_rate: 0.327908
+         tactile/contact_rate: 0.620155
+          tactile/force_max_n: 2.904872
+         tactile/force_mean_n: 0.358805
+                target_angvel: 0.373906
+                     time_out: 0.001110
+                 total_reward: 5.534572
+                  xy_drift_mm: 10.791781
+                   z_drift_mm: 2.221670
+----------------------------------------------------------------------------------------------------
+              Total timesteps: 670302208
+               Iteration time: 5.47s
+                 Time elapsed: 03:29:52
+                          ETA: 02:06:53
+
+Agent Steps: 0670M | FPS: 51645.9 | Last FPS: 43555.3 | Full-g Best: 36.80 | Curriculum Best: 36.80
+
+####################################################################################################
+                                    Learning iteration 2501/4000                                    
+
+                  Computation: 43806 steps/s (collection: 5.804s, learning: 0.180s)
+                  Mean reward: 37.0768
+          Mean episode length: 678.9190
+                      angvelX: 0.037929
+                      angvelY: 0.046025
+                      angvelZ: 0.372266
+            axis_aligned_rate: 0.959721
+  gait/actual_near_limit_rate: 0.304369
+            gait/blocked_push: 0.031301
+gait/blocked_right_index_DIP_joint: 0.236858
+gait/blocked_right_index_MCP_joint: 0.038933
+gait/blocked_right_index_MPR_joint: 0.502323
+gait/blocked_right_index_PIP_joint: 0.056847
+gait/blocked_right_little_DIP_joint: 0.955940
+gait/blocked_right_little_MCP_joint: 0.005352
+gait/blocked_right_little_MPR_joint: 0.014000
+gait/blocked_right_little_PIP_joint: 0.489456
+gait/blocked_right_middle_DIP_joint: 0.944408
+gait/blocked_right_middle_MCP_joint: 0.000015
+gait/blocked_right_middle_MPR_joint: 0.280964
+gait/blocked_right_middle_PIP_joint: 0.029804
+gait/blocked_right_ring_DIP_joint: 0.019615
+gait/blocked_right_ring_MCP_joint: 0.001682
+gait/blocked_right_ring_MPR_joint: 0.050594
+gait/blocked_right_ring_PIP_joint: 0.254520
+gait/blocked_right_thumb_CMP_joint: 0.528851
+gait/blocked_right_thumb_CMR_joint: 0.001499
+gait/blocked_right_thumb_DIP_joint: 0.042282
+gait/blocked_right_thumb_MCP_joint: 0.001652
+gait/blocked_right_thumb_PIP_joint: 0.053097
+         gait/completed_count: 24.500000
+gait/completed_mean_net_turns: 1.788883
+    gait/completed_mean_turns: 1.517857
+ gait/completed_net_turns_sum: 43.827634
+gait/completed_one_turn_count: 20.312500
+ gait/completed_one_turn_rate: 0.829082
+     gait/completed_turns_sum: 37.187500
+           gait/contact_index: 0.581299
+          gait/contact_little: 0.729973
+          gait/contact_middle: 0.790424
+            gait/contact_ring: 0.409878
+           gait/contact_thumb: 0.625946
+               gait/net_turns: 0.977365
+          gait/new_full_turns: 0.002476
+              gait/recontacts: 0.097301
+                gait/releases: 0.099346
+            gait/support_gate: 0.971206
+  gait/target_near_limit_rate: 0.293903
+gait/target_tracking_error_rad: 0.014223
+          gravity_full_stable: 1.000000
+            gravity_magnitude: 9.810000
+   gravity_reset_rate_instant: 0.000351
+    gravity_reset_rate_window: 0.000466
+                    gravity_z: -9.810000
+           height_reset_lower: 0.000351
+           height_reset_upper: 0.000000
+         object_axis_tilt_deg: 5.278434
+policy/action_saturation_rate: 0.019148
+        policy/action_std_max: 0.237128
+       policy/action_std_mean: 0.132751
+        policy/action_std_min: 0.100259
+        reverse_rotation_rate: 0.066017
+                    rew/alive: 0.001999
+                     rew/drop: -0.000070
+          rew/gait_adjustment: -0.001743
+         rew/object_axis_tilt: -0.003638
+          rew/off_axis_angvel: -0.000687
+                   rew/rotate: 0.058839
+           rew/self_collision: -0.000379
+          rew/stable_rotation: 0.001661
+                   rew/torque: -0.000007
+                     rew/work: -0.000002
+                 rew/xy_drift: -0.000452
+                  rew/z_drift: -0.000347
+            rotation_progress: 0.588385
+   self_collision_force_max_n: 90.266917
+  self_collision_force_mean_n: 0.388332
+          self_collision_rate: 0.100113
+         stable_rotation_rate: 0.332279
+         tactile/contact_rate: 0.620766
+          tactile/force_max_n: 2.829816
+         tactile/force_mean_n: 0.359527
+                target_angvel: 0.372266
+                     time_out: 0.001144
+                 total_reward: 5.517567
+                  xy_drift_mm: 10.721837
+                   z_drift_mm: 2.201665
+----------------------------------------------------------------------------------------------------
+              Total timesteps: 670564352
+               Iteration time: 6.00s
+                 Time elapsed: 03:29:58
+                          ETA: 02:06:48
+save full-gravity best reward: 37.08 (g=9.81, reset_rate=0.00047, target_angvel=0.372, stable_rotation=33.2%)
+
+Agent Steps: 0670M | FPS: 51639.9 | Last FPS: 40108.2 | Full-g Best: 37.08 | Curriculum Best: 37.08
+
+####################################################################################################
+                                    Learning iteration 2502/4000                                    
+
+                  Computation: 40369 steps/s (collection: 6.282s, learning: 0.212s)
+                  Mean reward: 33.2022
+          Mean episode length: 615.8469
+                      angvelX: 0.041209
+                      angvelY: 0.046221
+                      angvelZ: 0.370697
+            axis_aligned_rate: 0.961559
+  gait/actual_near_limit_rate: 0.304945
+            gait/blocked_push: 0.031238
+gait/blocked_right_index_DIP_joint: 0.238941
+gait/blocked_right_index_MCP_joint: 0.041843
+gait/blocked_right_index_MPR_joint: 0.508186
+gait/blocked_right_index_PIP_joint: 0.054428
+gait/blocked_right_little_DIP_joint: 0.956253
+gait/blocked_right_little_MCP_joint: 0.005058
+gait/blocked_right_little_MPR_joint: 0.012199
+gait/blocked_right_little_PIP_joint: 0.493225
+gait/blocked_right_middle_DIP_joint: 0.945648
+gait/blocked_right_middle_MCP_joint: 0.000061
+gait/blocked_right_middle_MPR_joint: 0.279324
+gait/blocked_right_middle_PIP_joint: 0.028477
+gait/blocked_right_ring_DIP_joint: 0.019745
+gait/blocked_right_ring_MCP_joint: 0.001778
+gait/blocked_right_ring_MPR_joint: 0.049538
+gait/blocked_right_ring_PIP_joint: 0.252316
+gait/blocked_right_thumb_CMP_joint: 0.523876
+gait/blocked_right_thumb_CMR_joint: 0.001144
+gait/blocked_right_thumb_DIP_joint: 0.040913
+gait/blocked_right_thumb_MCP_joint: 0.001541
+gait/blocked_right_thumb_PIP_joint: 0.053955
+         gait/completed_count: 22.500000
+gait/completed_mean_net_turns: 1.656717
+    gait/completed_mean_turns: 1.397222
+ gait/completed_net_turns_sum: 37.276134
+gait/completed_one_turn_count: 17.062500
+ gait/completed_one_turn_rate: 0.758333
+     gait/completed_turns_sum: 31.437500
+           gait/contact_index: 0.573116
+          gait/contact_little: 0.727123
+          gait/contact_middle: 0.793961
+            gait/contact_ring: 0.411060
+           gait/contact_thumb: 0.632996
+               gait/net_turns: 0.979314
+          gait/new_full_turns: 0.002151
+              gait/recontacts: 0.096218
+                gait/releases: 0.099586
+            gait/support_gate: 0.971754
+  gait/target_near_limit_rate: 0.294269
+gait/target_tracking_error_rad: 0.014237
+          gravity_full_stable: 1.000000
+            gravity_magnitude: 9.810000
+   gravity_reset_rate_instant: 0.000427
+    gravity_reset_rate_window: 0.000466
+                    gravity_z: -9.810000
+           height_reset_lower: 0.000427
+           height_reset_upper: 0.000000
+         object_axis_tilt_deg: 5.267248
+policy/action_saturation_rate: 0.018677
+        policy/action_std_max: 0.237029
+       policy/action_std_mean: 0.132718
+        policy/action_std_min: 0.100259
+        reverse_rotation_rate: 0.066788
+                    rew/alive: 0.001999
+                     rew/drop: -0.000085
+          rew/gait_adjustment: -0.001719
+         rew/object_axis_tilt: -0.003663
+          rew/off_axis_angvel: -0.000748
+                   rew/rotate: 0.058906
+           rew/self_collision: -0.000346
+          rew/stable_rotation: 0.001677
+                   rew/torque: -0.000007
+                     rew/work: -0.000002
+                 rew/xy_drift: -0.000453
+                  rew/z_drift: -0.000340
+            rotation_progress: 0.589060
+   self_collision_force_max_n: 185.678045
+  self_collision_force_mean_n: 0.356430
+          self_collision_rate: 0.092838
+         stable_rotation_rate: 0.335304
+         tactile/contact_rate: 0.620424
+          tactile/force_max_n: 2.760566
+         tactile/force_mean_n: 0.358351
+                target_angvel: 0.370697
+                     time_out: 0.000946
+                 total_reward: 5.521853
+                  xy_drift_mm: 10.714137
+                   z_drift_mm: 2.175870
+----------------------------------------------------------------------------------------------------
+              Total timesteps: 670826496
+               Iteration time: 6.51s
+                 Time elapsed: 03:30:04
+                          ETA: 02:06:44
+
+Agent Steps: 0671M | FPS: 51633.5 | Last FPS: 39441.2 | Full-g Best: 37.08 | Curriculum Best: 37.08
+
+####################################################################################################
+                                    Learning iteration 2503/4000                                    
+
+                  Computation: 39535 steps/s (collection: 6.453s, learning: 0.177s)
+                  Mean reward: 35.9084
+          Mean episode length: 655.9710
+                      angvelX: 0.040995
+                      angvelY: 0.045480
+                      angvelZ: 0.373883
+            axis_aligned_rate: 0.963177
+  gait/actual_near_limit_rate: 0.306506
+            gait/blocked_push: 0.031357
+gait/blocked_right_index_DIP_joint: 0.244766
+gait/blocked_right_index_MCP_joint: 0.043690
+gait/blocked_right_index_MPR_joint: 0.513340
+gait/blocked_right_index_PIP_joint: 0.053658
+gait/blocked_right_little_DIP_joint: 0.958145
+gait/blocked_right_little_MCP_joint: 0.005402
+gait/blocked_right_little_MPR_joint: 0.012844
+gait/blocked_right_little_PIP_joint: 0.504574
+gait/blocked_right_middle_DIP_joint: 0.947971
+gait/blocked_right_middle_MCP_joint: 0.000061
+gait/blocked_right_middle_MPR_joint: 0.269424
+gait/blocked_right_middle_PIP_joint: 0.029305
+gait/blocked_right_ring_DIP_joint: 0.018089
+gait/blocked_right_ring_MCP_joint: 0.001621
+gait/blocked_right_ring_MPR_joint: 0.048016
+gait/blocked_right_ring_PIP_joint: 0.260601
+gait/blocked_right_thumb_CMP_joint: 0.529572
+gait/blocked_right_thumb_CMR_joint: 0.001080
+gait/blocked_right_thumb_DIP_joint: 0.038853
+gait/blocked_right_thumb_MCP_joint: 0.001717
+gait/blocked_right_thumb_PIP_joint: 0.054661
+         gait/completed_count: 23.562500
+gait/completed_mean_net_turns: 1.684564
+    gait/completed_mean_turns: 1.421751
+ gait/completed_net_turns_sum: 39.692535
+gait/completed_one_turn_count: 18.312500
+ gait/completed_one_turn_rate: 0.777188
+     gait/completed_turns_sum: 33.500000
+           gait/contact_index: 0.577160
+          gait/contact_little: 0.733768
+          gait/contact_middle: 0.801323
+            gait/contact_ring: 0.404236
+           gait/contact_thumb: 0.627388
+               gait/net_turns: 0.986348
+          gait/new_full_turns: 0.002419
+              gait/recontacts: 0.096935
+                gait/releases: 0.099331
+            gait/support_gate: 0.972146
+  gait/target_near_limit_rate: 0.295739
+gait/target_tracking_error_rad: 0.014278
+          gravity_full_stable: 1.000000
+            gravity_magnitude: 9.810000
+   gravity_reset_rate_instant: 0.000420
+    gravity_reset_rate_window: 0.000466
+                    gravity_z: -9.810000
+           height_reset_lower: 0.000420
+           height_reset_upper: 0.000000
+         object_axis_tilt_deg: 5.232198
+policy/action_saturation_rate: 0.018554
+        policy/action_std_max: 0.237058
+       policy/action_std_mean: 0.132701
+        policy/action_std_min: 0.100259
+        reverse_rotation_rate: 0.064960
+                    rew/alive: 0.001999
+                     rew/drop: -0.000084
+          rew/gait_adjustment: -0.001696
+         rew/object_axis_tilt: -0.003595
+          rew/off_axis_angvel: -0.000696
+                   rew/rotate: 0.059136
+           rew/self_collision: -0.000250
+          rew/stable_rotation: 0.001668
+                   rew/torque: -0.000007
+                     rew/work: -0.000002
+                 rew/xy_drift: -0.000459
+                  rew/z_drift: -0.000333
+            rotation_progress: 0.591356
+   self_collision_force_max_n: 49.717885
+  self_collision_force_mean_n: 0.292993
+          self_collision_rate: 0.088268
+         stable_rotation_rate: 0.333523
+         tactile/contact_rate: 0.621877
+          tactile/force_max_n: 2.790531
+         tactile/force_mean_n: 0.360266
+                target_angvel: 0.373883
+                     time_out: 0.001019
+                 total_reward: 5.568058
+                  xy_drift_mm: 10.803781
+                   z_drift_mm: 2.151436
+----------------------------------------------------------------------------------------------------
+              Total timesteps: 671088640
+               Iteration time: 6.64s
+                 Time elapsed: 03:30:11
+                          ETA: 02:06:40
+
+Agent Steps: 0671M | FPS: 51630.4 | Last FPS: 44908.1 | Full-g Best: 37.08 | Curriculum Best: 37.08
+
+####################################################################################################
+                                    Learning iteration 2504/4000                                    
+
+                  Computation: 45020 steps/s (collection: 5.615s, learning: 0.207s)
+                  Mean reward: 35.2130
+          Mean episode length: 644.4605
+                      angvelX: 0.036618
+                      angvelY: 0.045623
+                      angvelZ: 0.373805
+            axis_aligned_rate: 0.962231
+  gait/actual_near_limit_rate: 0.307614
+            gait/blocked_push: 0.031200
+gait/blocked_right_index_DIP_joint: 0.234276
+gait/blocked_right_index_MCP_joint: 0.043640
+gait/blocked_right_index_MPR_joint: 0.504208
+gait/blocked_right_index_PIP_joint: 0.056580
+gait/blocked_right_little_DIP_joint: 0.956657
+gait/blocked_right_little_MCP_joint: 0.004879
+gait/blocked_right_little_MPR_joint: 0.012138
+gait/blocked_right_little_PIP_joint: 0.501942
+gait/blocked_right_middle_DIP_joint: 0.946033
+gait/blocked_right_middle_MCP_joint: 0.000057
+gait/blocked_right_middle_MPR_joint: 0.273098
+gait/blocked_right_middle_PIP_joint: 0.029408
+gait/blocked_right_ring_DIP_joint: 0.017738
+gait/blocked_right_ring_MCP_joint: 0.001488
+gait/blocked_right_ring_MPR_joint: 0.046955
+gait/blocked_right_ring_PIP_joint: 0.277351
+gait/blocked_right_thumb_CMP_joint: 0.536407
+gait/blocked_right_thumb_CMR_joint: 0.001038
+gait/blocked_right_thumb_DIP_joint: 0.041008
+gait/blocked_right_thumb_MCP_joint: 0.001751
+gait/blocked_right_thumb_PIP_joint: 0.054714
+         gait/completed_count: 23.250000
+gait/completed_mean_net_turns: 1.702048
+    gait/completed_mean_turns: 1.440860
+ gait/completed_net_turns_sum: 39.572609
+gait/completed_one_turn_count: 18.062500
+ gait/completed_one_turn_rate: 0.776882
+     gait/completed_turns_sum: 33.500000
+           gait/contact_index: 0.586174
+          gait/contact_little: 0.737694
+          gait/contact_middle: 0.795826
+            gait/contact_ring: 0.409515
+           gait/contact_thumb: 0.614815
+               gait/net_turns: 0.990091
+          gait/new_full_turns: 0.002071
+              gait/recontacts: 0.096863
+                gait/releases: 0.100105
+            gait/support_gate: 0.972310
+  gait/target_near_limit_rate: 0.296612
+gait/target_tracking_error_rad: 0.014280
+          gravity_full_stable: 1.000000
+            gravity_magnitude: 9.810000
+   gravity_reset_rate_instant: 0.000397
+    gravity_reset_rate_window: 0.000466
+                    gravity_z: -9.810000
+           height_reset_lower: 0.000397
+           height_reset_upper: 0.000000
+         object_axis_tilt_deg: 5.258278
+policy/action_saturation_rate: 0.018704
+        policy/action_std_max: 0.237111
+       policy/action_std_mean: 0.132674
+        policy/action_std_min: 0.100259
+        reverse_rotation_rate: 0.065201
+                    rew/alive: 0.001999
+                     rew/drop: -0.000079
+          rew/gait_adjustment: -0.001700
+         rew/object_axis_tilt: -0.003613
+          rew/off_axis_angvel: -0.000700
+                   rew/rotate: 0.059142
+           rew/self_collision: -0.000292
+          rew/stable_rotation: 0.001678
+                   rew/torque: -0.000007
+                     rew/work: -0.000002
+                 rew/xy_drift: -0.000462
+                  rew/z_drift: -0.000338
+            rotation_progress: 0.591420
+   self_collision_force_max_n: 125.225119
+  self_collision_force_mean_n: 0.312021
+          self_collision_rate: 0.087227
+         stable_rotation_rate: 0.335529
+         tactile/contact_rate: 0.621599
+          tactile/force_max_n: 3.050741
+         tactile/force_mean_n: 0.361396
+                target_angvel: 0.373805
+                     time_out: 0.001022
+                 total_reward: 5.562586
+                  xy_drift_mm: 10.781067
+                   z_drift_mm: 2.167476
+----------------------------------------------------------------------------------------------------
+              Total timesteps: 671350784
+               Iteration time: 5.84s
+                 Time elapsed: 03:30:17
+                          ETA: 02:06:35
+
+Agent Steps: 0671M | FPS: 51627.4 | Last FPS: 45149.0 | Full-g Best: 37.08 | Curriculum Best: 37.08
+
+####################################################################################################
+                                    Learning iteration 2505/4000                                    
+
+                  Computation: 45270 steps/s (collection: 5.612s, learning: 0.179s)
+                  Mean reward: 35.2541
+          Mean episode length: 646.6711
+                      angvelX: 0.039511
+                      angvelY: 0.046015
+                      angvelZ: 0.373950
+            axis_aligned_rate: 0.960983
+  gait/actual_near_limit_rate: 0.306728
+            gait/blocked_push: 0.030910
+gait/blocked_right_index_DIP_joint: 0.234276
+gait/blocked_right_index_MCP_joint: 0.042175
+gait/blocked_right_index_MPR_joint: 0.499744
+gait/blocked_right_index_PIP_joint: 0.054844
+gait/blocked_right_little_DIP_joint: 0.955116
+gait/blocked_right_little_MCP_joint: 0.004684
+gait/blocked_right_little_MPR_joint: 0.011883
+gait/blocked_right_little_PIP_joint: 0.497150
+gait/blocked_right_middle_DIP_joint: 0.943993
+gait/blocked_right_middle_MCP_joint: 0.000000
+gait/blocked_right_middle_MPR_joint: 0.275867
+gait/blocked_right_middle_PIP_joint: 0.028866
+gait/blocked_right_ring_DIP_joint: 0.016449
+gait/blocked_right_ring_MCP_joint: 0.001251
+gait/blocked_right_ring_MPR_joint: 0.049171
+gait/blocked_right_ring_PIP_joint: 0.276760
+gait/blocked_right_thumb_CMP_joint: 0.533031
+gait/blocked_right_thumb_CMR_joint: 0.001347
+gait/blocked_right_thumb_DIP_joint: 0.038837
+gait/blocked_right_thumb_MCP_joint: 0.001629
+gait/blocked_right_thumb_PIP_joint: 0.059818
+         gait/completed_count: 26.500000
+gait/completed_mean_net_turns: 1.707616
+    gait/completed_mean_turns: 1.462264
+ gait/completed_net_turns_sum: 45.251820
+gait/completed_one_turn_count: 20.750000
+ gait/completed_one_turn_rate: 0.783019
+     gait/completed_turns_sum: 38.750000
+           gait/contact_index: 0.573753
+          gait/contact_little: 0.728718
+          gait/contact_middle: 0.795769
+            gait/contact_ring: 0.415802
+           gait/contact_thumb: 0.626774
+               gait/net_turns: 0.992053
+          gait/new_full_turns: 0.002266
+              gait/recontacts: 0.097103
+                gait/releases: 0.099831
+            gait/support_gate: 0.971674
+  gait/target_near_limit_rate: 0.295341
+gait/target_tracking_error_rad: 0.014287
+          gravity_full_stable: 1.000000
+            gravity_magnitude: 9.810000
+   gravity_reset_rate_instant: 0.000435
+    gravity_reset_rate_window: 0.000466
+                    gravity_z: -9.810000
+           height_reset_lower: 0.000435
+           height_reset_upper: 0.000000
+         object_axis_tilt_deg: 5.315081
+policy/action_saturation_rate: 0.018583
+        policy/action_std_max: 0.237158
+       policy/action_std_mean: 0.132659
+        policy/action_std_min: 0.100259
+        reverse_rotation_rate: 0.064949
+                    rew/alive: 0.001999
+                     rew/drop: -0.000087
+          rew/gait_adjustment: -0.001703
+         rew/object_axis_tilt: -0.003676
+          rew/off_axis_angvel: -0.000759
+                   rew/rotate: 0.059297
+           rew/self_collision: -0.000278
+          rew/stable_rotation: 0.001662
+                   rew/torque: -0.000007
+                     rew/work: -0.000002
+                 rew/xy_drift: -0.000464
+                  rew/z_drift: -0.000341
+            rotation_progress: 0.592971
+   self_collision_force_max_n: 194.213493
+  self_collision_force_mean_n: 0.299311
+          self_collision_rate: 0.084591
+         stable_rotation_rate: 0.332333
+         tactile/contact_rate: 0.621324
+          tactile/force_max_n: 2.900987
+         tactile/force_mean_n: 0.360029
+                target_angvel: 0.373950
+                     time_out: 0.001183
+                 total_reward: 5.564233
+                  xy_drift_mm: 10.804376
+                   z_drift_mm: 2.178753
+----------------------------------------------------------------------------------------------------
+              Total timesteps: 671612928
+               Iteration time: 5.81s
+                 Time elapsed: 03:30:22
+                          ETA: 02:06:31
+
+Agent Steps: 0671M | FPS: 51625.2 | Last FPS: 46769.0 | Full-g Best: 37.08 | Curriculum Best: 37.08
+
+####################################################################################################
+                                    Learning iteration 2506/4000                                    
+
+                  Computation: 46897 steps/s (collection: 5.411s, learning: 0.178s)
+                  Mean reward: 34.8843
+          Mean episode length: 633.1128
+                      angvelX: 0.039913
+                      angvelY: 0.045302
+                      angvelZ: 0.375424
+            axis_aligned_rate: 0.959442
+  gait/actual_near_limit_rate: 0.306638
+            gait/blocked_push: 0.030802
+gait/blocked_right_index_DIP_joint: 0.237328
+gait/blocked_right_index_MCP_joint: 0.042088
+gait/blocked_right_index_MPR_joint: 0.506397
+gait/blocked_right_index_PIP_joint: 0.054955
+gait/blocked_right_little_DIP_joint: 0.953026
+gait/blocked_right_little_MCP_joint: 0.004475
+gait/blocked_right_little_MPR_joint: 0.012047
+gait/blocked_right_little_PIP_joint: 0.502632
+gait/blocked_right_middle_DIP_joint: 0.941727
+gait/blocked_right_middle_MCP_joint: 0.000031
+gait/blocked_right_middle_MPR_joint: 0.266640
+gait/blocked_right_middle_PIP_joint: 0.028599
+gait/blocked_right_ring_DIP_joint: 0.015591
+gait/blocked_right_ring_MCP_joint: 0.001167
+gait/blocked_right_ring_MPR_joint: 0.048512
+gait/blocked_right_ring_PIP_joint: 0.277065
+gait/blocked_right_thumb_CMP_joint: 0.534607
+gait/blocked_right_thumb_CMR_joint: 0.001316
+gait/blocked_right_thumb_DIP_joint: 0.038982
+gait/blocked_right_thumb_MCP_joint: 0.001827
+gait/blocked_right_thumb_PIP_joint: 0.057064
+         gait/completed_count: 29.000000
+gait/completed_mean_net_turns: 1.690561
+    gait/completed_mean_turns: 1.418103
+ gait/completed_net_turns_sum: 49.026273
+gait/completed_one_turn_count: 22.187500
+ gait/completed_one_turn_rate: 0.765086
+     gait/completed_turns_sum: 41.125000
+           gait/contact_index: 0.574375
+          gait/contact_little: 0.733147
+          gait/contact_middle: 0.799091
+            gait/contact_ring: 0.415306
+           gait/contact_thumb: 0.623116
+               gait/net_turns: 0.989036
+          gait/new_full_turns: 0.002197
+              gait/recontacts: 0.095882
+                gait/releases: 0.098927
+            gait/support_gate: 0.971044
+  gait/target_near_limit_rate: 0.295705
+gait/target_tracking_error_rad: 0.014321
+          gravity_full_stable: 1.000000
+            gravity_magnitude: 9.810000
+   gravity_reset_rate_instant: 0.000504
+    gravity_reset_rate_window: 0.000466
+                    gravity_z: -9.810000
+           height_reset_lower: 0.000500
+           height_reset_upper: 0.000004
+         object_axis_tilt_deg: 5.328146
+policy/action_saturation_rate: 0.018785
+        policy/action_std_max: 0.237187
+       policy/action_std_mean: 0.132655
+        policy/action_std_min: 0.100259
+        reverse_rotation_rate: 0.063812
+                    rew/alive: 0.001999
+                     rew/drop: -0.000101
+          rew/gait_adjustment: -0.001727
+         rew/object_axis_tilt: -0.003745
+          rew/off_axis_angvel: -0.000782
+                   rew/rotate: 0.059375
+           rew/self_collision: -0.000291
+          rew/stable_rotation: 0.001633
+                   rew/torque: -0.000007
+                     rew/work: -0.000002
+                 rew/xy_drift: -0.000474
+                  rew/z_drift: -0.000344
+            rotation_progress: 0.593754
+   self_collision_force_max_n: 242.476789
+  self_collision_force_mean_n: 0.306510
+          self_collision_rate: 0.084290
+         stable_rotation_rate: 0.326649
+         tactile/contact_rate: 0.622122
+          tactile/force_max_n: 2.580212
+         tactile/force_mean_n: 0.360776
+                target_angvel: 0.375424
+                     time_out: 0.001266
+                 total_reward: 5.553434
+                  xy_drift_mm: 10.878911
+                   z_drift_mm: 2.189594
+----------------------------------------------------------------------------------------------------
+              Total timesteps: 671875072
+               Iteration time: 5.60s
+                 Time elapsed: 03:30:28
+                          ETA: 02:06:26
+
+Agent Steps: 0672M | FPS: 51622.4 | Last FPS: 45466.7 | Full-g Best: 37.08 | Curriculum Best: 37.08
+
+####################################################################################################
+                                    Learning iteration 2507/4000                                    
+
+                  Computation: 45587 steps/s (collection: 5.574s, learning: 0.177s)
+                  Mean reward: 34.3082
+          Mean episode length: 636.7162
+                      angvelX: 0.039277
+                      angvelY: 0.044923
+                      angvelZ: 0.373279
+            axis_aligned_rate: 0.959419
+  gait/actual_near_limit_rate: 0.306532
+            gait/blocked_push: 0.030708
+gait/blocked_right_index_DIP_joint: 0.231903
+gait/blocked_right_index_MCP_joint: 0.043449
+gait/blocked_right_index_MPR_joint: 0.496956
+gait/blocked_right_index_PIP_joint: 0.056408
+gait/blocked_right_little_DIP_joint: 0.954430
+gait/blocked_right_little_MCP_joint: 0.004520
+gait/blocked_right_little_MPR_joint: 0.013451
+gait/blocked_right_little_PIP_joint: 0.492226
+gait/blocked_right_middle_DIP_joint: 0.940495
+gait/blocked_right_middle_MCP_joint: 0.000008
+gait/blocked_right_middle_MPR_joint: 0.274414
+gait/blocked_right_middle_PIP_joint: 0.028812
+gait/blocked_right_ring_DIP_joint: 0.015854
+gait/blocked_right_ring_MCP_joint: 0.001270
+gait/blocked_right_ring_MPR_joint: 0.047066
+gait/blocked_right_ring_PIP_joint: 0.282986
+gait/blocked_right_thumb_CMP_joint: 0.539341
+gait/blocked_right_thumb_CMR_joint: 0.001350
+gait/blocked_right_thumb_DIP_joint: 0.040100
+gait/blocked_right_thumb_MCP_joint: 0.001663
+gait/blocked_right_thumb_PIP_joint: 0.058418
+         gait/completed_count: 25.500000
+gait/completed_mean_net_turns: 1.695989
+    gait/completed_mean_turns: 1.421569
+ gait/completed_net_turns_sum: 43.247711
+gait/completed_one_turn_count: 19.750000
+ gait/completed_one_turn_rate: 0.774510
+     gait/completed_turns_sum: 36.250000
+           gait/contact_index: 0.581203
+          gait/contact_little: 0.735371
+          gait/contact_middle: 0.793671
+            gait/contact_ring: 0.420219
+           gait/contact_thumb: 0.615150
+               gait/net_turns: 0.986864
+          gait/new_full_turns: 0.002041
+              gait/recontacts: 0.095894
+                gait/releases: 0.099361
+            gait/support_gate: 0.971299
+  gait/target_near_limit_rate: 0.295471
+gait/target_tracking_error_rad: 0.014306
+          gravity_full_stable: 1.000000
+            gravity_magnitude: 9.810000
+   gravity_reset_rate_instant: 0.000443
+    gravity_reset_rate_window: 0.000449
+                    gravity_z: -9.810000
+           height_reset_lower: 0.000443
+           height_reset_upper: 0.000000
+         object_axis_tilt_deg: 5.300539
+policy/action_saturation_rate: 0.019144
+        policy/action_std_max: 0.237266
+       policy/action_std_mean: 0.132642
+        policy/action_std_min: 0.100259
+        reverse_rotation_rate: 0.063625
+                    rew/alive: 0.001999
+                     rew/drop: -0.000089
+          rew/gait_adjustment: -0.001733
+         rew/object_axis_tilt: -0.003702
+          rew/off_axis_angvel: -0.000719
+                   rew/rotate: 0.059306
+           rew/self_collision: -0.000302
+          rew/stable_rotation: 0.001633
+                   rew/torque: -0.000007
+                     rew/work: -0.000002
+                 rew/xy_drift: -0.000476
+                  rew/z_drift: -0.000348
+            rotation_progress: 0.593060
+   self_collision_force_max_n: 195.266436
+  self_collision_force_mean_n: 0.319642
+          self_collision_rate: 0.086548
+         stable_rotation_rate: 0.326691
+         tactile/contact_rate: 0.622218
+          tactile/force_max_n: 2.736921
+         tactile/force_mean_n: 0.362051
+                target_angvel: 0.373279
+                     time_out: 0.001114
+                 total_reward: 5.556057
+                  xy_drift_mm: 10.869588
+                   z_drift_mm: 2.207402
+----------------------------------------------------------------------------------------------------
+              Total timesteps: 672137216
+               Iteration time: 5.76s
+                 Time elapsed: 03:30:34
+                          ETA: 02:06:21
+
+Agent Steps: 0672M | FPS: 51619.5 | Last FPS: 45238.8 | Full-g Best: 37.08 | Curriculum Best: 37.08
+
+####################################################################################################
+                                    Learning iteration 2508/4000                                    
+
+                  Computation: 45356 steps/s (collection: 5.600s, learning: 0.180s)
+                  Mean reward: 36.5679
+          Mean episode length: 664.5790
+                      angvelX: 0.040171
+                      angvelY: 0.043909
+                      angvelZ: 0.372177
+            axis_aligned_rate: 0.959763
+  gait/actual_near_limit_rate: 0.307458
+            gait/blocked_push: 0.030768
+gait/blocked_right_index_DIP_joint: 0.234966
+gait/blocked_right_index_MCP_joint: 0.045048
+gait/blocked_right_index_MPR_joint: 0.493488
+gait/blocked_right_index_PIP_joint: 0.058933
+gait/blocked_right_little_DIP_joint: 0.956390
+gait/blocked_right_little_MCP_joint: 0.005173
+gait/blocked_right_little_MPR_joint: 0.013809
+gait/blocked_right_little_PIP_joint: 0.485245
+gait/blocked_right_middle_DIP_joint: 0.941559
+gait/blocked_right_middle_MCP_joint: 0.000004
+gait/blocked_right_middle_MPR_joint: 0.280003
+gait/blocked_right_middle_PIP_joint: 0.028572
+gait/blocked_right_ring_DIP_joint: 0.016556
+gait/blocked_right_ring_MCP_joint: 0.001312
+gait/blocked_right_ring_MPR_joint: 0.049328
+gait/blocked_right_ring_PIP_joint: 0.281582
+gait/blocked_right_thumb_CMP_joint: 0.537125
+gait/blocked_right_thumb_CMR_joint: 0.001183
+gait/blocked_right_thumb_DIP_joint: 0.042290
+gait/blocked_right_thumb_MCP_joint: 0.001564
+gait/blocked_right_thumb_PIP_joint: 0.059986
+         gait/completed_count: 25.875000
+gait/completed_mean_net_turns: 1.675665
+    gait/completed_mean_turns: 1.408213
+ gait/completed_net_turns_sum: 43.357833
+gait/completed_one_turn_count: 19.687500
+ gait/completed_one_turn_rate: 0.760870
+     gait/completed_turns_sum: 36.437500
+           gait/contact_index: 0.573383
+          gait/contact_little: 0.723076
+          gait/contact_middle: 0.795547
+            gait/contact_ring: 0.429432
+           gait/contact_thumb: 0.620613
+               gait/net_turns: 0.988701
+          gait/new_full_turns: 0.002335
+              gait/recontacts: 0.095448
+                gait/releases: 0.098877
+            gait/support_gate: 0.971385
+  gait/target_near_limit_rate: 0.296665
+gait/target_tracking_error_rad: 0.014297
+          gravity_full_stable: 1.000000
+            gravity_magnitude: 9.810000
+   gravity_reset_rate_instant: 0.000450
+    gravity_reset_rate_window: 0.000436
+                    gravity_z: -9.810000
+           height_reset_lower: 0.000450
+           height_reset_upper: 0.000000
+         object_axis_tilt_deg: 5.277598
+policy/action_saturation_rate: 0.018848
+        policy/action_std_max: 0.237368
+       policy/action_std_mean: 0.132645
+        policy/action_std_min: 0.100259
+        reverse_rotation_rate: 0.063957
+                    rew/alive: 0.001999
+                     rew/drop: -0.000090
+          rew/gait_adjustment: -0.001729
+         rew/object_axis_tilt: -0.003683
+          rew/off_axis_angvel: -0.000763
+                   rew/rotate: 0.059279
+           rew/self_collision: -0.000279
+          rew/stable_rotation: 0.001651
+                   rew/torque: -0.000007
+                     rew/work: -0.000002
+                 rew/xy_drift: -0.000461
+                  rew/z_drift: -0.000352
+            rotation_progress: 0.592792
+   self_collision_force_max_n: 111.951622
+  self_collision_force_mean_n: 0.310367
+          self_collision_rate: 0.088612
+         stable_rotation_rate: 0.330112
+         tactile/contact_rate: 0.621387
+          tactile/force_max_n: 2.859920
+         tactile/force_mean_n: 0.361115
+                target_angvel: 0.372177
+                     time_out: 0.001129
+                 total_reward: 5.556234
+                  xy_drift_mm: 10.784331
+                   z_drift_mm: 2.226677
+----------------------------------------------------------------------------------------------------
+              Total timesteps: 672399360
+               Iteration time: 5.79s
+                 Time elapsed: 03:30:40
+                          ETA: 02:06:16
+
+Agent Steps: 0672M | FPS: 51621.6 | Last FPS: 57411.8 | Full-g Best: 37.08 | Curriculum Best: 37.08
+
+####################################################################################################
+                                    Learning iteration 2509/4000                                    
+
+                  Computation: 57611 steps/s (collection: 4.380s, learning: 0.170s)
+                  Mean reward: 33.5855
+          Mean episode length: 627.3535
+                      angvelX: 0.040140
+                      angvelY: 0.042164
+                      angvelZ: 0.371713
+            axis_aligned_rate: 0.962700
+  gait/actual_near_limit_rate: 0.307798
+            gait/blocked_push: 0.030629
+gait/blocked_right_index_DIP_joint: 0.244717
+gait/blocked_right_index_MCP_joint: 0.048962
+gait/blocked_right_index_MPR_joint: 0.500996
+gait/blocked_right_index_PIP_joint: 0.059647
+gait/blocked_right_little_DIP_joint: 0.956493
+gait/blocked_right_little_MCP_joint: 0.005108
+gait/blocked_right_little_MPR_joint: 0.013016
+gait/blocked_right_little_PIP_joint: 0.491913
+gait/blocked_right_middle_DIP_joint: 0.943062
+gait/blocked_right_middle_MCP_joint: 0.000061
+gait/blocked_right_middle_MPR_joint: 0.275078
+gait/blocked_right_middle_PIP_joint: 0.030209
+gait/blocked_right_ring_DIP_joint: 0.017399
+gait/blocked_right_ring_MCP_joint: 0.001114
+gait/blocked_right_ring_MPR_joint: 0.045784
+gait/blocked_right_ring_PIP_joint: 0.276840
+gait/blocked_right_thumb_CMP_joint: 0.543472
+gait/blocked_right_thumb_CMR_joint: 0.001236
+gait/blocked_right_thumb_DIP_joint: 0.043785
+gait/blocked_right_thumb_MCP_joint: 0.001442
+gait/blocked_right_thumb_PIP_joint: 0.059982
+         gait/completed_count: 23.562500
+gait/completed_mean_net_turns: 1.666929
+    gait/completed_mean_turns: 1.384615
+ gait/completed_net_turns_sum: 39.277004
+gait/completed_one_turn_count: 18.062500
+ gait/completed_one_turn_rate: 0.766578
+     gait/completed_turns_sum: 32.625000
+           gait/contact_index: 0.571060
+          gait/contact_little: 0.725368
+          gait/contact_middle: 0.795307
+            gait/contact_ring: 0.424023
+           gait/contact_thumb: 0.624344
+               gait/net_turns: 0.991633
+          gait/new_full_turns: 0.002308
+              gait/recontacts: 0.096115
+                gait/releases: 0.099728
+            gait/support_gate: 0.971561
+  gait/target_near_limit_rate: 0.297081
+gait/target_tracking_error_rad: 0.014265
+          gravity_full_stable: 1.000000
+            gravity_magnitude: 9.810000
+   gravity_reset_rate_instant: 0.000416
+    gravity_reset_rate_window: 0.000436
+                    gravity_z: -9.810000
+           height_reset_lower: 0.000416
+           height_reset_upper: 0.000000
+         object_axis_tilt_deg: 5.249158
+policy/action_saturation_rate: 0.018626
+        policy/action_std_max: 0.237381
+       policy/action_std_mean: 0.132642
+        policy/action_std_min: 0.100259
+        reverse_rotation_rate: 0.063023
+                    rew/alive: 0.001999
+                     rew/drop: -0.000083
+          rew/gait_adjustment: -0.001728
+         rew/object_axis_tilt: -0.003626
+          rew/off_axis_angvel: -0.000704
+                   rew/rotate: 0.059402
+           rew/self_collision: -0.000275
+          rew/stable_rotation: 0.001658
+                   rew/torque: -0.000007
+                     rew/work: -0.000002
+                 rew/xy_drift: -0.000448
+                  rew/z_drift: -0.000353
+            rotation_progress: 0.594018
+   self_collision_force_max_n: 74.467805
+  self_collision_force_mean_n: 0.310863
+          self_collision_rate: 0.090343
+         stable_rotation_rate: 0.331532
+         tactile/contact_rate: 0.621006
+          tactile/force_max_n: 2.401528
+         tactile/force_mean_n: 0.359654
+                target_angvel: 0.371713
+                     time_out: 0.001022
+                 total_reward: 5.583418
+                  xy_drift_mm: 10.730346
+                   z_drift_mm: 2.231948
+----------------------------------------------------------------------------------------------------
+              Total timesteps: 672661504
+               Iteration time: 4.57s
+                 Time elapsed: 03:30:44
+                          ETA: 02:06:11
+
+Agent Steps: 0672M | FPS: 51626.1 | Last FPS: 66096.2 | Full-g Best: 37.08 | Curriculum Best: 37.08
+
+####################################################################################################
+                                    Learning iteration 2510/4000                                    
+
+                  Computation: 66366 steps/s (collection: 3.736s, learning: 0.214s)
+                  Mean reward: 35.1634
+          Mean episode length: 644.3707
+                      angvelX: 0.039376
+                      angvelY: 0.044881
+                      angvelZ: 0.371338
+            axis_aligned_rate: 0.960606
+  gait/actual_near_limit_rate: 0.307463
+            gait/blocked_push: 0.030387
+gait/blocked_right_index_DIP_joint: 0.248367
+gait/blocked_right_index_MCP_joint: 0.050083
+gait/blocked_right_index_MPR_joint: 0.496208
+gait/blocked_right_index_PIP_joint: 0.056313
+gait/blocked_right_little_DIP_joint: 0.956776
+gait/blocked_right_little_MCP_joint: 0.005005
+gait/blocked_right_little_MPR_joint: 0.013901
+gait/blocked_right_little_PIP_joint: 0.486511
+gait/blocked_right_middle_DIP_joint: 0.944401
+gait/blocked_right_middle_MCP_joint: 0.000061
+gait/blocked_right_middle_MPR_joint: 0.275063
+gait/blocked_right_middle_PIP_joint: 0.030025
+gait/blocked_right_ring_DIP_joint: 0.016880
+gait/blocked_right_ring_MCP_joint: 0.001110
+gait/blocked_right_ring_MPR_joint: 0.044167
+gait/blocked_right_ring_PIP_joint: 0.284557
+gait/blocked_right_thumb_CMP_joint: 0.546734
+gait/blocked_right_thumb_CMR_joint: 0.001232
+gait/blocked_right_thumb_DIP_joint: 0.041096
+gait/blocked_right_thumb_MCP_joint: 0.001450
+gait/blocked_right_thumb_PIP_joint: 0.058945
+         gait/completed_count: 25.312500
+gait/completed_mean_net_turns: 1.652069
+    gait/completed_mean_turns: 1.400000
+ gait/completed_net_turns_sum: 41.817987
+gait/completed_one_turn_count: 19.187500
+ gait/completed_one_turn_rate: 0.758025
+     gait/completed_turns_sum: 35.437500
+           gait/contact_index: 0.577068
+          gait/contact_little: 0.726799
+          gait/contact_middle: 0.792400
+            gait/contact_ring: 0.419212
+           gait/contact_thumb: 0.619858
+               gait/net_turns: 0.995815
+          gait/new_full_turns: 0.002239
+              gait/recontacts: 0.097225
+                gait/releases: 0.099548
+            gait/support_gate: 0.971598
+  gait/target_near_limit_rate: 0.296463
+gait/target_tracking_error_rad: 0.014148
+          gravity_full_stable: 1.000000
+            gravity_magnitude: 9.810000
+   gravity_reset_rate_instant: 0.000465
+    gravity_reset_rate_window: 0.000436
+                    gravity_z: -9.810000
+           height_reset_lower: 0.000465
+           height_reset_upper: 0.000000
+         object_axis_tilt_deg: 5.256714
+policy/action_saturation_rate: 0.018535
+        policy/action_std_max: 0.237404
+       policy/action_std_mean: 0.132634
+        policy/action_std_min: 0.100259
+        reverse_rotation_rate: 0.064613
+                    rew/alive: 0.001999
+                     rew/drop: -0.000093
+          rew/gait_adjustment: -0.001688
+         rew/object_axis_tilt: -0.003672
+          rew/off_axis_angvel: -0.000755
+                   rew/rotate: 0.059142
+           rew/self_collision: -0.000251
+          rew/stable_rotation: 0.001685
+                   rew/torque: -0.000007
+                     rew/work: -0.000002
+                 rew/xy_drift: -0.000448
+                  rew/z_drift: -0.000357
+            rotation_progress: 0.591419
+   self_collision_force_max_n: 92.229272
+  self_collision_force_mean_n: 0.289164
+          self_collision_rate: 0.085182
+         stable_rotation_rate: 0.336926
+         tactile/contact_rate: 0.620545
+          tactile/force_max_n: 2.661646
+         tactile/force_mean_n: 0.357968
+                target_angvel: 0.371338
+                     time_out: 0.001080
+                 total_reward: 5.555303
+                  xy_drift_mm: 10.672577
+                   z_drift_mm: 2.248193
+----------------------------------------------------------------------------------------------------
+              Total timesteps: 672923648
+               Iteration time: 3.96s
+                 Time elapsed: 03:30:48
+                          ETA: 02:06:05
+
+Agent Steps: 0673M | FPS: 51631.1 | Last FPS: 67975.1 | Full-g Best: 37.08 | Curriculum Best: 37.08
+
+####################################################################################################
+                                    Learning iteration 2511/4000                                    
+
+                  Computation: 68207 steps/s (collection: 3.674s, learning: 0.169s)
+                  Mean reward: 36.3175
+          Mean episode length: 657.8670
+                      angvelX: 0.038711
+                      angvelY: 0.043804
+                      angvelZ: 0.374867
+            axis_aligned_rate: 0.962311
+  gait/actual_near_limit_rate: 0.307149
+            gait/blocked_push: 0.030216
+gait/blocked_right_index_DIP_joint: 0.241901
+gait/blocked_right_index_MCP_joint: 0.045532
+gait/blocked_right_index_MPR_joint: 0.497780
+gait/blocked_right_index_PIP_joint: 0.056057
+gait/blocked_right_little_DIP_joint: 0.955982
+gait/blocked_right_little_MCP_joint: 0.005268
+gait/blocked_right_little_MPR_joint: 0.012508
+gait/blocked_right_little_PIP_joint: 0.486210
+gait/blocked_right_middle_DIP_joint: 0.945648
+gait/blocked_right_middle_MCP_joint: 0.000084
+gait/blocked_right_middle_MPR_joint: 0.275543
+gait/blocked_right_middle_PIP_joint: 0.028301
+gait/blocked_right_ring_DIP_joint: 0.016743
+gait/blocked_right_ring_MCP_joint: 0.001049
+gait/blocked_right_ring_MPR_joint: 0.045921
+gait/blocked_right_ring_PIP_joint: 0.285591
+gait/blocked_right_thumb_CMP_joint: 0.540665
+gait/blocked_right_thumb_CMR_joint: 0.001209
+gait/blocked_right_thumb_DIP_joint: 0.039181
+gait/blocked_right_thumb_MCP_joint: 0.001659
+gait/blocked_right_thumb_PIP_joint: 0.061005
+         gait/completed_count: 24.500000
+gait/completed_mean_net_turns: 1.724650
+    gait/completed_mean_turns: 1.464286
+ gait/completed_net_turns_sum: 42.253925
+gait/completed_one_turn_count: 19.375000
+ gait/completed_one_turn_rate: 0.790816
+     gait/completed_turns_sum: 35.875000
+           gait/contact_index: 0.576519
+          gait/contact_little: 0.728237
+          gait/contact_middle: 0.797188
+            gait/contact_ring: 0.418331
+           gait/contact_thumb: 0.618893
+               gait/net_turns: 0.996825
+          gait/new_full_turns: 0.002197
+              gait/recontacts: 0.097195
+                gait/releases: 0.100269
+            gait/support_gate: 0.972404
+  gait/target_near_limit_rate: 0.296118
+gait/target_tracking_error_rad: 0.014153
+          gravity_full_stable: 1.000000
+            gravity_magnitude: 9.810000
+   gravity_reset_rate_instant: 0.000397
+    gravity_reset_rate_window: 0.000436
+                    gravity_z: -9.810000
+           height_reset_lower: 0.000397
+           height_reset_upper: 0.000000
+         object_axis_tilt_deg: 5.250504
+policy/action_saturation_rate: 0.018170
+        policy/action_std_max: 0.237383
+       policy/action_std_mean: 0.132612
+        policy/action_std_min: 0.100259
+        reverse_rotation_rate: 0.062801
+                    rew/alive: 0.001999
+                     rew/drop: -0.000079
+          rew/gait_adjustment: -0.001681
+         rew/object_axis_tilt: -0.003538
+          rew/off_axis_angvel: -0.000652
+                   rew/rotate: 0.059491
+           rew/self_collision: -0.000237
+          rew/stable_rotation: 0.001697
+                   rew/torque: -0.000007
+                     rew/work: -0.000002
+                 rew/xy_drift: -0.000437
+                  rew/z_drift: -0.000356
+            rotation_progress: 0.594912
+   self_collision_force_max_n: 90.101133
+  self_collision_force_mean_n: 0.276481
+          self_collision_rate: 0.082771
+         stable_rotation_rate: 0.339317
+         tactile/contact_rate: 0.620920
+          tactile/force_max_n: 2.600764
+         tactile/force_mean_n: 0.358478
+                target_angvel: 0.374867
+                     time_out: 0.001099
+                 total_reward: 5.619787
+                  xy_drift_mm: 10.646256
+                   z_drift_mm: 2.253462
+----------------------------------------------------------------------------------------------------
+              Total timesteps: 673185792
+               Iteration time: 3.87s
+                 Time elapsed: 03:30:52
+                          ETA: 02:06:00
+
+Agent Steps: 0673M | FPS: 51635.9 | Last FPS: 67226.2 | Full-g Best: 37.08 | Curriculum Best: 37.08
+
+####################################################################################################
+                                    Learning iteration 2512/4000                                    
+
+                  Computation: 67769 steps/s (collection: 3.699s, learning: 0.169s)
+                  Mean reward: 33.5733
+          Mean episode length: 619.4298
+                      angvelX: 0.039003
+                      angvelY: 0.044267
+                      angvelZ: 0.374079
+            axis_aligned_rate: 0.963581
+  gait/actual_near_limit_rate: 0.307514
+            gait/blocked_push: 0.030030
+gait/blocked_right_index_DIP_joint: 0.245888
+gait/blocked_right_index_MCP_joint: 0.043789
+gait/blocked_right_index_MPR_joint: 0.493797
+gait/blocked_right_index_PIP_joint: 0.057747
+gait/blocked_right_little_DIP_joint: 0.956539
+gait/blocked_right_little_MCP_joint: 0.005131
+gait/blocked_right_little_MPR_joint: 0.012657
+gait/blocked_right_little_PIP_joint: 0.484589
+gait/blocked_right_middle_DIP_joint: 0.942444
+gait/blocked_right_middle_MCP_joint: 0.000122
+gait/blocked_right_middle_MPR_joint: 0.277016
+gait/blocked_right_middle_PIP_joint: 0.026741
+gait/blocked_right_ring_DIP_joint: 0.016212
+gait/blocked_right_ring_MCP_joint: 0.001263
+gait/blocked_right_ring_MPR_joint: 0.047058
+gait/blocked_right_ring_PIP_joint: 0.287792
+gait/blocked_right_thumb_CMP_joint: 0.538452
+gait/blocked_right_thumb_CMR_joint: 0.001148
+gait/blocked_right_thumb_DIP_joint: 0.041775
+gait/blocked_right_thumb_MCP_joint: 0.001835
+gait/blocked_right_thumb_PIP_joint: 0.059383
+         gait/completed_count: 24.187500
+gait/completed_mean_net_turns: 1.699933
+    gait/completed_mean_turns: 1.439276
+ gait/completed_net_turns_sum: 41.117132
+gait/completed_one_turn_count: 19.062500
+ gait/completed_one_turn_rate: 0.788114
+     gait/completed_turns_sum: 34.812500
+           gait/contact_index: 0.580524
+          gait/contact_little: 0.730854
+          gait/contact_middle: 0.798359
+            gait/contact_ring: 0.414627
+           gait/contact_thumb: 0.615734
+               gait/net_turns: 0.999995
+          gait/new_full_turns: 0.002304
+              gait/recontacts: 0.097408
+                gait/releases: 0.100182
+            gait/support_gate: 0.972003
+  gait/target_near_limit_rate: 0.296553
+gait/target_tracking_error_rad: 0.014219
+          gravity_full_stable: 1.000000
+            gravity_magnitude: 9.810000
+   gravity_reset_rate_instant: 0.000416
+    gravity_reset_rate_window: 0.000436
+                    gravity_z: -9.810000
+           height_reset_lower: 0.000416
+           height_reset_upper: 0.000000
+         object_axis_tilt_deg: 5.242907
+policy/action_saturation_rate: 0.018426
+        policy/action_std_max: 0.237306
+       policy/action_std_mean: 0.132593
+        policy/action_std_min: 0.100259
+        reverse_rotation_rate: 0.062321
+                    rew/alive: 0.001999
+                     rew/drop: -0.000083
+          rew/gait_adjustment: -0.001684
+         rew/object_axis_tilt: -0.003603
+          rew/off_axis_angvel: -0.000698
+                   rew/rotate: 0.059409
+           rew/self_collision: -0.000279
+          rew/stable_rotation: 0.001663
+                   rew/torque: -0.000007
+                     rew/work: -0.000002
+                 rew/xy_drift: -0.000449
+                  rew/z_drift: -0.000357
+            rotation_progress: 0.594095
+   self_collision_force_max_n: 75.051004
+  self_collision_force_mean_n: 0.315707
+          self_collision_rate: 0.091011
+         stable_rotation_rate: 0.332642
+         tactile/contact_rate: 0.621149
+          tactile/force_max_n: 2.584340
+         tactile/force_mean_n: 0.359274
+                target_angvel: 0.374079
+                     time_out: 0.001060
+                 total_reward: 5.590946
+                  xy_drift_mm: 10.733810
+                   z_drift_mm: 2.261430
+----------------------------------------------------------------------------------------------------
+              Total timesteps: 673447936
+               Iteration time: 3.88s
+                 Time elapsed: 03:30:56
+                          ETA: 02:05:54
+
+Agent Steps: 0673M | FPS: 51641.0 | Last FPS: 68300.6 | Full-g Best: 37.08 | Curriculum Best: 37.08
+
+####################################################################################################
+                                    Learning iteration 2513/4000                                    
+
+                  Computation: 68598 steps/s (collection: 3.651s, learning: 0.170s)
+                  Mean reward: 35.9099
+          Mean episode length: 648.4723
+                      angvelX: 0.038513
+                      angvelY: 0.044951
+                      angvelZ: 0.375007
+            axis_aligned_rate: 0.963745
+  gait/actual_near_limit_rate: 0.305937
+            gait/blocked_push: 0.029873
+gait/blocked_right_index_DIP_joint: 0.244259
+gait/blocked_right_index_MCP_joint: 0.046265
+gait/blocked_right_index_MPR_joint: 0.485401
+gait/blocked_right_index_PIP_joint: 0.059628
+gait/blocked_right_little_DIP_joint: 0.956863
+gait/blocked_right_little_MCP_joint: 0.005375
+gait/blocked_right_little_MPR_joint: 0.013863
+gait/blocked_right_little_PIP_joint: 0.468849
+gait/blocked_right_middle_DIP_joint: 0.943611
+gait/blocked_right_middle_MCP_joint: 0.000114
+gait/blocked_right_middle_MPR_joint: 0.282642
+gait/blocked_right_middle_PIP_joint: 0.026112
+gait/blocked_right_ring_DIP_joint: 0.017632
+gait/blocked_right_ring_MCP_joint: 0.001396
+gait/blocked_right_ring_MPR_joint: 0.044739
+gait/blocked_right_ring_PIP_joint: 0.287640
+gait/blocked_right_thumb_CMP_joint: 0.528500
+gait/blocked_right_thumb_CMR_joint: 0.001225
+gait/blocked_right_thumb_DIP_joint: 0.044594
+gait/blocked_right_thumb_MCP_joint: 0.001938
+gait/blocked_right_thumb_PIP_joint: 0.054291
+         gait/completed_count: 23.562500
+gait/completed_mean_net_turns: 1.724053
+    gait/completed_mean_turns: 1.448276
+ gait/completed_net_turns_sum: 40.623000
+gait/completed_one_turn_count: 18.375000
+ gait/completed_one_turn_rate: 0.779841
+     gait/completed_turns_sum: 34.125000
+           gait/contact_index: 0.589508
+          gait/contact_little: 0.730728
+          gait/contact_middle: 0.792252
+            gait/contact_ring: 0.424297
+           gait/contact_thumb: 0.609104
+               gait/net_turns: 1.002907
+          gait/new_full_turns: 0.002323
+              gait/recontacts: 0.098186
+                gait/releases: 0.100620
+            gait/support_gate: 0.972070
+  gait/target_near_limit_rate: 0.295285
+gait/target_tracking_error_rad: 0.014076
+          gravity_full_stable: 1.000000
+            gravity_magnitude: 9.810000
+   gravity_reset_rate_instant: 0.000378
+    gravity_reset_rate_window: 0.000436
+                    gravity_z: -9.810000
+           height_reset_lower: 0.000378
+           height_reset_upper: 0.000000
+         object_axis_tilt_deg: 5.225863
+policy/action_saturation_rate: 0.018398
+        policy/action_std_max: 0.237235
+       policy/action_std_mean: 0.132574
+        policy/action_std_min: 0.100259
+        reverse_rotation_rate: 0.061077
+                    rew/alive: 0.001999
+                     rew/drop: -0.000076
+          rew/gait_adjustment: -0.001686
+         rew/object_axis_tilt: -0.003565
+          rew/off_axis_angvel: -0.000688
+                   rew/rotate: 0.059467
+           rew/self_collision: -0.000309
+          rew/stable_rotation: 0.001684
+                   rew/torque: -0.000007
+                     rew/work: -0.000002
+                 rew/xy_drift: -0.000449
+                  rew/z_drift: -0.000357
+            rotation_progress: 0.594674
+   self_collision_force_max_n: 91.645083
+  self_collision_force_mean_n: 0.335724
+          self_collision_rate: 0.092892
+         stable_rotation_rate: 0.336712
+         tactile/contact_rate: 0.622032
+          tactile/force_max_n: 2.603326
+         tactile/force_mean_n: 0.357805
+                target_angvel: 0.375007
+                     time_out: 0.001060
+                 total_reward: 5.601183
+                  xy_drift_mm: 10.699377
+                   z_drift_mm: 2.262700
+----------------------------------------------------------------------------------------------------
+              Total timesteps: 673710080
+               Iteration time: 3.83s
+                 Time elapsed: 03:31:00
+                          ETA: 02:05:48
+
+Agent Steps: 0673M | FPS: 51643.4 | Last FPS: 58401.8 | Full-g Best: 37.08 | Curriculum Best: 37.08
+
+####################################################################################################
+                                    Learning iteration 2514/4000                                    
+
+                  Computation: 58552 steps/s (collection: 4.289s, learning: 0.188s)
+                  Mean reward: 36.1557
+          Mean episode length: 660.6944
+                      angvelX: 0.040569
+                      angvelY: 0.043644
+                      angvelZ: 0.377148
+            axis_aligned_rate: 0.963825
+  gait/actual_near_limit_rate: 0.305561
+            gait/blocked_push: 0.029923
+gait/blocked_right_index_DIP_joint: 0.245899
+gait/blocked_right_index_MCP_joint: 0.044624
+gait/blocked_right_index_MPR_joint: 0.483433
+gait/blocked_right_index_PIP_joint: 0.058861
+gait/blocked_right_little_DIP_joint: 0.958508
+gait/blocked_right_little_MCP_joint: 0.004921
+gait/blocked_right_little_MPR_joint: 0.013809
+gait/blocked_right_little_PIP_joint: 0.465527
+gait/blocked_right_middle_DIP_joint: 0.943874
+gait/blocked_right_middle_MCP_joint: 0.000065
+gait/blocked_right_middle_MPR_joint: 0.291119
+gait/blocked_right_middle_PIP_joint: 0.025364
+gait/blocked_right_ring_DIP_joint: 0.015659
+gait/blocked_right_ring_MCP_joint: 0.001163
+gait/blocked_right_ring_MPR_joint: 0.045174
+gait/blocked_right_ring_PIP_joint: 0.293091
+gait/blocked_right_thumb_CMP_joint: 0.508823
+gait/blocked_right_thumb_CMR_joint: 0.001053
+gait/blocked_right_thumb_DIP_joint: 0.042328
+gait/blocked_right_thumb_MCP_joint: 0.001766
+gait/blocked_right_thumb_PIP_joint: 0.053791
+         gait/completed_count: 23.062500
+gait/completed_mean_net_turns: 1.736562
+    gait/completed_mean_turns: 1.479675
+ gait/completed_net_turns_sum: 40.049466
+gait/completed_one_turn_count: 18.312500
+ gait/completed_one_turn_rate: 0.794038
+     gait/completed_turns_sum: 34.125000
+           gait/contact_index: 0.585247
+          gait/contact_little: 0.728058
+          gait/contact_middle: 0.786373
+            gait/contact_ring: 0.428555
+           gait/contact_thumb: 0.616371
+               gait/net_turns: 1.008451
+          gait/new_full_turns: 0.002331
+              gait/recontacts: 0.099159
+                gait/releases: 0.102634
+            gait/support_gate: 0.971587
+  gait/target_near_limit_rate: 0.294990
+gait/target_tracking_error_rad: 0.014061
+          gravity_full_stable: 1.000000
+            gravity_magnitude: 9.810000
+   gravity_reset_rate_instant: 0.000381
+    gravity_reset_rate_window: 0.000436
+                    gravity_z: -9.810000
+           height_reset_lower: 0.000381
+           height_reset_upper: 0.000000
+         object_axis_tilt_deg: 5.244945
+policy/action_saturation_rate: 0.018436
+        policy/action_std_max: 0.237299
+       policy/action_std_mean: 0.132565
+        policy/action_std_min: 0.100259
+        reverse_rotation_rate: 0.061588
+                    rew/alive: 0.001999
+                     rew/drop: -0.000076
+          rew/gait_adjustment: -0.001708
+         rew/object_axis_tilt: -0.003549
+          rew/off_axis_angvel: -0.000673
+                   rew/rotate: 0.059739
+           rew/self_collision: -0.000299
+          rew/stable_rotation: 0.001724
+                   rew/torque: -0.000007
+                     rew/work: -0.000002
+                 rew/xy_drift: -0.000431
+                  rew/z_drift: -0.000353
+            rotation_progress: 0.597387
+   self_collision_force_max_n: 75.646957
+  self_collision_force_mean_n: 0.327498
+          self_collision_rate: 0.090305
+         stable_rotation_rate: 0.344784
+         tactile/contact_rate: 0.621922
+          tactile/force_max_n: 2.551201
+         tactile/force_mean_n: 0.357242
+                target_angvel: 0.377148
+                     time_out: 0.001026
+                 total_reward: 5.636339
+                  xy_drift_mm: 10.597931
+                   z_drift_mm: 2.238929
+----------------------------------------------------------------------------------------------------
+              Total timesteps: 673972224
+               Iteration time: 4.49s
+                 Time elapsed: 03:31:04
+                          ETA: 02:05:43
+
+Agent Steps: 0674M | FPS: 51643.4 | Last FPS: 51683.8 | Full-g Best: 37.08 | Curriculum Best: 37.08
+
+####################################################################################################
+                                    Learning iteration 2515/4000                                    
+
+                  Computation: 51838 steps/s (collection: 4.883s, learning: 0.174s)
+                  Mean reward: 34.5287
+          Mean episode length: 629.1554
+                      angvelX: 0.040800
+                      angvelY: 0.046598
+                      angvelZ: 0.379660
+            axis_aligned_rate: 0.965389
+  gait/actual_near_limit_rate: 0.306248
+            gait/blocked_push: 0.029910
+gait/blocked_right_index_DIP_joint: 0.252872
+gait/blocked_right_index_MCP_joint: 0.042393
+gait/blocked_right_index_MPR_joint: 0.490623
+gait/blocked_right_index_PIP_joint: 0.055939
+gait/blocked_right_little_DIP_joint: 0.957996
+gait/blocked_right_little_MCP_joint: 0.004646
+gait/blocked_right_little_MPR_joint: 0.013462
+gait/blocked_right_little_PIP_joint: 0.469200
+gait/blocked_right_middle_DIP_joint: 0.942753
+gait/blocked_right_middle_MCP_joint: 0.000122
+gait/blocked_right_middle_MPR_joint: 0.282787
+gait/blocked_right_middle_PIP_joint: 0.023556
+gait/blocked_right_ring_DIP_joint: 0.015316
+gait/blocked_right_ring_MCP_joint: 0.001007
+gait/blocked_right_ring_MPR_joint: 0.044540
+gait/blocked_right_ring_PIP_joint: 0.293213
+gait/blocked_right_thumb_CMP_joint: 0.501812
+gait/blocked_right_thumb_CMR_joint: 0.000820
+gait/blocked_right_thumb_DIP_joint: 0.036892
+gait/blocked_right_thumb_MCP_joint: 0.001625
+gait/blocked_right_thumb_PIP_joint: 0.054123
+         gait/completed_count: 24.750000
+gait/completed_mean_net_turns: 1.697411
+    gait/completed_mean_turns: 1.439394
+ gait/completed_net_turns_sum: 42.010929
+gait/completed_one_turn_count: 18.937500
+ gait/completed_one_turn_rate: 0.765152
+     gait/completed_turns_sum: 35.625000
+           gait/contact_index: 0.582348
+          gait/contact_little: 0.728176
+          gait/contact_middle: 0.793629
+            gait/contact_ring: 0.423466
+           gait/contact_thumb: 0.618988
+               gait/net_turns: 1.010954
+          gait/new_full_turns: 0.002373
+              gait/recontacts: 0.098827
+                gait/releases: 0.101448
+            gait/support_gate: 0.972034
+  gait/target_near_limit_rate: 0.295484
+gait/target_tracking_error_rad: 0.014117
+          gravity_full_stable: 1.000000
+            gravity_magnitude: 9.810000
+   gravity_reset_rate_instant: 0.000416
+    gravity_reset_rate_window: 0.000436
+                    gravity_z: -9.810000
+           height_reset_lower: 0.000412
+           height_reset_upper: 0.000004
+         object_axis_tilt_deg: 5.192877
+policy/action_saturation_rate: 0.018274
+        policy/action_std_max: 0.237310
+       policy/action_std_mean: 0.132558
+        policy/action_std_min: 0.100259
+        reverse_rotation_rate: 0.060295
+                    rew/alive: 0.001999
+                     rew/drop: -0.000083
+          rew/gait_adjustment: -0.001675
+         rew/object_axis_tilt: -0.003537
+          rew/off_axis_angvel: -0.000745
+                   rew/rotate: 0.059907
+           rew/self_collision: -0.000282
+          rew/stable_rotation: 0.001696
+                   rew/torque: -0.000007
+                     rew/work: -0.000002
+                 rew/xy_drift: -0.000441
+                  rew/z_drift: -0.000350
+            rotation_progress: 0.599068
+   self_collision_force_max_n: 82.644857
+  self_collision_force_mean_n: 0.314253
+          self_collision_rate: 0.089882
+         stable_rotation_rate: 0.339222
+         tactile/contact_rate: 0.622290
+          tactile/force_max_n: 2.426340
+         tactile/force_mean_n: 0.357890
+                target_angvel: 0.379660
+                     time_out: 0.001095
+                 total_reward: 5.648005
+                  xy_drift_mm: 10.664012
+                   z_drift_mm: 2.224753
+----------------------------------------------------------------------------------------------------
+              Total timesteps: 674234368
+               Iteration time: 5.07s
+                 Time elapsed: 03:31:09
+                          ETA: 02:05:37
+
+Agent Steps: 0674M | FPS: 51641.9 | Last FPS: 48161.9 | Full-g Best: 37.08 | Curriculum Best: 37.08
+
+####################################################################################################
+                                    Learning iteration 2516/4000                                    
+
+                  Computation: 48299 steps/s (collection: 5.259s, learning: 0.169s)
+                  Mean reward: 35.6813
+          Mean episode length: 652.7550
+                      angvelX: 0.041008
+                      angvelY: 0.042928
+                      angvelZ: 0.379711
+            axis_aligned_rate: 0.965923
+  gait/actual_near_limit_rate: 0.306061
+            gait/blocked_push: 0.029851
+gait/blocked_right_index_DIP_joint: 0.253040
+gait/blocked_right_index_MCP_joint: 0.044525
+gait/blocked_right_index_MPR_joint: 0.487461
+gait/blocked_right_index_PIP_joint: 0.054588
+gait/blocked_right_little_DIP_joint: 0.958950
+gait/blocked_right_little_MCP_joint: 0.004463
+gait/blocked_right_little_MPR_joint: 0.013668
+gait/blocked_right_little_PIP_joint: 0.465809
+gait/blocked_right_middle_DIP_joint: 0.942715
+gait/blocked_right_middle_MCP_joint: 0.000092
+gait/blocked_right_middle_MPR_joint: 0.288712
+gait/blocked_right_middle_PIP_joint: 0.023888
+gait/blocked_right_ring_DIP_joint: 0.016247
+gait/blocked_right_ring_MCP_joint: 0.000805
+gait/blocked_right_ring_MPR_joint: 0.043827
+gait/blocked_right_ring_PIP_joint: 0.298725
+gait/blocked_right_thumb_CMP_joint: 0.502846
+gait/blocked_right_thumb_CMR_joint: 0.000916
+gait/blocked_right_thumb_DIP_joint: 0.036945
+gait/blocked_right_thumb_MCP_joint: 0.001698
+gait/blocked_right_thumb_PIP_joint: 0.054489
+         gait/completed_count: 22.937500
+gait/completed_mean_net_turns: 1.740185
+    gait/completed_mean_turns: 1.482289
+ gait/completed_net_turns_sum: 39.915490
+gait/completed_one_turn_count: 18.312500
+ gait/completed_one_turn_rate: 0.798365
+     gait/completed_turns_sum: 34.000000
+           gait/contact_index: 0.594139
+          gait/contact_little: 0.731678
+          gait/contact_middle: 0.786644
+            gait/contact_ring: 0.425823
+           gait/contact_thumb: 0.607853
+               gait/net_turns: 1.014885
+          gait/new_full_turns: 0.002434
+              gait/recontacts: 0.099751
+                gait/releases: 0.102409
+            gait/support_gate: 0.972151
+  gait/target_near_limit_rate: 0.295378
+gait/target_tracking_error_rad: 0.014078
+          gravity_full_stable: 1.000000
+            gravity_magnitude: 9.810000
+   gravity_reset_rate_instant: 0.000351
+    gravity_reset_rate_window: 0.000436
+                    gravity_z: -9.810000
+           height_reset_lower: 0.000351
+           height_reset_upper: 0.000000
+         object_axis_tilt_deg: 5.100938
+policy/action_saturation_rate: 0.018509
+        policy/action_std_max: 0.237279
+       policy/action_std_mean: 0.132550
+        policy/action_std_min: 0.100259
+        reverse_rotation_rate: 0.059830
+                    rew/alive: 0.001999
+                     rew/drop: -0.000070
+          rew/gait_adjustment: -0.001687
+         rew/object_axis_tilt: -0.003411
+          rew/off_axis_angvel: -0.000677
+                   rew/rotate: 0.059766
+           rew/self_collision: -0.000281
+          rew/stable_rotation: 0.001674
+                   rew/torque: -0.000006
+                     rew/work: -0.000002
+                 rew/xy_drift: -0.000448
+                  rew/z_drift: -0.000348
+            rotation_progress: 0.597658
+   self_collision_force_max_n: 65.519257
+  self_collision_force_mean_n: 0.319867
+          self_collision_rate: 0.093128
+         stable_rotation_rate: 0.334770
+         tactile/contact_rate: 0.622470
+          tactile/force_max_n: 2.432923
+         tactile/force_mean_n: 0.358094
+                target_angvel: 0.379711
+                     time_out: 0.001049
+                 total_reward: 5.650871
+                  xy_drift_mm: 10.733525
+                   z_drift_mm: 2.221319
+----------------------------------------------------------------------------------------------------
+              Total timesteps: 674496512
+               Iteration time: 5.44s
+                 Time elapsed: 03:31:15
+                          ETA: 02:05:33
+
+Agent Steps: 0674M | FPS: 51640.0 | Last FPS: 47251.4 | Full-g Best: 37.08 | Curriculum Best: 37.08
+
+####################################################################################################
+                                    Learning iteration 2517/4000                                    
+
+                  Computation: 47339 steps/s (collection: 5.339s, learning: 0.199s)
+                  Mean reward: 33.3281
+          Mean episode length: 611.6877
+                      angvelX: 0.042310
+                      angvelY: 0.043660
+                      angvelZ: 0.380567
+            axis_aligned_rate: 0.967670
+  gait/actual_near_limit_rate: 0.305189
+            gait/blocked_push: 0.029788
+gait/blocked_right_index_DIP_joint: 0.254665
+gait/blocked_right_index_MCP_joint: 0.043289
+gait/blocked_right_index_MPR_joint: 0.485504
+gait/blocked_right_index_PIP_joint: 0.053360
+gait/blocked_right_little_DIP_joint: 0.960300
+gait/blocked_right_little_MCP_joint: 0.004566
+gait/blocked_right_little_MPR_joint: 0.013420
+gait/blocked_right_little_PIP_joint: 0.451466
+gait/blocked_right_middle_DIP_joint: 0.942997
+gait/blocked_right_middle_MCP_joint: 0.000061
+gait/blocked_right_middle_MPR_joint: 0.295452
+gait/blocked_right_middle_PIP_joint: 0.025066
+gait/blocked_right_ring_DIP_joint: 0.016075
+gait/blocked_right_ring_MCP_joint: 0.000931
+gait/blocked_right_ring_MPR_joint: 0.043545
+gait/blocked_right_ring_PIP_joint: 0.298668
+gait/blocked_right_thumb_CMP_joint: 0.496292
+gait/blocked_right_thumb_CMR_joint: 0.001087
+gait/blocked_right_thumb_DIP_joint: 0.036758
+gait/blocked_right_thumb_MCP_joint: 0.001656
+gait/blocked_right_thumb_PIP_joint: 0.051750
+         gait/completed_count: 22.187500
+gait/completed_mean_net_turns: 1.667390
+    gait/completed_mean_turns: 1.383099
+ gait/completed_net_turns_sum: 36.995219
+gait/completed_one_turn_count: 16.812500
+ gait/completed_one_turn_rate: 0.757746
+     gait/completed_turns_sum: 30.687500
+           gait/contact_index: 0.591873
+          gait/contact_little: 0.720539
+          gait/contact_middle: 0.786156
+            gait/contact_ring: 0.440197
+           gait/contact_thumb: 0.607979
+               gait/net_turns: 1.022087
+          gait/new_full_turns: 0.002522
+              gait/recontacts: 0.100376
+                gait/releases: 0.102749
+            gait/support_gate: 0.972049
+  gait/target_near_limit_rate: 0.294189
+gait/target_tracking_error_rad: 0.014034
+          gravity_full_stable: 1.000000
+            gravity_magnitude: 9.810000
+   gravity_reset_rate_instant: 0.000431
+    gravity_reset_rate_window: 0.000436
+                    gravity_z: -9.810000
+           height_reset_lower: 0.000431
+           height_reset_upper: 0.000000
+         object_axis_tilt_deg: 5.073134
+policy/action_saturation_rate: 0.018214
+        policy/action_std_max: 0.237189
+       policy/action_std_mean: 0.132533
+        policy/action_std_min: 0.100259
+        reverse_rotation_rate: 0.059807
+                    rew/alive: 0.001999
+                     rew/drop: -0.000086
+          rew/gait_adjustment: -0.001672
+         rew/object_axis_tilt: -0.003423
+          rew/off_axis_angvel: -0.000725
+                   rew/rotate: 0.060148
+           rew/self_collision: -0.000272
+          rew/stable_rotation: 0.001679
+                   rew/torque: -0.000006
+                     rew/work: -0.000002
+                 rew/xy_drift: -0.000446
+                  rew/z_drift: -0.000344
+            rotation_progress: 0.601481
+   self_collision_force_max_n: 70.875209
+  self_collision_force_mean_n: 0.307306
+          self_collision_rate: 0.088490
+         stable_rotation_rate: 0.335789
+         tactile/contact_rate: 0.622360
+          tactile/force_max_n: 2.648661
+         tactile/force_mean_n: 0.356270
+                target_angvel: 0.380567
+                     time_out: 0.000923
+                 total_reward: 5.685054
+                  xy_drift_mm: 10.736424
+                   z_drift_mm: 2.202245
+----------------------------------------------------------------------------------------------------
+              Total timesteps: 674758656
+               Iteration time: 5.55s
+                 Time elapsed: 03:31:20
+                          ETA: 02:05:28
+
+Agent Steps: 0675M | FPS: 51633.1 | Last FPS: 38721.8 | Full-g Best: 37.08 | Curriculum Best: 37.08
+
+####################################################################################################
+                                    Learning iteration 2518/4000                                    
+
+                  Computation: 38811 steps/s (collection: 6.555s, learning: 0.199s)
+                  Mean reward: 36.2881
+          Mean episode length: 658.9770
+                      angvelX: 0.042534
+                      angvelY: 0.043134
+                      angvelZ: 0.381192
+            axis_aligned_rate: 0.969398
+  gait/actual_near_limit_rate: 0.304984
+            gait/blocked_push: 0.029675
+gait/blocked_right_index_DIP_joint: 0.263374
+gait/blocked_right_index_MCP_joint: 0.041210
+gait/blocked_right_index_MPR_joint: 0.493221
+gait/blocked_right_index_PIP_joint: 0.047470
+gait/blocked_right_little_DIP_joint: 0.960880
+gait/blocked_right_little_MCP_joint: 0.004383
+gait/blocked_right_little_MPR_joint: 0.012589
+gait/blocked_right_little_PIP_joint: 0.459503
+gait/blocked_right_middle_DIP_joint: 0.944462
+gait/blocked_right_middle_MCP_joint: 0.000061
+gait/blocked_right_middle_MPR_joint: 0.292130
+gait/blocked_right_middle_PIP_joint: 0.025337
+gait/blocked_right_ring_DIP_joint: 0.014805
+gait/blocked_right_ring_MCP_joint: 0.001087
+gait/blocked_right_ring_MPR_joint: 0.043541
+gait/blocked_right_ring_PIP_joint: 0.285591
+gait/blocked_right_thumb_CMP_joint: 0.482307
+gait/blocked_right_thumb_CMR_joint: 0.001045
+gait/blocked_right_thumb_DIP_joint: 0.032066
+gait/blocked_right_thumb_MCP_joint: 0.001793
+gait/blocked_right_thumb_PIP_joint: 0.051632
+         gait/completed_count: 24.437500
+gait/completed_mean_net_turns: 1.750544
+    gait/completed_mean_turns: 1.483376
+ gait/completed_net_turns_sum: 42.778909
+gait/completed_one_turn_count: 19.562500
+ gait/completed_one_turn_rate: 0.800512
+     gait/completed_turns_sum: 36.250000
+           gait/contact_index: 0.584614
+          gait/contact_little: 0.716328
+          gait/contact_middle: 0.790722
+            gait/contact_ring: 0.444447
+           gait/contact_thumb: 0.616985
+               gait/net_turns: 1.026643
+          gait/new_full_turns: 0.002399
+              gait/recontacts: 0.100353
+                gait/releases: 0.103237
+            gait/support_gate: 0.972775
+  gait/target_near_limit_rate: 0.293621
+gait/target_tracking_error_rad: 0.014115
+          gravity_full_stable: 1.000000
+            gravity_magnitude: 9.810000
+   gravity_reset_rate_instant: 0.000374
+    gravity_reset_rate_window: 0.000436
+                    gravity_z: -9.810000
+           height_reset_lower: 0.000374
+           height_reset_upper: 0.000000
+         object_axis_tilt_deg: 5.083915
+policy/action_saturation_rate: 0.017690
+        policy/action_std_max: 0.237080
+       policy/action_std_mean: 0.132517
+        policy/action_std_min: 0.100259
+        reverse_rotation_rate: 0.058693
+                    rew/alive: 0.001999
+                     rew/drop: -0.000075
+          rew/gait_adjustment: -0.001658
+         rew/object_axis_tilt: -0.003372
+          rew/off_axis_angvel: -0.000658
+                   rew/rotate: 0.060287
+           rew/self_collision: -0.000243
+          rew/stable_rotation: 0.001695
+                   rew/torque: -0.000007
+                     rew/work: -0.000002
+                 rew/xy_drift: -0.000443
+                  rew/z_drift: -0.000337
+            rotation_progress: 0.602866
+   self_collision_force_max_n: 74.609344
+  self_collision_force_mean_n: 0.279553
+          self_collision_rate: 0.082298
+         stable_rotation_rate: 0.339039
+         tactile/contact_rate: 0.623634
+          tactile/force_max_n: 2.673211
+         tactile/force_mean_n: 0.356857
+                target_angvel: 0.381192
+                     time_out: 0.001118
+                 total_reward: 5.718553
+                  xy_drift_mm: 10.692195
+                   z_drift_mm: 2.182006
+----------------------------------------------------------------------------------------------------
+              Total timesteps: 675020800
+               Iteration time: 6.77s
+                 Time elapsed: 03:31:27
+                          ETA: 02:05:24
+
+Agent Steps: 0675M | FPS: 51625.6 | Last FPS: 37866.9 | Full-g Best: 37.08 | Curriculum Best: 37.08
+
+####################################################################################################
+                                    Learning iteration 2519/4000                                    
+
+                  Computation: 37952 steps/s (collection: 6.700s, learning: 0.207s)
+                  Mean reward: 37.7418
+          Mean episode length: 688.1275
+                      angvelX: 0.042429
+                      angvelY: 0.043995
+                      angvelZ: 0.382254
+            axis_aligned_rate: 0.968876
+  gait/actual_near_limit_rate: 0.305647
+            gait/blocked_push: 0.029504
+gait/blocked_right_index_DIP_joint: 0.264477
+gait/blocked_right_index_MCP_joint: 0.044613
+gait/blocked_right_index_MPR_joint: 0.500599
+gait/blocked_right_index_PIP_joint: 0.046139
+gait/blocked_right_little_DIP_joint: 0.962006
+gait/blocked_right_little_MCP_joint: 0.004501
+gait/blocked_right_little_MPR_joint: 0.012409
+gait/blocked_right_little_PIP_joint: 0.459961
+gait/blocked_right_middle_DIP_joint: 0.943375
+gait/blocked_right_middle_MCP_joint: 0.000095
+gait/blocked_right_middle_MPR_joint: 0.284954
+gait/blocked_right_middle_PIP_joint: 0.024910
+gait/blocked_right_ring_DIP_joint: 0.015251
+gait/blocked_right_ring_MCP_joint: 0.001160
+gait/blocked_right_ring_MPR_joint: 0.042347
+gait/blocked_right_ring_PIP_joint: 0.287552
+gait/blocked_right_thumb_CMP_joint: 0.482159
+gait/blocked_right_thumb_CMR_joint: 0.001080
+gait/blocked_right_thumb_DIP_joint: 0.029533
+gait/blocked_right_thumb_MCP_joint: 0.001850
+gait/blocked_right_thumb_PIP_joint: 0.054653
+         gait/completed_count: 24.062500
+gait/completed_mean_net_turns: 1.771439
+    gait/completed_mean_turns: 1.498701
+ gait/completed_net_turns_sum: 42.625262
+gait/completed_one_turn_count: 19.375000
+ gait/completed_one_turn_rate: 0.805195
+     gait/completed_turns_sum: 36.062500
+           gait/contact_index: 0.590736
+          gait/contact_little: 0.720497
+          gait/contact_middle: 0.792751
+            gait/contact_ring: 0.442188
+           gait/contact_thumb: 0.608974
+               gait/net_turns: 1.031069
+          gait/new_full_turns: 0.002460
+              gait/recontacts: 0.100609
+                gait/releases: 0.103226
+            gait/support_gate: 0.973475
+  gait/target_near_limit_rate: 0.294153
+gait/target_tracking_error_rad: 0.014092
+          gravity_full_stable: 1.000000
+            gravity_magnitude: 9.810000
+   gravity_reset_rate_instant: 0.000355
+    gravity_reset_rate_window: 0.000434
+                    gravity_z: -9.810000
+           height_reset_lower: 0.000355
+           height_reset_upper: 0.000000
+         object_axis_tilt_deg: 5.054785
+policy/action_saturation_rate: 0.017451
+        policy/action_std_max: 0.237041
+       policy/action_std_mean: 0.132508
+        policy/action_std_min: 0.100259
+        reverse_rotation_rate: 0.057705
+                    rew/alive: 0.001999
+                     rew/drop: -0.000071
+          rew/gait_adjustment: -0.001630
+         rew/object_axis_tilt: -0.003312
+          rew/off_axis_angvel: -0.000667
+                   rew/rotate: 0.060500
+           rew/self_collision: -0.000241
+          rew/stable_rotation: 0.001683
+                   rew/torque: -0.000006
+                     rew/work: -0.000002
+                 rew/xy_drift: -0.000455
+                  rew/z_drift: -0.000335
+            rotation_progress: 0.605001
+   self_collision_force_max_n: 71.400703
+  self_collision_force_mean_n: 0.276740
+          self_collision_rate: 0.081417
+         stable_rotation_rate: 0.336670
+         tactile/contact_rate: 0.624278
+          tactile/force_max_n: 2.399103
+         tactile/force_mean_n: 0.357253
+                target_angvel: 0.382254
+                     time_out: 0.001114
+                 total_reward: 5.746293
+                  xy_drift_mm: 10.784539
+                   z_drift_mm: 2.176299
+----------------------------------------------------------------------------------------------------
+              Total timesteps: 675282944
+               Iteration time: 6.92s
+                 Time elapsed: 03:31:34
+                          ETA: 02:05:20
+save full-gravity best reward: 37.74 (g=9.81, reset_rate=0.00043, target_angvel=0.382, stable_rotation=33.7%)
+
+Agent Steps: 0675M | FPS: 51619.6 | Last FPS: 40075.1 | Full-g Best: 37.74 | Curriculum Best: 37.74
+
+####################################################################################################
+                                    Learning iteration 2520/4000                                    
+
+                  Computation: 40341 steps/s (collection: 6.296s, learning: 0.202s)
+                  Mean reward: 34.5030
+          Mean episode length: 634.3261
+                      angvelX: 0.039843
+                      angvelY: 0.042415
+                      angvelZ: 0.381760
+            axis_aligned_rate: 0.968056
+  gait/actual_near_limit_rate: 0.304958
+            gait/blocked_push: 0.029642
+gait/blocked_right_index_DIP_joint: 0.262646
+gait/blocked_right_index_MCP_joint: 0.045822
+gait/blocked_right_index_MPR_joint: 0.489960
+gait/blocked_right_index_PIP_joint: 0.045723
+gait/blocked_right_little_DIP_joint: 0.960968
+gait/blocked_right_little_MCP_joint: 0.004944
+gait/blocked_right_little_MPR_joint: 0.011585
+gait/blocked_right_little_PIP_joint: 0.450264
+gait/blocked_right_middle_DIP_joint: 0.943134
+gait/blocked_right_middle_MCP_joint: 0.000172
+gait/blocked_right_middle_MPR_joint: 0.295197
+gait/blocked_right_middle_PIP_joint: 0.026825
+gait/blocked_right_ring_DIP_joint: 0.014381
+gait/blocked_right_ring_MCP_joint: 0.001076
+gait/blocked_right_ring_MPR_joint: 0.043423
+gait/blocked_right_ring_PIP_joint: 0.291557
+gait/blocked_right_thumb_CMP_joint: 0.475273
+gait/blocked_right_thumb_CMR_joint: 0.001102
+gait/blocked_right_thumb_DIP_joint: 0.031300
+gait/blocked_right_thumb_MCP_joint: 0.001774
+gait/blocked_right_thumb_PIP_joint: 0.051266
+         gait/completed_count: 24.062500
+gait/completed_mean_net_turns: 1.722990
+    gait/completed_mean_turns: 1.462338
+ gait/completed_net_turns_sum: 41.459435
+gait/completed_one_turn_count: 18.625000
+ gait/completed_one_turn_rate: 0.774026
+     gait/completed_turns_sum: 35.187500
+           gait/contact_index: 0.599140
+          gait/contact_little: 0.718674
+          gait/contact_middle: 0.785084
+            gait/contact_ring: 0.451847
+           gait/contact_thumb: 0.599449
+               gait/net_turns: 1.033147
+          gait/new_full_turns: 0.002357
+              gait/recontacts: 0.101891
+                gait/releases: 0.104691
+            gait/support_gate: 0.972584
+  gait/target_near_limit_rate: 0.293310
+gait/target_tracking_error_rad: 0.014071
+          gravity_full_stable: 1.000000
+            gravity_magnitude: 9.810000
+   gravity_reset_rate_instant: 0.000366
+    gravity_reset_rate_window: 0.000404
+                    gravity_z: -9.810000
+           height_reset_lower: 0.000366
+           height_reset_upper: 0.000000
+         object_axis_tilt_deg: 5.079956
+policy/action_saturation_rate: 0.017929
+        policy/action_std_max: 0.236949
+       policy/action_std_mean: 0.132483
+        policy/action_std_min: 0.100259
+        reverse_rotation_rate: 0.058800
+                    rew/alive: 0.001999
+                     rew/drop: -0.000073
+          rew/gait_adjustment: -0.001671
+         rew/object_axis_tilt: -0.003371
+          rew/off_axis_angvel: -0.000721
+                   rew/rotate: 0.060337
+           rew/self_collision: -0.000250
+          rew/stable_rotation: 0.001684
+                   rew/torque: -0.000006
+                     rew/work: -0.000002
+                 rew/xy_drift: -0.000456
+                  rew/z_drift: -0.000335
+            rotation_progress: 0.603366
+   self_collision_force_max_n: 70.982362
+  self_collision_force_mean_n: 0.281070
+          self_collision_rate: 0.080318
+         stable_rotation_rate: 0.336803
+         tactile/contact_rate: 0.624223
+          tactile/force_max_n: 2.674303
+         tactile/force_mean_n: 0.357564
+                target_angvel: 0.381760
+                     time_out: 0.001102
+                 total_reward: 5.713399
+                  xy_drift_mm: 10.792602
+                   z_drift_mm: 2.171955
+----------------------------------------------------------------------------------------------------
+              Total timesteps: 675545088
+               Iteration time: 6.51s
+                 Time elapsed: 03:31:41
+                          ETA: 02:05:16
+
+Agent Steps: 0675M | FPS: 51612.9 | Last FPS: 38967.8 | Full-g Best: 37.74 | Curriculum Best: 37.74
+
+####################################################################################################
+                                    Learning iteration 2521/4000                                    
+
+                  Computation: 39053 steps/s (collection: 6.491s, learning: 0.222s)
+                  Mean reward: 37.8494
+          Mean episode length: 670.3425
+                      angvelX: 0.043424
+                      angvelY: 0.042617
+                      angvelZ: 0.381077
+            axis_aligned_rate: 0.968071
+  gait/actual_near_limit_rate: 0.305473
+            gait/blocked_push: 0.029521
+gait/blocked_right_index_DIP_joint: 0.267208
+gait/blocked_right_index_MCP_joint: 0.044857
+gait/blocked_right_index_MPR_joint: 0.492092
+gait/blocked_right_index_PIP_joint: 0.046589
+gait/blocked_right_little_DIP_joint: 0.961197
+gait/blocked_right_little_MCP_joint: 0.004341
+gait/blocked_right_little_MPR_joint: 0.010960
+gait/blocked_right_little_PIP_joint: 0.448814
+gait/blocked_right_middle_DIP_joint: 0.944031
+gait/blocked_right_middle_MCP_joint: 0.000122
+gait/blocked_right_middle_MPR_joint: 0.294979
+gait/blocked_right_middle_PIP_joint: 0.026211
+gait/blocked_right_ring_DIP_joint: 0.014027
+gait/blocked_right_ring_MCP_joint: 0.001118
+gait/blocked_right_ring_MPR_joint: 0.043915
+gait/blocked_right_ring_PIP_joint: 0.283451
+gait/blocked_right_thumb_CMP_joint: 0.473392
+gait/blocked_right_thumb_CMR_joint: 0.000946
+gait/blocked_right_thumb_DIP_joint: 0.031235
+gait/blocked_right_thumb_MCP_joint: 0.001949
+gait/blocked_right_thumb_PIP_joint: 0.051342
+         gait/completed_count: 24.437500
+gait/completed_mean_net_turns: 1.842977
+    gait/completed_mean_turns: 1.570332
+ gait/completed_net_turns_sum: 45.037748
+gait/completed_one_turn_count: 20.437500
+ gait/completed_one_turn_rate: 0.836317
+     gait/completed_turns_sum: 38.375000
+           gait/contact_index: 0.585781
+          gait/contact_little: 0.708241
+          gait/contact_middle: 0.791954
+            gait/contact_ring: 0.460522
+           gait/contact_thumb: 0.612213
+               gait/net_turns: 1.035021
+          gait/new_full_turns: 0.002457
+              gait/recontacts: 0.101105
+                gait/releases: 0.104000
+            gait/support_gate: 0.973003
+  gait/target_near_limit_rate: 0.293705
+gait/target_tracking_error_rad: 0.014185
+          gravity_full_stable: 1.000000
+            gravity_magnitude: 9.810000
+   gravity_reset_rate_instant: 0.000301
+    gravity_reset_rate_window: 0.000404
+                    gravity_z: -9.810000
+           height_reset_lower: 0.000301
+           height_reset_upper: 0.000000
+         object_axis_tilt_deg: 5.115296
+policy/action_saturation_rate: 0.017585
+        policy/action_std_max: 0.236919
+       policy/action_std_mean: 0.132447
+        policy/action_std_min: 0.100259
+        reverse_rotation_rate: 0.058315
+                    rew/alive: 0.001999
+                     rew/drop: -0.000060
+          rew/gait_adjustment: -0.001647
+         rew/object_axis_tilt: -0.003385
+          rew/off_axis_angvel: -0.000647
+                   rew/rotate: 0.060612
+           rew/self_collision: -0.000237
+          rew/stable_rotation: 0.001702
+                   rew/torque: -0.000007
+                     rew/work: -0.000002
+                 rew/xy_drift: -0.000448
+                  rew/z_drift: -0.000330
+            rotation_progress: 0.606124
+   self_collision_force_max_n: 66.155017
+  self_collision_force_mean_n: 0.273344
+          self_collision_rate: 0.080608
+         stable_rotation_rate: 0.340405
+         tactile/contact_rate: 0.624734
+          tactile/force_max_n: 2.435397
+         tactile/force_mean_n: 0.358461
+                target_angvel: 0.381077
+                     time_out: 0.001190
+                 total_reward: 5.755155
+                  xy_drift_mm: 10.726778
+                   z_drift_mm: 2.155070
+----------------------------------------------------------------------------------------------------
+              Total timesteps: 675807232
+               Iteration time: 6.73s
+                 Time elapsed: 03:31:47
+                          ETA: 02:05:11
+save full-gravity best reward: 37.85 (g=9.81, reset_rate=0.00040, target_angvel=0.381, stable_rotation=34.0%)
